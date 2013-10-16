@@ -33,14 +33,15 @@ def MySQL_query(query):
 
 class FEC_analyst():
     
-    def __init__(self):
+    def __init__(self, batch_id):
         con = db_connect()
         cur = con.cursor()
         # cur.execute("select NAME,ZIP_CODE,EMPLOYER,TRANSACTION_DT from newyork order by NAME limit 1000 ;")
         cur.execute("select distinct NAME from newyork  order by NAME limit 100;")
         a = cur.fetchall()
+        self.batch_id = batch_id
         self.hash_dim = None
-        self.D =  []  # Disambiguator object
+        self.D = []  # Disambiguator object
         self.token_counts = {}
         self.token_2_index = {}
         self.index_2_token = {}
@@ -84,23 +85,23 @@ class FEC_analyst():
     def __get_tokens(self, s):
         
         # remove all numerals
-        s1 = re.sub(r'\.|[0-9]+','',s)
+        s1 = re.sub(r'\.|[0-9]+', '', s)
         
         # List of all suffixes found then remove them
-        suffix_list = re.findall(r'\bESQ\b|\bENG\b|\bINC\b|\bLLC\b|\bLLP\b|\bMRS\b|\bPHD\b|\bSEN\b',s)
-        suffix_list += re.findall(r'\bDR\b|\bII\b|\bIII\b|\bIV\b|\bJR\b|\bMD\b|\bMR\b|\bMS\b|\bSR\b',s)
-        s1 = re.sub(r'(\bESQ\b)|(\bENG\b)|(\bINC\b)|(\bLLC\b)|(\bLLP\b)|(\bMRS\b)|(\bPHD\b)|(\bSEN\b)','',s1)
-        s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bSR\b)','',s1)
+        suffix_list = re.findall(r'\bESQ\b|\bENG\b|\bINC\b|\bLLC\b|\bLLP\b|\bMRS\b|\bPHD\b|\bSEN\b', s)
+        suffix_list += re.findall(r'\bDR\b|\bII\b|\bIII\b|\bIV\b|\bJR\b|\bMD\b|\bMR\b|\bMS\b|\bSR\b', s)
+        s1 = re.sub(r'(\bESQ\b)|(\bENG\b)|(\bINC\b)|(\bLLC\b)|(\bLLP\b)|(\bMRS\b)|(\bPHD\b)|(\bSEN\b)', '', s1)
+        s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bSR\b)', '', s1)
      
         s1 = re.sub(r'\.', '', s1)
         
 #         print s1
         
         # Find the first single-letter token and save it as middle name, then remove it 
-        middle_name_single = re.findall(r'\b\w\b',s1)
+        middle_name_single = re.findall(r'\b\w\b', s1)
         if middle_name_single:
-            middle_name_single= middle_name_single[0]
-            s1 = re.sub(r'\b%s\b' % middle_name_single,'',s1)
+            middle_name_single = middle_name_single[0]
+            s1 = re.sub(r'\b%s\b' % middle_name_single, '', s1)
         else:
             middle_name_single = ''    
         
@@ -112,30 +113,30 @@ class FEC_analyst():
         
 #         print s1
         # Extract full last name and tokenize, then remove from s1
-        last_name = re.findall(r'^[^,]*(?=\,)',s1)
+        last_name = re.findall(r'^[^,]*(?=\,)', s1)
         
         if not last_name:
-            last_name_list=[]
-            first_name_list=[]
-            middle_name=[]
+            last_name_list = []
+            first_name_list = []
+            middle_name = []
             
         else:
             last_name = last_name[0]        
-            s1 = s1.replace(last_name,'')
-            #Remove surrounding whitespace from last name
-            last_name = re.sub(r'^\s+|\s+$','',last_name)
-            last_name_list = re.split(r' ',last_name)
+            s1 = s1.replace(last_name, '')
+            # Remove surrounding whitespace from last name
+            last_name = re.sub(r'^\s+|\s+$', '', last_name)
+            last_name_list = re.split(r' ', last_name)
             
 #             print s1
             # Extract first name
-            first_name = re.findall(r'[^,]+',s1)
+            first_name = re.findall(r'[^,]+', s1)
             if first_name:
                 first_name = first_name[0]
-                #Remove surrounding whitespace from last name
-                first_name = re.sub(r'^\s+|\s+$','',first_name)
-                first_name_list = re.split(r' ',first_name)
+                # Remove surrounding whitespace from last name
+                first_name = re.sub(r'^\s+|\s+$', '', first_name)
+                first_name_list = re.split(r' ', first_name)
             
-            if len(first_name_list)>1 and not middle_name_single:
+            if len(first_name_list) > 1 and not middle_name_single:
                 middle_name = first_name_list[-1]
                 first_name_list.remove(middle_name)
             else: 
@@ -150,15 +151,15 @@ class FEC_analyst():
         tokens = []
 #         if middle_name==[]: middle_name=''
         for s in last_name_list:
-            tokens.append((1,s))
+            tokens.append((1, s))
         for s in first_name_list:
-            tokens.append((2,s))
+            tokens.append((2, s))
 #         for s in suffix_list:
 #             tokens.append((4,s))
             
         # middle_name is set up to be a string at this point
-        if len(middle_name)>0:
-            tokens.append((3,middle_name[0]))
+        if len(middle_name) > 0:
+            tokens.append((3, middle_name[0]))
         
         return tokens    
         
@@ -220,7 +221,7 @@ class FEC_analyst():
                     self.token_counts[token] += 1
                 else:
                     self.token_2_index[token] = self.no_of_tokens
-                    self.index_2_token[self.no_of_tokens]=token
+                    self.index_2_token[self.no_of_tokens] = token
                     self.token_counts[token] = 1
                     self.no_of_tokens += 1
                 vec[self.token_2_index[token]] = 1
@@ -235,14 +236,16 @@ class FEC_analyst():
         print "Total number of tokens identified: ", len(self.token_counts)
 
 
-    def save_list_of_strings_to_file(self, filename='../data/list_of_strings.txt'):
+    def save_list_of_strings_to_file(self, filename=None):
+        if not filename: filename = '../data/list_of_strings' + self.batch_id + '.txt'
         f = open(filename, 'w')
         for s, i in zip(self.list_of_strings, range(len(self.list_of_strings))):
             f.write("%d %s\n" % (i, s))
         f.close()
         
         
-    def save_adjacency_to_file(self, filename='../data/adjacency.txt'):
+    def save_adjacency_to_file(self, filename=None):
+        if not filename: filename = '../data/adjacency' + self.batch_id + '.txt'
         # save adjacency matrix to file
 #         filename = '/home/navid/edges.txt'
         f = open(filename, 'w') 
@@ -276,7 +279,7 @@ class FEC_analyst():
         # B = 10
         
         
-        self.D = Disambiguator(self.list_of_vectors,self.index_2_token,self.token_2_index, dim)
+        self.D = Disambiguator(self.list_of_vectors, self.index_2_token, self.token_2_index, dim, self.batch_id)
         
         # compute the hashes
         print "Computing the hashes..."
@@ -292,7 +295,7 @@ class FEC_analyst():
             
         
         
-def find_all_in_list(regex,str_list):
+def find_all_in_list(regex, str_list):
     ''' Given a list of strings, str_list and a regular expression, regex, return a dictionary with the
         frequencies of all mathces in the list.'''
     dict_matches = {}
@@ -312,10 +315,17 @@ pp = pprint.PrettyPrinter(indent=4)
 # pp.pprint(self.D.adjacency)
 
 
-analyst = FEC_analyst()
+
+
+record_start = 2000
+record_no = 1000
+batch_id = "[" + str(record_start) + "," + str(record_start+record_no) + "]"
+
+analyst = FEC_analyst(batch_id)
+
 
 # Get string list from MySQL query and set it as analyst's list_of_strings
-query_result = MySQL_query("select distinct NAME from newyork  where NAME <>'' order by NAME limit 20000,1000;")
+query_result = MySQL_query("select distinct NAME from newyork  where NAME <>'' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
 tmp_list = []
 for i in range(len(query_result)):
     tmp_list.append(query_result[i][0])
@@ -348,4 +358,4 @@ pl.show()
 
     
 
-analyst.print_adj_rows(r=[0, 900], filename='../data/adj_text.txt')
+analyst.print_adj_rows(r=[0, 900], filename='../data/adj_text' + batch_id + '.txt')

@@ -8,7 +8,8 @@ import os
 
 
 class Disambiguator():
-    def __init__(self, list_of_vectors, index_2_token, token_2_index, input_dimensions):
+    def __init__(self, list_of_vectors, index_2_token, token_2_index, input_dimensions, batch_id):
+        self.batch_id = batch_id
         self.index_2_token = index_2_token
         self.token_2_index = token_2_index
         self.list_of_vectors = list_of_vectors
@@ -185,7 +186,8 @@ class Disambiguator():
         self.LSH_hash = LSH_hash
         
         
-    def save_LSH_hash(self, filename='../data/LSH_hash.txt'):
+    def save_LSH_hash(self, filename=None):
+        if not filename: filename = '../data/LSH_hash' + self.batch_id + '.txt'
         f = open(filename, 'w')
         for s in  self.LSH_hash:
             f.write(s + "\n")
