@@ -8,7 +8,9 @@ import os
 
 
 class Disambiguator():
-    def __init__(self, list_of_vectors, input_dimensions):
+    def __init__(self, list_of_vectors, index_2_token, token_2_index, input_dimensions):
+        self.index_2_token = index_2_token
+        self.token_2_index = token_2_index
         self.list_of_vectors = list_of_vectors
         self.input_dimensions = input_dimensions
         self.LSH_hash = []
@@ -16,18 +18,18 @@ class Disambiguator():
         self.m = 1  # number of permutations of the hashes
         
 
-    def imshow_adjacency_matrix(self,r=()):
+    def imshow_adjacency_matrix(self, r=()):
         ''' public wrapper for __dict_imshow '''
-        self.__dict_imshow(self.adjacency,rng = r)
+        self.__dict_imshow(self.adjacency, rng=r)
         
-    def __dict_imshow(self, dict1,rng):
+    def __dict_imshow(self, dict1, rng):
         ''' This function draws a plot similar to imshow for a sparse matrix
             represented as a dictionary of x:y key-values.
             Designed to be used with sparse adjacency matrices produced by
             the method get_nearest_neighbors '''
         X, Y = [], []
         
-        if rng: x_values = range(rng[0],rng[1]); 
+        if rng: x_values = range(rng[0], rng[1]); 
         else: x_values = dict1
         for x in x_values:
             for y in dict1[x]:
@@ -62,6 +64,48 @@ class Disambiguator():
         # print all vectors
         for vec in  self.list_of_vectors:
             print vec
+    
+    def __is_close_enough(self, v1, v2):
+        ''' This function returns True or False indicating whether two name vectors are close enough to be considered identical or not '''
+        identical = True
+        # Generate dictionary of lastname, firstname, middlename and suffix tokens for both vectors
+        dict1 = {}
+        dict1[1] = []  # Last name
+        dict1[2] = []  # First name
+        dict1[3] = []  # Middle name
+        dict1[4] = []  # suffix        
+        for index in v1:
+            token = self.index_2_token[index]
+            dict1[token[0]].append(token[1])
+        
+        dict2 = {}
+        dict2[1] = []  # Last name
+        dict2[2] = []  # First name
+        dict2[3] = []  # Middle name
+        dict2[4] = []  # suffix        
+        for index in v2:
+            token = self.index_2_token[index]
+            dict2[token[0]].append(token[1])
+        
+        
+        
+        # if both have middlenames, they should be the same
+        if dict1[3] and dict2[3]:
+            if dict1[3] != dict2[3]: identical = False
+        
+        # if 1 doesn't have a middle name but 2 does, then 2 is not the "parent" of 1
+        if not dict1[3] and dict2[3]: identical = False
+          
+        # if last names arden't identical, fail.
+        if dict1[1] != dict2[1]: identical = False;
+        
+        # if first names don't overlap, then fail.
+        if not any(i in dict1[2] for i in dict2[2]): identical = False
+        
+        return identical
+            
+        
+                
     
     def get_nearest_neighbors(self, B, sigma):
         ''' given a list of strings or hashes, this function computes the nearest
@@ -99,7 +143,10 @@ class Disambiguator():
             iteration_indices = range(j_low, j_high + 1)
             iteration_indices.remove(i)
             for j in iteration_indices:
-                if Hamming_distance(list_of_hashes_sorted[i], list_of_hashes_sorted[j]) < sigma * m:
+                # i,j: current index in the sorted has list
+                # sort_indices[i]: the original index of the item residing at index i of the sorted list
+#                 if Hamming_distance(list_of_hashes_sorted[i], list_of_hashes_sorted[j]) < sigma * m:
+                if self.__is_close_enough(self.list_of_vectors[sort_indices[i]], self.list_of_vectors[sort_indices[j]]):
                     dict_neighbors[sort_indices[i]].append(sort_indices[j])
         return dict_neighbors      
     
@@ -138,12 +185,12 @@ class Disambiguator():
         self.LSH_hash = LSH_hash
         
         
-    def save_LSH_hash(self,filename='../data/LSH_hash.txt'):
-        f = open(filename,'w')
+    def save_LSH_hash(self, filename='../data/LSH_hash.txt'):
+        f = open(filename, 'w')
         for s in  self.LSH_hash:
-            f.write(s+"\n")
+            f.write(s + "\n")
         f.close()
-        print "Lsh_hash save to file "+filename;
+        print "Lsh_hash save to file " + filename;
         
         
         
@@ -154,7 +201,7 @@ class Disambiguator():
         self.m = m
         
         print "Computing adjacency matrix"
-        print "sigma = ",sigma
+        print "sigma = ", sigma
         self.adjacency = self.get_nearest_neighbors(B, sigma)
         for i in range(m):
             shuffle_list_of_str(self.LSH_hash)

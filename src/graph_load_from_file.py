@@ -46,8 +46,8 @@ colornum = 100
 # Read graph from .mtx file containing edge list
 #~ h = ig.Graph.Read_Ncol("/home/navid/Dropbox/Project5/matrices/football.mtx", directed = False)
 #~ h = ig.read("/home/navid/Dropbox/Project5/matrices/adjnoun.gml")
-h = ig.read("./adjacency.txt", format="edgelist")
-h = h.as_undirected()
+h = ig.read("../data/adjacency.txt", format="edgelist")
+# h = h.as_undirected()
 # set layout
 mylayout = "mds"
 
@@ -86,7 +86,7 @@ mylayout = h.layout('fr')
 
 # Plot graph with edges
 p = ig.plot(h,
-    "adjnoun-vertices-edges.pdf",
+    "../data/adjnoun-vertices-edges.pdf",
     bbox = (1800,1800),
     #layout = "large",
     layout = mylayout,
@@ -103,7 +103,8 @@ p = ig.plot(h,
     background = None,              # This is only possible after my changes to igraph.__init__.py
     #~ edge_color = edgeColors,
     edge_color = 'red',
-    edge_width = edgeWidths
+    edge_width = edgeWidths,
+    edge_arrow_size = [x/20.0 for x in v_sizes]
     #~ vertex_label_color = "white",
     
 )

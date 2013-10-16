@@ -42,7 +42,8 @@ class FEC_analyst():
         self.hash_dim = None
         self.D =  []  # Disambiguator object
         self.token_counts = {}
-        self.token_indices = {}
+        self.token_2_index = {}
+        self.index_2_token = {}
         self.all_tokens_sorted = []
         self.list_of_vectors = []
         self.no_of_tokens = 0
@@ -208,19 +209,21 @@ class FEC_analyst():
             s = self.list_of_strings[i]
         #     print s
         
+            # s_plit is a list of tuples: [(1,'sdfsadf'),(2,'ewre'),...]     
             s_split = self.__get_tokens(s)
             print s_split
             
         #     print '----------------------'
             vec = {}
             for token in s_split:
-                if token in self.token_indices:
+                if token in self.token_2_index:
                     self.token_counts[token] += 1
                 else:
-                    self.token_indices[token] = self.no_of_tokens
+                    self.token_2_index[token] = self.no_of_tokens
+                    self.index_2_token[self.no_of_tokens]=token
                     self.token_counts[token] = 1
                     self.no_of_tokens += 1
-                vec[self.token_indices[token]] = 1
+                vec[self.token_2_index[token]] = 1
             self.list_of_vectors.append(vec)
                 
         self.token_frequencies = sorted(self.token_counts.values(), reverse=1)
@@ -273,7 +276,7 @@ class FEC_analyst():
         # B = 10
         
         
-        self.D = Disambiguator(self.list_of_vectors, dim)
+        self.D = Disambiguator(self.list_of_vectors,self.index_2_token,self.token_2_index, dim)
         
         # compute the hashes
         print "Computing the hashes..."
@@ -312,7 +315,7 @@ pp = pprint.PrettyPrinter(indent=4)
 analyst = FEC_analyst()
 
 # Get string list from MySQL query and set it as analyst's list_of_strings
-query_result = MySQL_query("select distinct NAME from newyork  where NAME <>'' order by NAME limit 20000,10000;")
+query_result = MySQL_query("select distinct NAME from newyork  where NAME <>'' order by NAME limit 20000,1000;")
 tmp_list = []
 for i in range(len(query_result)):
     tmp_list.append(query_result[i][0])
@@ -330,7 +333,7 @@ tmp_list = [s.upper() for s in tmp_list]
 analyst.set_list_of_strings(tmp_list)
 
 t1 = time.time()
-analyst.analyze(hash_dim=1000, sigma=0.26, B=10)
+analyst.analyze(hash_dim=100, sigma=0.26, B=10)
 t2 = time.time()
 print t2 - t1
 
