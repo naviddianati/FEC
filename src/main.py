@@ -318,14 +318,15 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 record_start = 2000
-record_no = 1000
+record_no = 10000
 batch_id = "[" + str(record_start) + "," + str(record_start+record_no) + "]"
 
+time1 = time. time()
 analyst = FEC_analyst(batch_id)
 
 
 # Get string list from MySQL query and set it as analyst's list_of_strings
-query_result = MySQL_query("select distinct NAME from newyork  where NAME <>'' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
+query_result = MySQL_query("select NAME from newyork  where NAME <>'' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
 tmp_list = []
 for i in range(len(query_result)):
     tmp_list.append(query_result[i][0])
@@ -359,3 +360,7 @@ pl.show()
     
 
 analyst.print_adj_rows(r=[0, 900], filename='../data/adj_text' + batch_id + '.txt')
+
+time2 = time.time()
+
+print time2-time1

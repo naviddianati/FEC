@@ -201,10 +201,13 @@ class Disambiguator():
         # then create dictionary of B nearest neighbors with distance threshold sigma = 0.7
         # sigma is the fraction of digits in hash that are equal between the two strings
         self.m = m
-        
+       
         print "Computing adjacency matrix"
         print "sigma = ", sigma
-        self.adjacency = self.get_nearest_neighbors(B, sigma)
+#         self.adjacency = self.get_nearest_neighbors(B, sigma)
+        n = len(self.LSH_hash)
+        self.adjacency = {}
+        for i in range(n): self.adjacency[i]=[]
         for i in range(m):
             shuffle_list_of_str(self.LSH_hash)
             adjacency_new = self.get_nearest_neighbors(B, sigma)        
