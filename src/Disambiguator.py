@@ -38,7 +38,7 @@ class Disambiguator():
                 Y.append(y)
         pl.scatter(np.array(X), np.array(Y), marker='.')
         ax = pl.gca()
-        ax.set_ylim(ax.get_ylim()[::-1])
+#         ax.set_ylim(ax.get_ylim()[::-1])
         
     def __dict_to_mat(self, dict1):
         maxes = []
@@ -75,8 +75,10 @@ class Disambiguator():
         dict1[2] = []  # First name
         dict1[3] = []  # Middle name
         dict1[4] = []  # suffix        
+       
         for index in v1:
             token = self.index_2_token[index]
+            if token[0] not in dict1: dict1[token[0]]=[]
             dict1[token[0]].append(token[1])
         
         dict2 = {}
@@ -86,6 +88,7 @@ class Disambiguator():
         dict2[4] = []  # suffix        
         for index in v2:
             token = self.index_2_token[index]
+            if token[0] not in dict2: dict2[token[0]]=[]
             dict2[token[0]].append(token[1])
         
         
@@ -102,6 +105,9 @@ class Disambiguator():
         
         # if first names don't overlap, then fail.
         if not any(i in dict1[2] for i in dict2[2]): identical = False
+        
+        # If street addresses aren't identical, then fail
+        if dict1[5] != dict2[5]: identical = False;
         
         return identical
             
@@ -122,6 +128,7 @@ class Disambiguator():
         '''
         list_of_hashes_sorted = sorted(self.LSH_hash)
         sort_indices = argsort(self.LSH_hash)
+#         print sort_indices
         # should be optimized. redundant sorting performed
         
         # number of hash strings in list_of_hashes
@@ -194,24 +201,66 @@ class Disambiguator():
         f.close()
         print "Lsh_hash save to file " + filename;
         
+    def initialize_adjacency(self):
+        ''' This function creates an empty self.adjacency dictionary and then populates it initially as follows:
+        it goes over the list of (sorted) hashes and amonge adjacent entriesm it finds maximal groups of identical
+        hashes, and creates complete subgraphs corresponding to them in self.adjacency.
+        This is necessary if the original list_of_vectors contains repeated entries, such as when we are dealing
+        with multiple transactions per person. '''
+        self.adjacency = {} 
+        i = 0
+        while i < len(self.list_of_vectors):
+            self.adjacency[i] = []
+            j = i + 1
+            
+            current_group = [i]
+            while (j < len(self.list_of_vectors)) and (self.LSH_hash[i] == self.LSH_hash[j]):
+                    current_group.append(j)
+                    j += 1
+            print current_group
+            for index in current_group:
+                print '-->',index
+                self.adjacency[index] = list(current_group)
+                self.adjacency[index].remove(index)
+                print '    ',index, self.adjacency[index]
+            i = j
+            
+                    # set neighbors of all items in current group and move on to the next item
+                    
+                    
         
-        
-    def compute_similarity(self, B=10, m=100, sigma=0.2):                
+    def compute_similarity(self, B1=30, m=100, sigma1=0.2):                
         # permutate the hash strings m times
         # then create dictionary of B nearest neighbors with distance threshold sigma = 0.7
         # sigma is the fraction of digits in hash that are equal between the two strings
         self.m = m
-       
+        print "B=", B1
+#         raw_input()
         print "Computing adjacency matrix"
-        print "sigma = ", sigma
+        print "sigma = ", sigma1
 #         self.adjacency = self.get_nearest_neighbors(B, sigma)
         n = len(self.LSH_hash)
-        self.adjacency = {}
-        for i in range(n): self.adjacency[i]=[]
+        
+        
+#         for i in range(n): self.adjacency[i]=[]
+#         pl.ion()
+
+        # Generate an adjacency dictionary and initially populate it with links between records that are identical
+        print 'Initialize adjacency...'
+        self.initialize_adjacency()
+        print 'Done...'
+        
         for i in range(m):
             shuffle_list_of_str(self.LSH_hash)
-            adjacency_new = self.get_nearest_neighbors(B, sigma)        
+#             print self.LSH_hash[0]
+            print 'Shuffling list of hashes and computing nearest neighbors'+str(i)
+            adjacency_new = self.get_nearest_neighbors(B=B1, sigma=sigma1)        
             self.__update_dict(self.adjacency, adjacency_new)
+#             pl.cla()
+#             self.imshow_adjacency_matrix()
+#             pl.draw()
+#             raw_input("Press Enter to continue...")
+             
         print "Adjacency matrix computed!"
             
     
@@ -230,6 +279,7 @@ class Disambiguator():
         N = len(self.list_of_vectors)
         while counter < 20:
             x = random.randint(0, N - 1)
+            
             if len(self.adjacency[x]) == 0  :continue
             j = random.randint(0, len(self.adjacency[x]) - 1) if len(self.adjacency[x]) > 1 else 0
             y = self.adjacency[x][j]
@@ -273,7 +323,7 @@ def random_uniform_hyperspherical(n):
         
 def shuffle_list_of_str(list_of_strs):
     ''' This function takes a list of strings (of equal lengths) and
-        applies the same random permutation to all of them, in place'''
+        applies the same random permutation to all of them, in place.'''
     n = len(list_of_strs[0])
     l = range(n)
     random.shuffle(l)
@@ -389,7 +439,10 @@ if __name__ == '__main__':
     D.compute_LSH_hash(hash_dim)
     print "Hashes computed..."
     
+    print 'Computing similarity matrix...'
     D.compute_similarity(B=10, m=no_of_permutations , sigma=0.2)
+    print 'Done...'
+    
     
         
     D.show_sample_adjacency()

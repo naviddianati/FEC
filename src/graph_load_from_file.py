@@ -7,6 +7,7 @@ from igraph.drawing.utils import BoundingBox
 
 
 
+
 def myplot(obj,target=None, *args, **kwds):
     bkgnd  = None
     #~ target = None
@@ -47,6 +48,7 @@ colornum = 100
 #~ h = ig.Graph.Read_Ncol("/home/navid/Dropbox/Project5/matrices/football.mtx", directed = False)
 #~ h = ig.read("/home/navid/Dropbox/Project5/matrices/adjnoun.gml")
 h = ig.read("../data/adjacency.txt", format="edgelist")
+print len(h.vs)
 # h = h.as_undirected()
 # set layout
 mylayout = "mds"
@@ -79,6 +81,9 @@ h.vs["order"] = v_sizes
 
 
 mylayout = h.layout('fr')
+mylayout = h.layout('fr')
+mylayout = h.layout('fr')
+mylayout = h.layout('fr')
 
 
 
@@ -103,6 +108,7 @@ p = ig.plot(h,
     background = None,              # This is only possible after my changes to igraph.__init__.py
     #~ edge_color = edgeColors,
     edge_color = 'red',
+    edge_curved= False,
     edge_width = edgeWidths,
     edge_arrow_size = [x/20.0 for x in v_sizes]
     #~ vertex_label_color = "white",

@@ -9,6 +9,7 @@ import nltk
 from Disambiguator import *
 import pprint
 import time
+from address import AddressParser
 
 # establish and return a connection to the MySql database server
 def db_connect():
@@ -45,45 +46,99 @@ class FEC_analyst():
         self.token_counts = {}
         self.token_2_index = {}
         self.index_2_token = {}
+        
         self.all_tokens_sorted = []
         self.list_of_vectors = []
         self.no_of_tokens = 0
-        self.list_of_strings = []
+        self.list_of_identifiers = []
+        self.tokenize_functions = {'NAME':self.__get_tokens_NAME,
+                                 'CONTRIBUTOR_ZIP':self.__get_tokens_ZIP,
+                                 'CONTRIBUTOR_STREET_1':self.__get_tokens_STREET}
        
+        self.token_identifiers = {'NAME':[1, 2, 3],
+                                'CONTRIBUTOR_ZIP':[4],
+                                'CONTRIBUTOR_STREET_1':[5]}
+        self.ap = AddressParser()
      
-    def set_list_of_strings(self, list_of_strings):
-        ''' This functions sets the main list of strings on which the similarity analysis is performed'''
-        self.list_of_strings = list_of_strings
+   
 
-    def print_adj_rows(self, r=[], filename=None):
+    def print_adj_rows(self, r=[],verbose = False):
         ''' This function prints a sample of the rows of the adjacency matrix and the
             corresponding entries from the list'''
+         
+        filename1 ='../data/adj_text_identifiers' + batch_id + '.txt'
+        filename2 ='../data/adj_text_auxilliary' + batch_id + '.txt'
         if self.D and self.D.adjacency:
             separator = '----------------------------------------------------------------------------------------------------------------------'
             pp = pprint.PrettyPrinter(indent=4)
             pp.pprint(self.D.adjacency)
             if r:
                 n_low, n_high = r[0], r[1]
-            if filename: file = open(filename, 'w')
+            file1 = open(filename1, 'w')
+            file2 = open(filename2, 'w')
             for i in range(n_low, n_high):
-                tokens = [str(x) for x in self.__get_tokens(self.list_of_strings[i])]
-                s = "%d %s        %s\n" % (i, self.list_of_strings[i], '|'.join(tokens))
-                if filename: file.write(s)
-                else: print(s)
+                tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[i])]
+                s1 = "%d %s        %s\n" % (i, self.list_of_identifiers[i]  , '|'.join(tokens))
+                s2 = "%d %s \n" % (i, self.list_of_auxilliary_records[i])
+                file1.write(s1)
+                file2.write(s2)
+
+                if verbose: print(s1)
                 
                 for j in self.D.adjacency[i]:
-                    tokens = [str(x) for x in self.__get_tokens(self.list_of_strings[j])]
-                    s = "         %s        %s      %f\n" % (self.list_of_strings[j], '|'.join(tokens), Hamming_distance(self.D.LSH_hash[j], self.D.LSH_hash[i]) * 1.0 / self.hash_dim)
-                    if filename: file.write(s)
-                    else: print(s)
-                if filename: file.write(separator + "\n")
-                else: print(separator)
-            if filename:
-                file.close()
+                    tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[j])]
+                    s1 = "      %d   %s        %s      %f\n" % (j, self.list_of_identifiers[j], '|'.join(tokens), Hamming_distance(self.D.LSH_hash[j], self.D.LSH_hash[i]) * 1.0 / self.hash_dim)
+                    s2 = "      %d   %s \n" % (j, self.list_of_auxilliary_records[j])
+                    file1.write(s1)
+                    file2.write(s2)
+                    if verbose: print(s1)
+                file1.write(separator + "\n")
+                file2.write(separator + "\n")
+                if verbose: print(separator)
+                
+            
+            file1.close()
+            file2.close()
             
         
-    def __get_tokens(self, s):
+    def __get_tokens(self, record):
+        ''' This function tokenizes a record from the MySQL query results stored in self.list_of_fields.
+            A record can have an arbitrary number of fields. For our purposes, the main one is NAME, but
+            there are also address-related fields. Each one is tokenized and the tokens are added to a
+            "vector" as a (field/subfield-identifier, token) tuple.'''
+        tokens = []
+        for field, field_index in zip(self.identifier_fields, range(len(self.identifier_fields))):
+            s = record[field_index]
+            if field in self.tokenize_functions:
+                ''' For each field type, call the appropriate tokenize function'''
+                tokens += self.tokenize_functions[field](s)
+#         print tokens
+        return tokens
+    
+                
+            
+            
+    def __get_tokens_ZIP(self, s):
+        identifier = self.token_identifiers['CONTRIBUTOR_ZIP'][0]
+        return [(identifier, s)]
+    def __get_tokens_STREET(self, s):
+        try:
+            address = self.ap.parse_address(s)
         
+            tmp = [address.house_number, address.street_prefix, address.street, address.street_suffix]
+            tmp = [x  for x in tmp if x is not None]
+#             print s
+#             print tmp
+#             print '__________________________'
+
+            address_new = ' '.join(tmp)
+            identifier = self.token_identifiers['CONTRIBUTOR_STREET_1'][0]
+            return [(identifier, address_new)]
+        except:
+#             print 'error'
+            identifier = self.token_identifiers['CONTRIBUTOR_STREET_1'][0]
+            return [(identifier, s)]
+    def __get_tokens_NAME(self, s):
         # remove all numerals
         s1 = re.sub(r'\.|[0-9]+', '', s)
         
@@ -94,9 +149,7 @@ class FEC_analyst():
         s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bSR\b)', '', s1)
      
         s1 = re.sub(r'\.', '', s1)
-        
-#         print s1
-        
+                
         # Find the first single-letter token and save it as middle name, then remove it 
         middle_name_single = re.findall(r'\b\w\b', s1)
         if middle_name_single:
@@ -142,24 +195,30 @@ class FEC_analyst():
             else: 
                 middle_name = middle_name_single
 
-        print s
-        print "    First name:--------- ", first_name_list
-        print "    Las tname:--------- ", last_name_list
-        print "    Middle name:--------- ", middle_name
-        print "    Suffixes:--------- ", suffix_list
+        ''' Print NAME tokens'''
+#         print s
+#         print "    First name:--------- ", first_name_list
+#         print "    Las tname:--------- ", last_name_list
+#         print "    Middle name:--------- ", middle_name
+#         print "    Suffixes:--------- ", suffix_list
 
         tokens = []
 #         if middle_name==[]: middle_name=''
+        tmp = list(self.token_identifiers)
+        
+        identifier = self.token_identifiers['NAME'][0]
         for s in last_name_list:
-            tokens.append((1, s))
+            tokens.append((identifier, s))
+        identifier = self.token_identifiers['NAME'][1]
         for s in first_name_list:
-            tokens.append((2, s))
+            tokens.append((identifier, s))
 #         for s in suffix_list:
 #             tokens.append((4,s))
             
         # middle_name is set up to be a string at this point
+        identifier = self.token_identifiers['NAME'][2]
         if len(middle_name) > 0:
-            tokens.append((3, middle_name[0]))
+            tokens.append((identifier, middle_name[0]))
         
         return tokens    
         
@@ -206,13 +265,13 @@ class FEC_analyst():
          
     
     def tokenize(self):
-        for i in range(len(self.list_of_strings)):
-            s = self.list_of_strings[i]
-        #     print s
-        
+        for i in range(len(self.list_of_identifiers)):           
+            s = self.list_of_identifiers[i]
+            s = s[0:len(self.identifier_fields)]
+            # print s
             # s_plit is a list of tuples: [(1,'sdfsadf'),(2,'ewre'),...]     
             s_split = self.__get_tokens(s)
-            print s_split
+#             print s_split
             
         #     print '----------------------'
             vec = {}
@@ -230,30 +289,43 @@ class FEC_analyst():
         self.token_frequencies = sorted(self.token_counts.values(), reverse=1)
         
         self.all_token_sorted = sorted(self.token_counts, key=self.token_counts.get, reverse=0)
-        for token in self.all_token_sorted:
-            print token, self.token_counts[token]
+#         for token in self.all_token_sorted:
+#             print token, self.token_counts[token],'---------'
 
         print "Total number of tokens identified: ", len(self.token_counts)
+#         pp.pprint(self.list_of_identifiers)
+#         quit()
 
 
-    def save_list_of_strings_to_file(self, filename=None):
-        if not filename: filename = '../data/list_of_strings' + self.batch_id + '.txt'
+    def save_list_of_identifiers_to_file(self, filename=None):
+        if not filename: filename = '../data/list_of_identifiers' + self.batch_id + '.txt'
         f = open(filename, 'w')
-        for s, i in zip(self.list_of_strings, range(len(self.list_of_strings))):
+        for s, i in zip(self.list_of_identifiers, range(len(self.list_of_identifiers))):
             f.write("%d %s\n" % (i, s))
         f.close()
         
+    def set_query_fields(self, query_fields):
+        ''' List of ALL MySQL table fields retrieved using the original MySQL query'''
+        self.query_fields = query_fields
+    def set_identifier_fields(self, identifier_fields):
+        ''' List of MySQL table "identifier" fields retrieved using the original MySQL query'''
+        self.identifier_fields = identifier_fields
+    def set_auxilliary_fields(self, auxilliary_fields):
+        ''' List of MySQL table "auxilliary" fields retrieved using the original MySQL query'''
+        self.auxilliary_fields = auxilliary_fields
         
-    def save_adjacency_to_file(self, filename=None):
+    def save_adjacency_to_file(self, filename=None, list_of_nodes=[]):
         if not filename: filename = '../data/adjacency' + self.batch_id + '.txt'
         # save adjacency matrix to file
 #         filename = '/home/navid/edges.txt'
         f = open(filename, 'w') 
-        if  self.D.adjacency: 
-            for node1 in self.D.adjacency:
-                for node2 in self.D.adjacency[node1]:
-                    f.write(str(node1) + ' ' + str(node2) + "\n")
-            f.close()
+        if  not self.D.adjacency: return 
+        if not list_of_nodes: list_of_nodes = range(len(self.list_of_identifiers))
+        nmin = list_of_nodes[0]
+        for node1 in list_of_nodes:
+            for node2 in self.D.adjacency[node1]:
+                f.write(str(node1 - nmin) + ' ' + str(node2 - nmin) + "\n")
+        f.close()
 
 
 
@@ -288,10 +360,25 @@ class FEC_analyst():
         
         self.D.save_LSH_hash()
         
-        self.D.compute_similarity(B=B, m=no_of_permutations , sigma=sigma)
+        self.D.compute_similarity(B1=B, m=no_of_permutations , sigma1=sigma)
         
             
         self.D.show_sample_adjacency()
+
+    
+    def set_list_of_auxilliary_records(self, tmp_list):
+        ''' This functions sets the list of auxilliary records associated with the items in list_of_identifiers'''
+        self.list_of_auxilliary_records = tmp_list
+    def set_list_of_identifiers(self, list_of_identifiers):
+        ''' This functions sets the main list of strings on which the similarity analysis is performed'''
+        self.list_of_identifiers = list_of_identifiers
+    
+    
+
+    
+        
+    
+    
             
         
         
@@ -317,50 +404,84 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 
-record_start = 2000
-record_no = 10000
-batch_id = "[" + str(record_start) + "," + str(record_start+record_no) + "]"
+record_start = 20000
+record_no = 1000
+
+
+
+batch_id = "[" + str(record_start) + "," + str(record_start + record_no) + "]"
 
 time1 = time. time()
 analyst = FEC_analyst(batch_id)
 
 
-# Get string list from MySQL query and set it as analyst's list_of_strings
-query_result = MySQL_query("select NAME from newyork  where NAME <>'' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
+identifier_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1'] 
+auxilliary_fields = ['EMPLOYER']
+query_fields = identifier_fields + auxilliary_fields 
+
+index_identifier_fields = [query_fields.index(s) for s in identifier_fields]
+index_auxilliary_fields = [query_fields.index(s) for s in auxilliary_fields]
+
+
+# Get string list from MySQL query and set it as analyst's list_of_identifiers
+# query_result = MySQL_query("select " + ','.join(identifier_fields) + " from newyork_addresses where NAME <> '' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
+query_result = MySQL_query("select " 
+                           + ','.join(query_fields) 
+                           + " from newyork_addresses order by NAME,TRANSACTION_DT,ZIP_CODE,CMTE_ID limit " 
+                           + str(record_start) + "," + str(record_no) + ";")
 tmp_list = []
 for i in range(len(query_result)):
-    tmp_list.append(query_result[i][0])
+    tmp_list.append(query_result[i])
+    
+    # tmp_list.append(query_result[i][0])
+
 
 
 # tmp_list = ['Navid, Dianati', 'Navid, Dianati', 'Dianati, Navid A.', 'Navid, Dianati M MR.', 'Navid, Dianati Mr.', 'Navid, Dianati D.', 'Dianati, N. M. MR', 'Navid, Dianati', 'Navid, Dianati', 'Dianati, Navid A.', 'Navid, Dianati M MR.', 'Navid, Dianati Mr.', 'Navid, Dianati D.', 'Dianati, N. M. MR']
-tmp_list = [s.upper() for s in tmp_list]
+tmp_list = [[s.upper() for s in record] for record in tmp_list]
+
+list_of_identifiers = [[record[index] for index in index_identifier_fields] for record in tmp_list]
+list_of_auxilliary_records = [[record[index] for index in index_auxilliary_fields] for record in tmp_list]
 
 # for s in tmp_list:
 #     analyst.get_tokens_new(s)
 # quit()
 
+# random.shuffle(tmp_list)
 
+analyst.set_list_of_identifiers(list_of_identifiers)
+analyst.set_list_of_auxilliary_records(list_of_auxilliary_records)
+analyst.set_identifier_fields(identifier_fields)
+analyst.set_auxilliary_fields(auxilliary_fields)
+analyst.set_query_fields(query_fields)
 
-analyst.set_list_of_strings(tmp_list)
-
+print 'Running Analyze...'
 t1 = time.time()
-analyst.analyze(hash_dim=100, sigma=0.26, B=10)
+analyst.analyze(hash_dim=10, sigma=0.26, B=30)
 t2 = time.time()
+print 'Done...'
 print t2 - t1
 
-analyst.save_list_of_strings_to_file()
-analyst.save_adjacency_to_file()
+print 'Saving list of identifiers to file...'
+analyst.save_list_of_identifiers_to_file()
+print 'Done...'
 
-analyst.D.imshow_adjacency_matrix(r=(0, 900))
-pl.show()
-  
-  
+print 'Saving adjacency to file...'
+analyst.save_adjacency_to_file(list_of_nodes=[])
+print 'Done...'
+
+
+analyst.D.imshow_adjacency_matrix(r=(0, record_no))
+
+
 
 
     
-
-analyst.print_adj_rows(r=[0, 900], filename='../data/adj_text' + batch_id + '.txt')
+print 'Printing text of adjacency matrix to file...'
+analyst.print_adj_rows(r=[0, record_no])
+print 'Done...'
+pl.show()
 
 time2 = time.time()
 
-print time2-time1
+print time2 - time1
