@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 # Main branch
 
 import numpy as np
@@ -84,15 +86,17 @@ class FEC_analyst():
             dict_all1 = {}
             dict_all2 = {}
             for i in range(n_low, n_high):
-                tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[i])]
+                #tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[i])]
+                tokens = {x[0]:x[1] for x in self.__get_tokens(self.list_of_identifiers[i])} 
                 tmp_record1 = [i,self.list_of_identifiers[i],tokens]
                 tmp_record2 = [i,self.list_of_auxilliary_records[i]]
-                s1 = "%d %s        %s\n" % (i, self.list_of_identifiers[i]  , '|'.join(tokens))
-                s2 = "%d %s \n" % (i, self.list_of_auxilliary_records[i])
+                #s1 = "%d %s        %s\n" % (i, self.list_of_identifiers[i]  , '|'.join(tokens))
+                #s2 = "%d %s \n" % (i, self.list_of_auxilliary_records[i])
                 list1 = []
                 list2 = []
                 for j in self.D.adjacency[i]:
-                    tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[j])]
+                    #tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[j])]
+                    tokens = {x[0]:x[1] for x in self.__get_tokens(self.list_of_identifiers[i])} 
                     tmp_neighbor1 = [j,self.list_of_identifiers[j],tokens]
                     tmp_neighbor2 = [j,self.list_of_auxilliary_records[j]]
                     list1.append(tmp_neighbor1)

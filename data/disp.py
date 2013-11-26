@@ -1,3 +1,4 @@
+#! /usr/bin/python
 import json
 from sys import argv
 import pprint
