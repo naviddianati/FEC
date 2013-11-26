@@ -2,7 +2,7 @@ import random
 import pprint
 import numpy as np
 import pylab as pl
-import visual as vs 
+#import visual as vs 
 import time
 import os
 

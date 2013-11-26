@@ -5,11 +5,13 @@ import pylab as pl
 import csv
 import MySQLdb as mdb
 import re
-import nltk
+#import nltk
 from Disambiguator import *
 import pprint
 import time
 from address import AddressParser
+import json
+import datetime
 
 # establish and return a connection to the MySql database server
 def db_connect():
@@ -66,8 +68,8 @@ class FEC_analyst():
         ''' This function prints a sample of the rows of the adjacency matrix and the
             corresponding entries from the list'''
          
-        filename1 ='../data/adj_text_identifiers' + batch_id + '.txt'
-        filename2 ='../data/adj_text_auxilliary' + batch_id + '.txt'
+        filename1 ='../data/adj_text_identifiers' + batch_id + '.json'
+        filename2 ='../data/adj_text_auxilliary' + batch_id + '.json'
         if self.D and self.D.adjacency:
             separator = '----------------------------------------------------------------------------------------------------------------------'
             pp = pprint.PrettyPrinter(indent=4)
@@ -76,26 +78,30 @@ class FEC_analyst():
                 n_low, n_high = r[0], r[1]
             file1 = open(filename1, 'w')
             file2 = open(filename2, 'w')
+            dict_all1 = {}
+            dict_all2 = {}
             for i in range(n_low, n_high):
                 tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[i])]
+                tmp_record1 = [i,self.list_of_identifiers[i],tokens]
+                tmp_record2 = [i,self.list_of_auxilliary_records[i]]
                 s1 = "%d %s        %s\n" % (i, self.list_of_identifiers[i]  , '|'.join(tokens))
                 s2 = "%d %s \n" % (i, self.list_of_auxilliary_records[i])
-                file1.write(s1)
-                file2.write(s2)
-
-                if verbose: print(s1)
-                
+                list1 = []
+                list2 = []
                 for j in self.D.adjacency[i]:
                     tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[j])]
-                    s1 = "      %d   %s        %s      %f\n" % (j, self.list_of_identifiers[j], '|'.join(tokens), Hamming_distance(self.D.LSH_hash[j], self.D.LSH_hash[i]) * 1.0 / self.hash_dim)
-                    s2 = "      %d   %s \n" % (j, self.list_of_auxilliary_records[j])
-                    file1.write(s1)
-                    file2.write(s2)
-                    if verbose: print(s1)
-                file1.write(separator + "\n")
-                file2.write(separator + "\n")
-                if verbose: print(separator)
-                
+                    tmp_neighbor1 = [j,self.list_of_identifiers[j],tokens]
+                    tmp_neighbor2 = [j,self.list_of_auxilliary_records[j]]
+                    list1.append(tmp_neighbor1)
+                    list2.append(tmp_neighbor2)
+                dict_all1[i]={}
+                dict_all2[i]={}
+                dict_all1[i]['neighbors'] = list1
+                dict_all1[i]['node'] = tmp_record1 
+                dict_all2[i]['neighbors'] = list2
+                dict_all2[i]['node'] = tmp_record2 
+            file1.write(json.dumps(dict_all1))   
+            file2.write(json.dumps(dict_all2))    
             
             file1.close()
             file2.close()
@@ -188,6 +194,8 @@ class FEC_analyst():
                 # Remove surrounding whitespace from last name
                 first_name = re.sub(r'^\s+|\s+$', '', first_name)
                 first_name_list = re.split(r' ', first_name)
+            else:
+                first_name_list = []
             
             if len(first_name_list) > 1 and not middle_name_single:
                 middle_name = first_name_list[-1]
@@ -298,10 +306,14 @@ class FEC_analyst():
 
 
     def save_list_of_identifiers_to_file(self, filename=None):
-        if not filename: filename = '../data/list_of_identifiers' + self.batch_id + '.txt'
+        if not filename: filename = '../data/list_of_identifiers' + self.batch_id + '.json'
         f = open(filename, 'w')
-        for s, i in zip(self.list_of_identifiers, range(len(self.list_of_identifiers))):
-            f.write("%d %s\n" % (i, s))
+        n = len(self.list_of_identifiers)
+        tmp_dict = {}
+        for s, i in zip(self.list_of_identifiers, range(n)):
+            tmp_dict[i] = s
+            #f.write("%d %s\n" % (i, s))
+        f.write(json.dumps(tmp_dict))
         f.close()
         
     def set_query_fields(self, query_fields):
@@ -342,7 +354,7 @@ class FEC_analyst():
         # hash_dim = 200
         
         # Number of times the hashes are permutated and sorted
-        no_of_permutations = 100
+        no_of_permutations = 10
         
         # Hamming distance threshold for adjacency 
         # sigma = 0.2
@@ -404,8 +416,8 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 
-record_start = 20000
-record_no = 1000
+record_start = 1
+record_no = 350
 
 
 
@@ -416,7 +428,7 @@ analyst = FEC_analyst(batch_id)
 
 
 identifier_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1'] 
-auxilliary_fields = ['EMPLOYER']
+auxilliary_fields = ['TRANSACTION_DT','EMPLOYER']
 query_fields = identifier_fields + auxilliary_fields 
 
 index_identifier_fields = [query_fields.index(s) for s in identifier_fields]
@@ -430,15 +442,17 @@ query_result = MySQL_query("select "
                            + " from newyork_addresses order by NAME,TRANSACTION_DT,ZIP_CODE,CMTE_ID limit " 
                            + str(record_start) + "," + str(record_no) + ";")
 tmp_list = []
-for i in range(len(query_result)):
-    tmp_list.append(query_result[i])
+#for i in range(len(query_result)):
+#    tmp_list.append(query_result[i])
     
     # tmp_list.append(query_result[i][0])
 
 
 
 # tmp_list = ['Navid, Dianati', 'Navid, Dianati', 'Dianati, Navid A.', 'Navid, Dianati M MR.', 'Navid, Dianati Mr.', 'Navid, Dianati D.', 'Dianati, N. M. MR', 'Navid, Dianati', 'Navid, Dianati', 'Dianati, Navid A.', 'Navid, Dianati M MR.', 'Navid, Dianati Mr.', 'Navid, Dianati D.', 'Dianati, N. M. MR']
-tmp_list = [[s.upper() for s in record] for record in tmp_list]
+tmp_list = [[s.upper() if isinstance(s,basestring) else s.strftime("%Y%m%d") if  isinstance(s,datetime.date) else s  for s in record] for record in query_result]
+
+
 
 list_of_identifiers = [[record[index] for index in index_identifier_fields] for record in tmp_list]
 list_of_auxilliary_records = [[record[index] for index in index_auxilliary_fields] for record in tmp_list]
@@ -471,7 +485,7 @@ analyst.save_adjacency_to_file(list_of_nodes=[])
 print 'Done...'
 
 
-analyst.D.imshow_adjacency_matrix(r=(0, record_no))
+#analyst.D.imshow_adjacency_matrix(r=(0, record_no))
 
 
 
@@ -480,7 +494,7 @@ analyst.D.imshow_adjacency_matrix(r=(0, record_no))
 print 'Printing text of adjacency matrix to file...'
 analyst.print_adj_rows(r=[0, record_no])
 print 'Done...'
-pl.show()
+#pl.show()
 
 time2 = time.time()
 
