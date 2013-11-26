@@ -194,7 +194,7 @@ class Disambiguator():
         
         
     def save_LSH_hash(self, filename=None):
-        if not filename: filename = '../data/LSH_hash' + self.batch_id + '.txt'
+        if not filename: filename = '../data/' + self.batch_id + 'LSH_hash.txt'
         f = open(filename, 'w')
         for s in  self.LSH_hash:
             f.write(s + "\n")

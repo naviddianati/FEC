@@ -37,11 +37,11 @@ def MySQL_query(query):
 class FEC_analyst():
     
     def __init__(self, batch_id):
-        con = db_connect()
-        cur = con.cursor()
+        #con = db_connect()
+        #cur = con.cursor()
         # cur.execute("select NAME,ZIP_CODE,EMPLOYER,TRANSACTION_DT from newyork order by NAME limit 1000 ;")
-        cur.execute("select distinct NAME from newyork  order by NAME limit 100;")
-        a = cur.fetchall()
+        #cur.execute("select distinct NAME from newyork  order by NAME limit 100;")
+        #a = cur.fetchall()
         self.batch_id = batch_id
         self.hash_dim = None
         self.D = []  # Disambiguator object
@@ -61,6 +61,7 @@ class FEC_analyst():
                                 'CONTRIBUTOR_ZIP':[4],
                                 'CONTRIBUTOR_STREET_1':[5]}
         self.ap = AddressParser()
+        self.query = ''
      
    
 
@@ -68,8 +69,10 @@ class FEC_analyst():
         ''' This function prints a sample of the rows of the adjacency matrix and the
             corresponding entries from the list'''
          
-        filename1 ='../data/adj_text_identifiers' + batch_id + '.json'
-        filename2 ='../data/adj_text_auxilliary' + batch_id + '.json'
+        #filename1 ='../data/adj_text_identifiers' + batch_id + '.json'
+        #filename2 ='../data/adj_text_auxilliary' + batch_id + '.json'
+        filename1 ='../data/'+self.batch_id+'-adj_text_identifiers.json'
+        filename2 ='../data/'+self.batch_id+'-adj_text_auxilliary.json'
         if self.D and self.D.adjacency:
             separator = '----------------------------------------------------------------------------------------------------------------------'
             pp = pprint.PrettyPrinter(indent=4)
@@ -306,7 +309,7 @@ class FEC_analyst():
 
 
     def save_list_of_identifiers_to_file(self, filename=None):
-        if not filename: filename = '../data/list_of_identifiers' + self.batch_id + '.json'
+        if not filename: filename = '../data/' + self.batch_id + '-list_of_identifiers.json'
         f = open(filename, 'w')
         n = len(self.list_of_identifiers)
         tmp_dict = {}
@@ -315,7 +318,11 @@ class FEC_analyst():
             #f.write("%d %s\n" % (i, s))
         f.write(json.dumps(tmp_dict))
         f.close()
-        
+    
+    def set_query(self, query):
+        ''' The MySQL query used'''
+        self.query = query
+    
     def set_query_fields(self, query_fields):
         ''' List of ALL MySQL table fields retrieved using the original MySQL query'''
         self.query_fields = query_fields
@@ -326,8 +333,19 @@ class FEC_analyst():
         ''' List of MySQL table "auxilliary" fields retrieved using the original MySQL query'''
         self.auxilliary_fields = auxilliary_fields
         
+    def save_job_record(self):
+        f = open('../records/' + str(self.batch_id) + '.record','w')
+        f.write('Time: '+datetime.datetime.now().isoformat()+'\n')
+        f.write('Batch ID: '+self.batch_id+'\n')
+        f.write('MySQL query: '+self.query+'\n')
+        f.write('Identifier fields: '+','.join(self.identifier_fields)+'\n')
+        f.write('Auxilliary fields: '+','.join(self.auxilliary_fields)+'\n')
+        f.close()
+        
+
+
     def save_adjacency_to_file(self, filename=None, list_of_nodes=[]):
-        if not filename: filename = '../data/adjacency' + self.batch_id + '.txt'
+        if not filename: filename = '../data/' + self.batch_id + '-adjacency.txt'
         # save adjacency matrix to file
 #         filename = '/home/navid/edges.txt'
         f = open(filename, 'w') 
@@ -409,6 +427,16 @@ def find_all_in_list(regex, str_list):
     return dict_matches
 
         
+def get_next_batch_id():
+    f = open('../config/batches.list')
+    s = f.read()
+    f.close() 
+    i = int(s)
+    f = open('../config/batches.list','w')
+    f.write(str(i+1))
+    f.close()
+    return(str(i))
+
 
 pp = pprint.PrettyPrinter(indent=4)
 # pp.pprint(self.D.adjacency)
@@ -421,7 +449,8 @@ record_no = 350
 
 
 
-batch_id = "[" + str(record_start) + "," + str(record_start + record_no) + "]"
+#batch_id = "[" + str(record_start) + "," + str(record_start + record_no) + "]"
+batch_id = get_next_batch_id()
 
 time1 = time. time()
 analyst = FEC_analyst(batch_id)
@@ -437,10 +466,9 @@ index_auxilliary_fields = [query_fields.index(s) for s in auxilliary_fields]
 
 # Get string list from MySQL query and set it as analyst's list_of_identifiers
 # query_result = MySQL_query("select " + ','.join(identifier_fields) + " from newyork_addresses where NAME <> '' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
-query_result = MySQL_query("select " 
-                           + ','.join(query_fields) 
-                           + " from newyork_addresses order by NAME,TRANSACTION_DT,ZIP_CODE,CMTE_ID limit " 
-                           + str(record_start) + "," + str(record_no) + ";")
+query ="select "+ ','.join(query_fields) + " from newyork_addresses order by NAME,TRANSACTION_DT,ZIP_CODE,CMTE_ID limit " + str(record_start) + "," + str(record_no) + ";"
+
+query_result = MySQL_query(query)
 tmp_list = []
 #for i in range(len(query_result)):
 #    tmp_list.append(query_result[i])
@@ -468,6 +496,8 @@ analyst.set_list_of_auxilliary_records(list_of_auxilliary_records)
 analyst.set_identifier_fields(identifier_fields)
 analyst.set_auxilliary_fields(auxilliary_fields)
 analyst.set_query_fields(query_fields)
+analyst.set_query(query)
+analyst.save_job_record()
 
 print 'Running Analyze...'
 t1 = time.time()
