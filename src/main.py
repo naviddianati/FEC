@@ -7,7 +7,7 @@ import pylab as pl
 import csv
 import MySQLdb as mdb
 import re
-#import nltk
+# import nltk
 from Disambiguator import *
 import pprint
 import time
@@ -39,11 +39,11 @@ def MySQL_query(query):
 class FEC_analyst():
     
     def __init__(self, batch_id):
-        #con = db_connect()
-        #cur = con.cursor()
+        # con = db_connect()
+        # cur = con.cursor()
         # cur.execute("select NAME,ZIP_CODE,EMPLOYER,TRANSACTION_DT from newyork order by NAME limit 1000 ;")
-        #cur.execute("select distinct NAME from newyork  order by NAME limit 100;")
-        #a = cur.fetchall()
+        # cur.execute("select distinct NAME from newyork  order by NAME limit 100;")
+        # a = cur.fetchall()
         self.batch_id = batch_id
         self.hash_dim = None
         self.D = []  # Disambiguator object
@@ -66,49 +66,60 @@ class FEC_analyst():
         self.query = ''
      
    
-
-    def print_adj_rows(self, r=[],verbose = False):
-        ''' This function prints a sample of the rows of the adjacency matrix and the
-            corresponding entries from the list'''
-         
-        #filename1 ='../data/adj_text_identifiers' + batch_id + '.json'
-        #filename2 ='../data/adj_text_auxilliary' + batch_id + '.json'
-        filename1 ='../data/'+self.batch_id+'-adj_text_identifiers.json'
-        filename2 ='../data/'+self.batch_id+'-adj_text_auxilliary.json'
+    def save_data(self, r=[], verbose=False):
+        ''' This function does three things:
+            1- saves a full description of the nodes with all attributes in json format to a file <batch_id>-list_of_nodes.json
+               This file, together with the <batch-id>-adjacency.txt file provides all the information about the graph and its
+               node attributes.
+            2- saves a formatted text representation of the adjacency matrix with identifier information
+            3- saves a formatted text representation of the adjacency matrix with auxilliary field information.
+        '''
+        
+        filename1 = '../results/' + self.batch_id + '-adj_text_identifiers.json'
+        filename2 = '../results/' + self.batch_id + '-adj_text_auxilliary.json'
+        filename3 = '../results/' + self.batch_id + '-list_of_nodes.json'
         if self.D and self.D.adjacency:
-            separator = '----------------------------------------------------------------------------------------------------------------------'
+#             separator = '----------------------------------------------------------------------------------------------------------------------'
+            separator = '______________________________________________________________________________________________________________________'
             pp = pprint.PrettyPrinter(indent=4)
             pp.pprint(self.D.adjacency)
             if r:
                 n_low, n_high = r[0], r[1]
             file1 = open(filename1, 'w')
             file2 = open(filename2, 'w')
-            dict_all1 = {}
-            dict_all2 = {}
+            file3 = open(filename3, 'w')
+            dict_all3 = {}
             for i in range(n_low, n_high):
-                #tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[i])]
-                tokens = {x[0]:x[1] for x in self.__get_tokens(self.list_of_identifiers[i])} 
-                tmp_record1 = [i,self.list_of_identifiers[i],tokens]
-                tmp_record2 = [i,self.list_of_auxilliary_records[i]]
-                #s1 = "%d %s        %s\n" % (i, self.list_of_identifiers[i]  , '|'.join(tokens))
-                #s2 = "%d %s \n" % (i, self.list_of_auxilliary_records[i])
-                list1 = []
-                list2 = []
+                tmp_tokens = self.__get_tokens(self.list_of_identifiers[i])
+                tokens_str = [str(x) for x in tmp_tokens]
+                tokens = {x[0]:x[1] for x in tmp_tokens} 
+                tmp_record1 = [i, self.list_of_identifiers[i], tokens]
+                tmp_record2 = [i, self.list_of_auxilliary_records[i]]
+                dict_all3[i] = {'ident':self.list_of_identifiers[i], 'aux':self.list_of_auxilliary_records[i], 'ident_tokens':tokens}
+
+                s1 = "%d %s        %s\n" % (i, self.list_of_identifiers[i]  , '|'.join(tokens_str))
+                s2 = "%d %s \n" % (i, self.list_of_auxilliary_records[i])
+                file1.write(separator+'\n'+s1)   
+                file2.write(separator+'\n'+s2)
                 for j in self.D.adjacency[i]:
-                    #tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[j])]
-                    tokens = {x[0]:x[1] for x in self.__get_tokens(self.list_of_identifiers[i])} 
-                    tmp_neighbor1 = [j,self.list_of_identifiers[j],tokens]
-                    tmp_neighbor2 = [j,self.list_of_auxilliary_records[j]]
-                    list1.append(tmp_neighbor1)
-                    list2.append(tmp_neighbor2)
-                dict_all1[i]={}
-                dict_all2[i]={}
-                dict_all1[i]['neighbors'] = list1
-                dict_all1[i]['node'] = tmp_record1 
-                dict_all2[i]['neighbors'] = list2
-                dict_all2[i]['node'] = tmp_record2 
-            file1.write(json.dumps(dict_all1))   
-            file2.write(json.dumps(dict_all2))    
+                    tmp_tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[j])]
+                    tokens_str = [str(x) for x in tmp_tokens]
+                    tokens = {x[0]:x[1] for x in tmp_tokens} 
+                    s1 = "    %d %s        %s\n" % (j, self.list_of_identifiers[j]  , '|'.join(tokens_str))
+                    s2 = "    %d %s \n" % (j, self.list_of_auxilliary_records[j])
+                    file1.write(s1)   
+                    file2.write(s2)    
+#                     tmp_neighbor1 = [j,self.list_of_identifiers[j],tokens]
+#                     tmp_neighbor2 = [j,self.list_of_auxilliary_records[j]]
+#                     list1.append(tmp_neighbor1)
+#                     list2.append(tmp_neighbor2)
+#                 dict_all1[i]={}
+#                 dict_all2[i]={}
+#                 dict_all1[i]['neighbors'] = list1
+#                 dict_all1[i]['node'] = tmp_record1 
+#                 dict_all2[i]['neighbors'] = list2
+#                 dict_all2[i]['node'] = tmp_record2 
+            file3.write(json.dumps(dict_all3))    
             
             file1.close()
             file2.close()
@@ -312,16 +323,7 @@ class FEC_analyst():
 #         quit()
 
 
-    def save_list_of_identifiers_to_file(self, filename=None):
-        if not filename: filename = '../data/' + self.batch_id + '-list_of_identifiers.json'
-        f = open(filename, 'w')
-        n = len(self.list_of_identifiers)
-        tmp_dict = {}
-        for s, i in zip(self.list_of_identifiers, range(n)):
-            tmp_dict[i] = s
-            #f.write("%d %s\n" % (i, s))
-        f.write(json.dumps(tmp_dict))
-        f.close()
+
     
     def set_query(self, query):
         ''' The MySQL query used'''
@@ -338,18 +340,32 @@ class FEC_analyst():
         self.auxilliary_fields = auxilliary_fields
         
     def save_job_record(self):
-        f = open('../records/' + str(self.batch_id) + '.record','w')
-        f.write('Time: '+datetime.datetime.now().isoformat()+'\n')
-        f.write('Batch ID: '+self.batch_id+'\n')
-        f.write('MySQL query: '+self.query+'\n')
-        f.write('Identifier fields: '+','.join(self.identifier_fields)+'\n')
-        f.write('Auxilliary fields: '+','.join(self.auxilliary_fields)+'\n')
+        f = open('../records/' + str(self.batch_id) + '.record', 'w')
+        f.write('Time: ' + datetime.datetime.now().isoformat() + '\n')
+        f.write('Batch ID: ' + self.batch_id + '\n')
+        f.write('MySQL query: ' + self.query + '\n')
+        f.write('Identifier fields: ' + ','.join(self.identifier_fields) + '\n')
+        f.write('Auxilliary fields: ' + ','.join(self.auxilliary_fields) + '\n')
         f.close()
         
 
+    def save_graph_to_file_json(self, filename=None, list_of_nodes=[]):
+        if not filename: filename = '../results/' + self.batch_id + '-adjacency.json'
+        # save adjacency matrix to file
+#         filename = '/home/navid/edges.txt'
+        f = open(filename, 'w') 
+        if  not self.D.adjacency: return 
+        if not list_of_nodes: list_of_nodes = range(len(self.list_of_identifiers))
+        nmin = list_of_nodes[0]
+        list_of_links = []
+        for node1 in list_of_nodes:
+            for node2 in self.D.adjacency[node1]:
+                list_of_links.append((node1 - nmin,node2 - nmin))
+        f.write(json.dumps(list_of_links))
+        f.close()
 
-    def save_adjacency_to_file(self, filename=None, list_of_nodes=[]):
-        if not filename: filename = '../data/' + self.batch_id + '-adjacency.txt'
+    def save_graph_to_file(self, filename=None, list_of_nodes=[]):
+        if not filename: filename = '../results/' + self.batch_id + '-adjacency.txt'
         # save adjacency matrix to file
 #         filename = '/home/navid/edges.txt'
         f = open(filename, 'w') 
@@ -436,8 +452,8 @@ def get_next_batch_id():
     s = f.read()
     f.close() 
     i = int(s)
-    f = open('../config/batches.list','w')
-    f.write(str(i+1))
+    f = open('../config/batches.list', 'w')
+    f.write(str(i + 1))
     f.close()
     return(str(i))
 
@@ -448,12 +464,12 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 
-record_start = 1
-record_no = 350
+record_start = 10000
+record_no = 1000
 
 
 
-#batch_id = "[" + str(record_start) + "," + str(record_start + record_no) + "]"
+# batch_id = "[" + str(record_start) + "," + str(record_start + record_no) + "]"
 batch_id = get_next_batch_id()
 
 time1 = time. time()
@@ -461,7 +477,7 @@ analyst = FEC_analyst(batch_id)
 
 
 identifier_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1'] 
-auxilliary_fields = ['TRANSACTION_DT','EMPLOYER']
+auxilliary_fields = ['TRANSACTION_DT', 'EMPLOYER']
 query_fields = identifier_fields + auxilliary_fields 
 
 index_identifier_fields = [query_fields.index(s) for s in identifier_fields]
@@ -470,11 +486,11 @@ index_auxilliary_fields = [query_fields.index(s) for s in auxilliary_fields]
 
 # Get string list from MySQL query and set it as analyst's list_of_identifiers
 # query_result = MySQL_query("select " + ','.join(identifier_fields) + " from newyork_addresses where NAME <> '' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
-query ="select "+ ','.join(query_fields) + " from newyork_addresses order by NAME,TRANSACTION_DT,ZIP_CODE,CMTE_ID limit " + str(record_start) + "," + str(record_no) + ";"
+query = "select " + ','.join(query_fields) + " from newyork_addresses order by NAME,TRANSACTION_DT,ZIP_CODE,CMTE_ID limit " + str(record_start) + "," + str(record_no) + ";"
 
 query_result = MySQL_query(query)
 tmp_list = []
-#for i in range(len(query_result)):
+# for i in range(len(query_result)):
 #    tmp_list.append(query_result[i])
     
     # tmp_list.append(query_result[i][0])
@@ -482,7 +498,7 @@ tmp_list = []
 
 
 # tmp_list = ['Navid, Dianati', 'Navid, Dianati', 'Dianati, Navid A.', 'Navid, Dianati M MR.', 'Navid, Dianati Mr.', 'Navid, Dianati D.', 'Dianati, N. M. MR', 'Navid, Dianati', 'Navid, Dianati', 'Dianati, Navid A.', 'Navid, Dianati M MR.', 'Navid, Dianati Mr.', 'Navid, Dianati D.', 'Dianati, N. M. MR']
-tmp_list = [[s.upper() if isinstance(s,basestring) else s.strftime("%Y%m%d") if  isinstance(s,datetime.date) else s  for s in record] for record in query_result]
+tmp_list = [[s.upper() if isinstance(s, basestring) else s.strftime("%Y%m%d") if  isinstance(s, datetime.date) else s  for s in record] for record in query_result]
 
 
 
@@ -510,25 +526,24 @@ t2 = time.time()
 print 'Done...'
 print t2 - t1
 
-print 'Saving list of identifiers to file...'
-analyst.save_list_of_identifiers_to_file()
+print 'Saving adjacency matrix to file...'
+analyst.save_graph_to_file(list_of_nodes=[])
+analyst.save_graph_to_file_json(list_of_nodes=[])
+
 print 'Done...'
 
-print 'Saving adjacency to file...'
-analyst.save_adjacency_to_file(list_of_nodes=[])
-print 'Done...'
 
 
-#analyst.D.imshow_adjacency_matrix(r=(0, record_no))
+# analyst.D.imshow_adjacency_matrix(r=(0, record_no))
 
 
 
 
     
-print 'Printing text of adjacency matrix to file...'
-analyst.print_adj_rows(r=[0, record_no])
+print 'Printing list of identifiers and text of adjacency matrix to file...'
+analyst.save_data(r=[0, record_no])
 print 'Done...'
-#pl.show()
+# pl.show()
 
 time2 = time.time()
 

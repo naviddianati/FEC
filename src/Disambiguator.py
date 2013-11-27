@@ -2,9 +2,11 @@ import random
 import pprint
 import numpy as np
 import pylab as pl
-#import visual as vs 
+# import visual as vs 
 import time
 import os
+import editdist
+import json
 
 
 class Disambiguator():
@@ -17,6 +19,9 @@ class Disambiguator():
         self.LSH_hash = []
         self.adjacency = {}
         self.m = 1  # number of permutations of the hashes
+        
+        # Load the name variants file
+        self.dict_name_variants = json.load(open('../data/name-variants.json'))
         
 
     def imshow_adjacency_matrix(self, r=()):
@@ -68,6 +73,9 @@ class Disambiguator():
     
     def __is_close_enough(self, v1, v2):
         ''' This function returns True or False indicating whether two name vectors are close enough to be considered identical or not '''
+        ''' If one has no address, then comparison should be much more strict.
+            If both have addresses, then addresses should be idenetical, and other fields must be close enough.'''
+        
         identical = True
         # Generate dictionary of lastname, firstname, middlename and suffix tokens for both vectors
         dict1 = {}
@@ -78,7 +86,7 @@ class Disambiguator():
        
         for index in v1:
             token = self.index_2_token[index]
-            if token[0] not in dict1: dict1[token[0]]=[]
+            if token[0] not in dict1: dict1[token[0]] = []
             dict1[token[0]].append(token[1])
         
         dict2 = {}
@@ -88,10 +96,15 @@ class Disambiguator():
         dict2[4] = []  # suffix        
         for index in v2:
             token = self.index_2_token[index]
-            if token[0] not in dict2: dict2[token[0]]=[]
+            if token[0] not in dict2: dict2[token[0]] = []
             dict2[token[0]].append(token[1])
         
-        
+        # If either has no address, require firstname and last name to be identical and also middle name if both have it.
+        if not dict1[5] or not  dict2[5]:
+            identical = (dict2[1] == dict1[1]) and (dict2[2] == dict1[2]) and ((dict2[3] == dict1[3]) if (dict2[3] and dict1[3]) else True )
+            return identical
+             
+        # IF BOTH HAVE ADDRESSES:
         
         # if both have middlenames, they should be the same
         if dict1[3] and dict2[3]:
@@ -100,14 +113,29 @@ class Disambiguator():
         # if 1 doesn't have a middle name but 2 does, then 2 is not the "parent" of 1
         if not dict1[3] and dict2[3]: identical = False
           
-        # if last names arden't identical, fail.
-        if dict1[1] != dict2[1]: identical = False;
+        # if last names arden't close enough, fail.
+#         if dict1[1] != dict2[1]: identical = False;
+        if not dict2[1] or not dict1[1]: 
+            identical = False       
+        elif editdist.distance(dict1[1][0], dict2[1][0]) > 2: identical = False
+
+        # if first names don't overlap, then check if they are variants. If not, fail
+#         if not any(i in dict1[2] for i in dict2[2]): identical = False
+        firstname1 = ' '.join(dict1[2])
+        firstname2 = ' '.join(dict2[2])  
+        if editdist.distance(firstname1,firstname2) > 2:
+            if firstname2 in self.dict_name_variants:
+                if firstname1 not in self.dict_name_variants[firstname2]: 
+                    identical = False
+            else:
+                identical = False
         
-        # if first names don't overlap, then fail.
-        if not any(i in dict1[2] for i in dict2[2]): identical = False
+        
         
         # If street addresses aren't identical, then fail
-        if dict1[5] != dict2[5]: identical = False;
+        if dict1[5] != dict2[5]: 
+            identical = False;
+            return identical
         
         return identical
             
@@ -194,7 +222,7 @@ class Disambiguator():
         
         
     def save_LSH_hash(self, filename=None):
-        if not filename: filename = '../data/' + self.batch_id + '-LSH_hash.txt'
+        if not filename: filename = '../results/' + self.batch_id + '-LSH_hash.txt'
         f = open(filename, 'w')
         for s in  self.LSH_hash:
             f.write(s + "\n")
@@ -219,10 +247,10 @@ class Disambiguator():
                     j += 1
             print current_group
             for index in current_group:
-                print '-->',index
+                print '-->', index
                 self.adjacency[index] = list(current_group)
                 self.adjacency[index].remove(index)
-                print '    ',index, self.adjacency[index]
+                print '    ', index, self.adjacency[index]
             i = j
             
                     # set neighbors of all items in current group and move on to the next item
@@ -253,7 +281,7 @@ class Disambiguator():
         for i in range(m):
             shuffle_list_of_str(self.LSH_hash)
 #             print self.LSH_hash[0]
-            print 'Shuffling list of hashes and computing nearest neighbors'+str(i)
+            print 'Shuffling list of hashes and computing nearest neighbors' + str(i)
             adjacency_new = self.get_nearest_neighbors(B=B1, sigma=sigma1)        
             self.__update_dict(self.adjacency, adjacency_new)
 #             pl.cla()

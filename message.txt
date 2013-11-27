@@ -1,0 +1,22 @@
+MAJOR NAME COMPARISON UGRADE, JSON OUTPUT
+
+--Consolidate all data saving in one routine in order to avoid redundant token computation.
+
+--All working data is in two files: <batch_id>-adjacency.txt and <batch_id>-list_of_nodes.json
+The other two files contain no additional information and are plain txt files (despite their
+extension), already formatted for visual presentation.
+
+--For easy displaying of json files, a simple bash script called 'json' is used which uses the
+following command to pretty print the json file: python -mjson.tool <filename.json>
+
+-- A script is added to compile a dictionary of possible name variants. The result is a dictionary
+saved in json format in data/name-variants.json
+
+-- In Disambiguator.py, the function __is_close_enough is modified. If addresses are not identical,
+then to be matched, the rest of the identifiers must match exactly.
+
+--The Levenshtein distance is now used to compare last names and first names. A fast implementation
+in cPython is used. Source: http://code.google.com/p/py-editdist/downloads/detail?name=py-editdist-0.3.tar.gz&can=2&q=
+
+--First names are matched against the dictionary of name variants if the Levenshtein distances
+are too great.
