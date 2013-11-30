@@ -103,7 +103,11 @@ class Disambiguator():
         if not dict1[5] or not  dict2[5]:
             identical = (dict2[1] == dict1[1]) and (dict2[2] == dict1[2]) and ((dict2[3] == dict1[3]) if (dict2[3] and dict1[3]) else True )
             return identical
-             
+        # If street addresses aren't identical, then fail
+        if dict1[5] != dict2[5]: 
+            identical = False;
+            return identical
+              
         # IF BOTH HAVE ADDRESSES:
         
         # if both have middlenames, they should be the same
@@ -123,19 +127,12 @@ class Disambiguator():
 #         if not any(i in dict1[2] for i in dict2[2]): identical = False
         firstname1 = ' '.join(dict1[2])
         firstname2 = ' '.join(dict2[2])  
-        if editdist.distance(firstname1,firstname2) > 2:
+        if editdist.distance(firstname1,firstname2) > 1:
             if firstname2 in self.dict_name_variants:
                 if firstname1 not in self.dict_name_variants[firstname2]: 
                     identical = False
             else:
                 identical = False
-        
-        
-        
-        # If street addresses aren't identical, then fail
-        if dict1[5] != dict2[5]: 
-            identical = False;
-            return identical
         
         return identical
             
@@ -456,7 +453,7 @@ if __name__ == '__main__':
     sigma = 0.2
     
     # Number of adjacent hashes to compare
-    B = 10
+    B = 30
     
     list_of_vectors = generate_rand_list_of_vectors(N, dim)
     
@@ -468,7 +465,7 @@ if __name__ == '__main__':
     print "Hashes computed..."
     
     print 'Computing similarity matrix...'
-    D.compute_similarity(B=10, m=no_of_permutations , sigma=0.2)
+    D.compute_similarity(B1=30, m=no_of_permutations , sigma=0.2)
     print 'Done...'
     
     

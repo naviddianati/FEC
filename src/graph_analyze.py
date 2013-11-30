@@ -1,11 +1,11 @@
 import json
 import pprint
 
-batch_id = 40
+batch_id = 59
 
 pp = pprint.PrettyPrinter(indent=4)
-file_adjacency = open('../data/' + str(batch_id) + '-adjacency.json')
-file_nodes = open('../data/' + str(batch_id) + '-list_of_nodes.json')
+file_adjacency = open('../results/' + str(batch_id) + '-adjacency.json')
+file_nodes = open('../results/' + str(batch_id) + '-list_of_nodes.json')
 
 
 ''' Gives a list of links where each link is a list:[source,target]'''
@@ -20,15 +20,18 @@ dict_first_names = {}
 dict_last_names = {}
 
 for link in adjacency:
-    print link
+    #print link
     source = str(link[0])
     target = str(link[1])
     source_last_name,source_first_name,target_last_name,target_first_name='','','',''
-    if '1' in dict_nodes[source]['ident_tokens']: source_last_name = dict_nodes[source]['ident_tokens']['1']
+    if '1' in dict_nodes[source]['ident_tokens']: 
+        source_last_name = dict_nodes[source]['ident_tokens']['1'] 
+    else: 
+        print dict_nodes[source]['ident_tokens']
     if '2' in dict_nodes[source]['ident_tokens']: source_first_name = dict_nodes[source]['ident_tokens']['2']
     if '1' in dict_nodes[target]['ident_tokens']: target_last_name = dict_nodes[target]['ident_tokens']['1']
     if '2' in dict_nodes[target]['ident_tokens']: target_first_name = dict_nodes[target]['ident_tokens']['2']
-    print source_last_name,target_last_name
+    #print source_last_name,target_last_name
     if source_first_name not in dict_first_names:
         dict_first_names[source_first_name]=[]
     if source_last_name not in dict_last_names:
@@ -40,7 +43,7 @@ for link in adjacency:
         dict_first_names[source_first_name].append(target_first_name)
         
         
-pp.pprint(dict_first_names)
+#pp.pprint(dict_first_names)
     
 quit()
 

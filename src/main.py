@@ -14,6 +14,7 @@ import time
 from address import AddressParser
 import json
 import datetime
+import sys
 
 # establish and return a connection to the MySql database server
 def db_connect():
@@ -83,13 +84,18 @@ class FEC_analyst():
             separator = '______________________________________________________________________________________________________________________'
             pp = pprint.PrettyPrinter(indent=4)
             pp.pprint(self.D.adjacency)
+
+            n = len(self.list_of_identifiers)
             if r:
-                n_low, n_high = r[0], r[1]
+                save_range = range(max(0,r[0]), min(n,r[1]))
+            else: 
+                save_range = range(len(self.list_of_identifiers))
+
             file1 = open(filename1, 'w')
             file2 = open(filename2, 'w')
             file3 = open(filename3, 'w')
             dict_all3 = {}
-            for i in range(n_low, n_high):
+            for i in save_range:
                 tmp_tokens = self.__get_tokens(self.list_of_identifiers[i])
                 tokens_str = [str(x) for x in tmp_tokens]
                 tokens = {x[0]:x[1] for x in tmp_tokens} 
@@ -392,7 +398,7 @@ class FEC_analyst():
         # hash_dim = 200
         
         # Number of times the hashes are permutated and sorted
-        no_of_permutations = 10
+        no_of_permutations = 100
         
         # Hamming distance threshold for adjacency 
         # sigma = 0.2
@@ -461,11 +467,14 @@ def get_next_batch_id():
 pp = pprint.PrettyPrinter(indent=4)
 # pp.pprint(self.D.adjacency)
 
+if len(sys.argv)>1:
+    param_state = sys.argv[1]
+else:
+    param_state = 'newyork'
+print "Analyzing data for state: ",param_state 
 
-
-
-record_start = 10000
-record_no = 1000
+record_start = 1
+record_no = 350000
 
 
 
@@ -486,7 +495,7 @@ index_auxilliary_fields = [query_fields.index(s) for s in auxilliary_fields]
 
 # Get string list from MySQL query and set it as analyst's list_of_identifiers
 # query_result = MySQL_query("select " + ','.join(identifier_fields) + " from newyork_addresses where NAME <> '' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
-query = "select " + ','.join(query_fields) + " from newyork_addresses order by NAME,TRANSACTION_DT,ZIP_CODE,CMTE_ID limit " + str(record_start) + "," + str(record_no) + ";"
+query = "select " + ','.join(query_fields) + " from "+param_state+"_addresses order by NAME,TRANSACTION_DT,ZIP_CODE,CMTE_ID limit " + str(record_start) + "," + str(record_no) + ";"
 
 query_result = MySQL_query(query)
 tmp_list = []
@@ -521,7 +530,7 @@ analyst.save_job_record()
 
 print 'Running Analyze...'
 t1 = time.time()
-analyst.analyze(hash_dim=10, sigma=0.26, B=30)
+analyst.analyze(hash_dim=20, sigma=0.26, B=30)
 t2 = time.time()
 print 'Done...'
 print t2 - t1
@@ -541,7 +550,7 @@ print 'Done...'
 
     
 print 'Printing list of identifiers and text of adjacency matrix to file...'
-analyst.save_data(r=[0, record_no])
+analyst.save_data()
 print 'Done...'
 # pl.show()
 

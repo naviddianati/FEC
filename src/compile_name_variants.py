@@ -1,6 +1,6 @@
 ''' This script reads rows of the file ../data/name-variants-raw.csv. Each row contains a list of variants of the same
 name. It returns a dictionary that for each name (variant), yields a list of other name variants that have appeared
-with it in at least on row.''' 
+with it in at least one row.''' 
 
 
 import re
