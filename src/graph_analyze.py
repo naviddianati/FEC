@@ -1,7 +1,7 @@
 import json
 import pprint
 
-batch_id = 59
+batch_id = 64
 
 pp = pprint.PrettyPrinter(indent=4)
 file_adjacency = open('../results/' + str(batch_id) + '-adjacency.json')
@@ -36,20 +36,19 @@ for link in adjacency:
         dict_first_names[source_first_name]=[]
     if source_last_name not in dict_last_names:
         dict_last_names[source_last_name]=[]
-   
+        
     if source_last_name!=target_last_name:
         dict_last_names[source_last_name].append(target_last_name)
     if source_first_name!=target_first_name:
         dict_first_names[source_first_name].append(target_first_name)
         
         
-#pp.pprint(dict_first_names)
+pp.pprint(dict_first_names)
     
 quit()
-
 
 for node_id in dict_nodes:
     print '________________________________________________________________________________________________________________________'
     print node_id,dict_nodes[node_id]['ident'];
 #     print tmp2[node]['node']
-    raw_input()
+#    raw_input()

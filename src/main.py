@@ -56,11 +56,20 @@ class FEC_analyst():
         self.list_of_vectors = []
         self.no_of_tokens = 0
         self.list_of_identifiers = []
+        
+        # I think I won't need to use these now, since names are already split up into their parts
         self.tokenize_functions = {'NAME':self.__get_tokens_NAME,
+                                   'LAST_NAME':self.__get_tokens_LAST_NAME,
+                                   'FIRST_NAME':self.__get_tokens_FIRST_NAME,
                                  'CONTRIBUTOR_ZIP':self.__get_tokens_ZIP,
                                  'CONTRIBUTOR_STREET_1':self.__get_tokens_STREET}
        
-        self.token_identifiers = {'NAME':[1, 2, 3],
+#         # Used when NAME is retrieved from MySQL query, not FIRST_NAME and LAST_NAME
+#         self.token_identifiers = {'NAME':[1, 2, 3],
+#                                 'CONTRIBUTOR_ZIP':[4],
+#                                 'CONTRIBUTOR_STREET_1':[5]}
+        self.token_identifiers = {'LAST_NAME':[1],
+                                  'FIRST_NAME':[2],
                                 'CONTRIBUTOR_ZIP':[4],
                                 'CONTRIBUTOR_STREET_1':[5]}
         self.ap = AddressParser()
@@ -146,11 +155,17 @@ class FEC_analyst():
         return tokens
     
                 
-            
+    def __get_tokens_FIRST_NAME(self, s):
+        identifier = self.token_identifiers['FIRST_NAME'][0]
+        return [(identifier, s)]
+    def __get_tokens_LAST_NAME(self, s):
+        identifier = self.token_identifiers['LAST_NAME'][0]
+        return [(identifier, s)]        
             
     def __get_tokens_ZIP(self, s):
         identifier = self.token_identifiers['CONTRIBUTOR_ZIP'][0]
-        return [(identifier, s)]
+        zipcode = s if len(s) < 5 else s[0:5] 
+        return [(identifier, zipcode )]
     def __get_tokens_STREET(self, s):
         try:
             address = self.ap.parse_address(s)
@@ -169,6 +184,7 @@ class FEC_analyst():
             identifier = self.token_identifiers['CONTRIBUTOR_STREET_1'][0]
             return [(identifier, s)]
     def __get_tokens_NAME(self, s):
+        ''' this tokenizer is applied to the whole name, that is, when first/middle/last name and titles are all mixed into one string.'''
         # remove all numerals
         s1 = re.sub(r'\.|[0-9]+', '', s)
         
@@ -299,6 +315,8 @@ class FEC_analyst():
     def tokenize(self):
         for i in range(len(self.list_of_identifiers)):           
             s = self.list_of_identifiers[i]
+            
+            # I believe this is unneccesary 
             s = s[0:len(self.identifier_fields)]
             # print s
             # s_plit is a list of tuples: [(1,'sdfsadf'),(2,'ewre'),...]     
@@ -474,7 +492,7 @@ else:
 print "Analyzing data for state: ",param_state 
 
 record_start = 1
-record_no = 350000
+record_no = 5000
 
 
 
@@ -485,12 +503,13 @@ time1 = time. time()
 analyst = FEC_analyst(batch_id)
 
 
-identifier_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1'] 
+identifier_fields = ['FIRST_NAME','LAST_NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1']
+# identifier_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1'] 
 auxilliary_fields = ['TRANSACTION_DT', 'EMPLOYER']
 query_fields = identifier_fields + auxilliary_fields 
 
 index_identifier_fields = [query_fields.index(s) for s in identifier_fields]
-index_auxilliary_fields = [query_fields.index(s) for s in auxilliary_fields]
+index_auxilliary_fields = [query_fields.index(s) for s in auxilliary_fields]    
 
 
 # Get string list from MySQL query and set it as analyst's list_of_identifiers

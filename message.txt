@@ -1,22 +1,7 @@
-MAJOR NAME COMPARISON UGRADE, JSON OUTPUT
+NAME PARTS PERFECTLY SPLIT
 
---Consolidate all data saving in one routine in order to avoid redundant token computation.
-
---All working data is in two files: <batch_id>-adjacency.txt and <batch_id>-list_of_nodes.json
-The other two files contain no additional information and are plain txt files (despite their
-extension), already formatted for visual presentation.
-
---For easy displaying of json files, a simple bash script called 'json' is used which uses the
-following command to pretty print the json file: python -mjson.tool <filename.json>
-
--- A script is added to compile a dictionary of possible name variants. The result is a dictionary
-saved in json format in data/name-variants.json
-
--- In Disambiguator.py, the function __is_close_enough is modified. If addresses are not identical,
-then to be matched, the rest of the identifiers must match exactly.
-
---The Levenshtein distance is now used to compare last names and first names. A fast implementation
-in cPython is used. Source: http://code.google.com/p/py-editdist/downloads/detail?name=py-editdist-0.3.tar.gz&can=2&q=
-
---First names are matched against the dictionary of name variants if the Levenshtein distances
-are too great.
+-- Noticed that I actually have first/last names separately from the address extractor. They are already registered in the tables newyork_addresses and ohio_addresses. So I don't need to parse the combined names that came with the FEC database!
+-- Note: the middle names aren't there. I did not extract them from the .fec files, but I could if I wanted to. For now, I'll only use first and last names for identificatoin.
+-- Note: some first/last names are missing in the .fec extracted data.
+-- zip codes are now truncated to five digits in tokenize.
+-- editdist.so is compiled both for 32 and 64 bit linux. The correct version should be copied to working directory depending on the machine.

@@ -103,12 +103,14 @@ class Disambiguator():
         if not dict1[5] or not  dict2[5]:
             identical = (dict2[1] == dict1[1]) and (dict2[2] == dict1[2]) and ((dict2[3] == dict1[3]) if (dict2[3] and dict1[3]) else True )
             return identical
+        
+        # IF BOTH HAVE ADDRESSES:
+                       
         # If street addresses aren't identical, then fail
         if dict1[5] != dict2[5]: 
             identical = False;
             return identical
               
-        # IF BOTH HAVE ADDRESSES:
         
         # if both have middlenames, they should be the same
         if dict1[3] and dict2[3]:
@@ -135,9 +137,7 @@ class Disambiguator():
                 identical = False
         
         return identical
-            
-        
-                
+                   
     
     def get_nearest_neighbors(self, B, sigma):
         ''' given a list of strings or hashes, this function computes the nearest
@@ -211,8 +211,8 @@ class Disambiguator():
             vec = sparse_vector(vec_tmp)
             vec_n = vec_norm(vec)
             for v, i in zip(self.list_of_vectors, range(N)):
-    #             c = 1 if inner_product(v, vec) / vec_n / vec_norm(v) > 0.0001 else 0
                 c = '1' if inner_product(v, vec) > 0 else '0'
+    #             c = 1 if inner_product(v, vec) / vec_n / vec_norm(v) > 0.0001 else 0
                 LSH_hash[i] += c
 #         return LSH_hash
         self.LSH_hash = LSH_hash
