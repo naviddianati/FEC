@@ -155,8 +155,14 @@ class FEC_analyst():
         return tokens
     
                 
-    def __get_tokens_FIRST_NAME(self, s):
+    def __get_tokens_FIRST_NAME(self, name):
+        ''' Some first names are contaminated with middle names. clean them up.'''
         identifier = self.token_identifiers['FIRST_NAME'][0]
+        s = re.sub(r'\b\w\b\.?',' ',name)
+        parts = re.split(r'\s+',s)
+        sizes = [len(x) for x in parts]
+        largest_index = sizes.index(max(sizes))
+        s = parts[largest_index]
         return [(identifier, s)]
     def __get_tokens_LAST_NAME(self, s):
         identifier = self.token_identifiers['LAST_NAME'][0]
@@ -505,7 +511,7 @@ analyst = FEC_analyst(batch_id)
 
 identifier_fields = ['FIRST_NAME','LAST_NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1']
 # identifier_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1'] 
-auxilliary_fields = ['TRANSACTION_DT', 'EMPLOYER']
+auxilliary_fields = ['TRANSACTION_DT', 'EMPLOYER','TRANSACTION_AMT','CITY','CMTE_ID','ENTITY_TP']
 query_fields = identifier_fields + auxilliary_fields 
 
 index_identifier_fields = [query_fields.index(s) for s in identifier_fields]
