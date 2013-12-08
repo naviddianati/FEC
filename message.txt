@@ -1,6 +1,6 @@
-EMPLOYER GRAPH CLUSTERING DONE
+MAJOR GRAPH VISUALIZATION OVERHAUL
 
---The two files graph_analyze.py and graph_visualize.py are fully functional and the code is capable of generating good visualizations of the graph of interconnected employers and its components.
---This version can be used to generate acceptable visualizations.
---A few additional auxilliary fields added to the initial MySQL query in main.py so all relevant information is extracted and recorded in future runs.
-
+--A fully functional graph visualization system implemented through the graph_visualize.py file
+--The file graph_analyze.py is renamed to graph_prepare.py. It Generates the graph data from the disambiguated output of main.py, which graph_visualize.py uses for plotting.
+-- A module graphStats is added. This module uses the output of graph_prepare.py to compute various statistical properties of the graph. this module will be the main venue for analyzing the graph and will be further developed.
+-- The mypalettes module is extended to interface with matplotlib. This allows us to use matplotlib's color palettes for igraph plots.
