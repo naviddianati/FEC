@@ -1,6 +1,3 @@
-MAJOR GRAPH VISUALIZATION OVERHAUL
+ANALYZE WHOLE STATE TABLES
 
---A fully functional graph visualization system implemented through the graph_visualize.py file
---The file graph_analyze.py is renamed to graph_prepare.py. It Generates the graph data from the disambiguated output of main.py, which graph_visualize.py uses for plotting.
--- A module graphStats is added. This module uses the output of graph_prepare.py to compute various statistical properties of the graph. this module will be the main venue for analyzing the graph and will be further developed.
--- The mypalettes module is extended to interface with matplotlib. This allows us to use matplotlib's color palettes for igraph plots.
+Here, rather than <state>_addresses

@@ -8,7 +8,17 @@ import os
 import editdist
 import json
 
-
+''' This class receives a list of vectors, each representing a node or record, and computes a similarity matrix between the nodes.
+    Each vector is a dictionary {index:(0 or 1)} where index is a unique integer representing a feature or token in the record.
+    The tokens themselves can be specified via index_2_token and token_2_index.
+    
+    The core action of the class is by finding candidates for approximate nearest neighbors for each vector based simply on euclidean 
+    distance.
+    
+    This can be further augmented by overriding  the member function __is_close_enough(v1,v2). This functions takes two vectors as inputs
+    and decides if they should be linked or not, and uses additional information about the features/tokens as well. This is where
+    index_2_token and token_2_index can be used. 
+    ''' 
 class Disambiguator():
     def __init__(self, list_of_vectors, index_2_token, token_2_index, input_dimensions, batch_id):
         self.batch_id = batch_id
@@ -228,7 +238,7 @@ class Disambiguator():
         
     def initialize_adjacency(self):
         ''' This function creates an empty self.adjacency dictionary and then populates it initially as follows:
-        it goes over the list of (sorted) hashes and amonge adjacent entriesm it finds maximal groups of identical
+        it goes over the list of (sorted) hashes and among adjacent entries it finds maximal groups of identical
         hashes, and creates complete subgraphs corresponding to them in self.adjacency.
         This is necessary if the original list_of_vectors contains repeated entries, such as when we are dealing
         with multiple transactions per person. '''
@@ -441,7 +451,7 @@ if __name__ == '__main__':
     N = 100
     
     # dimension of input vectors
-    dim = 40000
+    dim = 400
     
     # desired dimension (length) of hashes
     hash_dim = 100
@@ -457,7 +467,7 @@ if __name__ == '__main__':
     
     list_of_vectors = generate_rand_list_of_vectors(N, dim)
     
-    D = Disambiguator(list_of_vectors, dim)
+    D = Disambiguator(list_of_vectors, None,None,dim,1111)
     
     # compute the hashes
     print "Computing the hashes..."
@@ -465,7 +475,7 @@ if __name__ == '__main__':
     print "Hashes computed..."
     
     print 'Computing similarity matrix...'
-    D.compute_similarity(B1=30, m=no_of_permutations , sigma=0.2)
+    D.compute_similarity(B1=30, m=no_of_permutations , sigma1=0.2)
     print 'Done...'
     
     
