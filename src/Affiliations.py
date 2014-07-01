@@ -5,11 +5,12 @@ Created on Jun 30, 2014
 '''
 import igraph
 import json
+import os
 import pprint
 import re
-import numpy as np
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class AffilliationAnalyzer(object):
@@ -17,7 +18,8 @@ class AffilliationAnalyzer(object):
 
     def __init__(self, batch_id=89, affiliation="employer"):
         self.debug = False
-        self.data_path = '/home/navid/data/FEC/'
+        self.data_path = os.path.expanduser('~/data/FEC/')
+
         self.batch_id = batch_id
         # affiliation='occupation'
         self.affiliation = affiliation

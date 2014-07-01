@@ -3,14 +3,14 @@ Created on Dec 6, 2013
 
 @author: navid
 '''
-import igraph
 from igraph import color_name_to_rgba
-import numpy as np
-from mypalettes import gnuplotPalette1, mplPalette
-import random
+import igraph
 import os
+import random
 import string
 
+from mypalettes import gnuplotPalette1, mplPalette
+import numpy as np
 
 
 class GraphStats():
@@ -68,7 +68,7 @@ def main():
     # batch_id = 76  # OH
     batch_id = 76  # MA
     # batch_id = 71   # Ohio     
-    data_path = '/home/navid/tmp/FEC/'
+    data_path = os.path.expanduser('~/data/FEC/')
     G = igraph.Graph.Load(f=data_path + str(batch_id) + '-employer_graph.gml', format='gml')
     # G = igraph.Graph.Load(f=data_path + str(batch_id) + '-employer_graph_component-1.gml', format='gml')
     stats = GraphStats(G)

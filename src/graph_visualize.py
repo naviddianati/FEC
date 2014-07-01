@@ -12,7 +12,7 @@ import os
 
 class Settings:
     def __init__(self, draw_groups=False, batch_id=94, state_id='VT',
-                 affiliation='occupation', data_path='/home/navid/data/FEC/',
+                 affiliation='occupation', data_path = os.path.expanduser('~/data/FEC/'),
                  output_dim=(3200, 3200), num_components=(0, 80), verbose=False):
         self.draw_groups = draw_groups
         self.batch_id = batch_id
@@ -391,7 +391,7 @@ settings = Settings(batch_id=94,
                     state_id='VT',
 #                     affiliation='occupation',
                     affiliation='employer',
-                    data_path='/home/navid/data/FEC/',
+                    data_path = os.path.expanduser('~/data/FEC/'),
                     output_dim=(3200, 3200),
                     num_components=(0, 1),
                     verbose=False

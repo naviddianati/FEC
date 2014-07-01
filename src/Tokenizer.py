@@ -4,8 +4,10 @@ Created on Jul 1, 2014
 @author: navid
 '''
 import json
+import os
 import pprint
 import re
+
 from address import AddressParser
 
 
@@ -48,7 +50,7 @@ class Tokenizer():
                                 'CONTRIBUTOR_STREET_1':[5]}
         self.ap = AddressParser()
 #         self.query = ''
-        self.data_path = '/home/navid/data/FEC/'
+        self.data_path = os.path.expanduser('~/data/FEC/')
 
      
    

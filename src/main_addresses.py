@@ -387,7 +387,6 @@ class FEC_analyst():
     def save_graph_to_file_json(self, filename=None, list_of_nodes=[]):
         if not filename: filename = '../results/' + self.batch_id + '-adjacency.json'
         # save adjacency matrix to file
-#         filename = '/home/navid/edges.txt'
         f = open(filename, 'w') 
         if  not self.D.adjacency: return 
         if not list_of_nodes: list_of_nodes = range(len(self.list_of_identifiers))
@@ -402,7 +401,6 @@ class FEC_analyst():
     def save_graph_to_file(self, filename=None, list_of_nodes=[]):
         if not filename: filename = '../results/' + self.batch_id + '-adjacency.txt'
         # save adjacency matrix to file
-#         filename = '/home/navid/edges.txt'
         f = open(filename, 'w') 
         if  not self.D.adjacency: return 
         if not list_of_nodes: list_of_nodes = range(len(self.list_of_identifiers))

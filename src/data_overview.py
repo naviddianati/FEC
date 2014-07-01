@@ -5,14 +5,14 @@
 
 
 
-import json
-import pprint
 import igraph
-import numpy as np
-import re
-from random  import shuffle
+import json
 import os
+import pprint
+from random  import shuffle
+import re
 
+import numpy as np
 
 
 # batch_id = 88; state_id = 'NY'    # New York 
@@ -29,7 +29,7 @@ batch_id = 92; state_id = 'MA'  # Massachussetes
 
 
 pp = pprint.PrettyPrinter(indent=4)
-data_path = '/home/navid/data/FEC/'
+data_path = os.path.expanduser('~/data/FEC/')
 output_path = data_path+'separate_identities/' + state_id + '/'
 if not os.path.exists(output_path):
     os.makedirs(output_path)

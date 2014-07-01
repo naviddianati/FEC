@@ -34,11 +34,13 @@
 '''
 # import nltk
 # establish and return a connection to the MySql database server
-import time
+
 import json
+import os
 import pprint
 import re
 import sys
+import time
 
 from Disambiguator import Disambiguator
 from Retriever import FecRetriever
@@ -77,18 +79,18 @@ def main():
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
-    2- Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the 
-        updated list of records. These records now have a reference to the Tokenizers TokenData object, and contain 
+    2- Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the
+        updated list of records. These records now have a reference to the Tokenizers TokenData object, and contain
         an attribute called record.vector.
     3- Instantiate a Disambiguator object and pass to it the list of records. This Disambiguator will use the vector
         attributes of the records to find a set of approximate nearest neighbors for each one. The result is an adjacency
         matrix.
     4- Instantiate a Project object, and set various parameters to it as instance variables. For example, the Disambiguator
-        object defined above is assigned to the Project as an instance variable. 
+        object defined above is assigned to the Project as an instance variable.
         This Project object will then do the book keeping: saves a settings file, saves the adjacency matrix to a file,
         saves a json version of all records to a file, etc.
     5- The json files saved by Project, namely the adjacency matrix and the list of records, will be used by the code
-        defined in the Affiliations module to extract     
+        defined in the Affiliations module to extract
     '''  
     batch_id = get_next_batch_id()
     project = Project(batch_id=batch_id)
@@ -97,7 +99,7 @@ def main():
     if len(sys.argv) > 1:
         param_state = sys.argv[1]
     else:
-        param_state = 'newyork_addresses'
+        param_state = 'country_addresses'
     print "Analyzing data for state: ", param_state 
     
     project.log('param_state' , param_state)
@@ -112,7 +114,7 @@ def main():
     time1 = time.time()
     
     list_tokenized_fields = ['FIRST_NAME', 'LAST_NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1']
-    list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1', 'OCCUPATION']
+#     list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1', 'OCCUPATION']
     project.list_tokenized_fields = list_tokenized_fields
     
     list_auxiliary_fields = ['TRANSACTION_DT', 'EMPLOYER', 'TRANSACTION_AMT', 'CITY', 'CMTE_ID', 'ENTITY_TP']
@@ -144,7 +146,7 @@ def main():
     retriever = FecRetriever(table_name=param_state,
                       query_fields=all_fields,
                       limit=(record_start, record_start + record_no),
-                      list_order_by=["NAME", "TRANSACTION_DT", "ZIP_CODE", "CMTE_ID"],
+                      list_order_by=["NAME", 'LAST_NAME', 'FIRST_NAME', "TRANSACTION_DT", "ZIP_CODE", "CMTE_ID"],
                       where_clause=' where NAME like "%COHEN%" ')
     retriever.retrieve()
     project.query = retriever.getQuery()
@@ -239,7 +241,7 @@ def main():
 class Project:
     def __init__(self, batch_id):
         self.batch_id = batch_id
-        self.data_path = '/home/navid/data/FEC/'
+        self.data_path = os.path.expanduser('~/data/FEC/')
         self.logfilename = '../records/' + str(self.batch_id) + '.record'
         self.logfile = open(self.logfilename, 'w', 0)
         self.messages = []
@@ -276,7 +278,6 @@ class Project:
     def save_graph_to_file_json(self, filename=None, list_of_nodes=[]):
         if not filename: filename = self.data_path + self.batch_id + '-adjacency.json'
         # save adjacency matrix to file
-#         filename = '/home/navid/edges.txt'
         f = open(filename, 'w') 
         if  not self.D.adjacency: return 
         if not list_of_nodes: list_of_nodes = range(len(self.list_of_records))
@@ -291,7 +292,6 @@ class Project:
     def save_graph_to_file(self, filename=None, list_of_nodes=[]):
         if not filename: filename = self.data_path + self.batch_id + '-adjacency.edges'
         # save adjacency matrix to file
-#         filename = '/home/navid/edges.txt'
         f = open(filename, 'w') 
         if  not self.D.adjacency: return 
         if not list_of_nodes: list_of_nodes = range(len(self.list_of_records))
