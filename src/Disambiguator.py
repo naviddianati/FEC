@@ -11,21 +11,24 @@ import json
 ''' This class receives a list of vectors, each representing a node or record, and computes a similarity matrix between the nodes.
     Each vector is a dictionary {index:(0 or 1)} where index is a unique integer representing a feature or token in the record.
     The tokens themselves can be specified via index_2_token and token_2_index.
-    
-    The core action of the class is by finding candidates for approximate nearest neighbors for each vector based simply on euclidean 
+
+    The core action of the class is by finding candidates for approximate nearest neighbors for each vector based simply on euclidean
     distance.
-    
+
     This can be further augmented by overriding  the member function __is_close_enough(v1,v2). This functions takes two vectors as inputs
     and decides if they should be linked or not, and uses additional information about the features/tokens as well. This is where
-    index_2_token and token_2_index can be used. 
+    index_2_token and token_2_index can be used.
     ''' 
 class Disambiguator():
-    def __init__(self, list_of_vectors, index_2_token, token_2_index, input_dimensions, batch_id):
-        self.batch_id = batch_id
+    def __init__(self, list_of_records, index_2_token, token_2_index,vector_dimension):
+        
         self.index_2_token = index_2_token
         self.token_2_index = token_2_index
-        self.list_of_vectors = list_of_vectors
-        self.input_dimensions = input_dimensions
+#         self.list_of_vectors = list_of_vectors
+        self.list_of_records = list_of_records
+        
+        # dimension of the input vectors (this is necessary because the vectors come in a sparse form)
+        self.input_dimensions = vector_dimension
         self.LSH_hash = []
         self.adjacency = {}
         self.m = 1  # number of permutations of the hashes
@@ -78,76 +81,9 @@ class Disambiguator():
             
     def print_list_of_vectors(self):
         # print all vectors
-        for vec in  self.list_of_vectors:
-            print vec
-    
-    def __is_close_enough(self, v1, v2):
-        ''' This function returns True or False indicating whether two name vectors are close enough to be considered identical or not '''
-        ''' If one has no address, then comparison should be much more strict.
-            If both have addresses, then addresses should be idenetical, and other fields must be close enough.'''
-        
-        identical = True
-        # Generate dictionary of lastname, firstname, middlename and suffix tokens for both vectors
-        dict1 = {}
-        dict1[1] = []  # Last name
-        dict1[2] = []  # First name
-        dict1[3] = []  # Middle name
-        dict1[4] = []  # suffix        
-       
-        for index in v1:
-            token = self.index_2_token[index]
-            if token[0] not in dict1: dict1[token[0]] = []
-            dict1[token[0]].append(token[1])
-        
-        dict2 = {}
-        dict2[1] = []  # Last name
-        dict2[2] = []  # First name
-        dict2[3] = []  # Middle name
-        dict2[4] = []  # suffix        
-        for index in v2:
-            token = self.index_2_token[index]
-            if token[0] not in dict2: dict2[token[0]] = []
-            dict2[token[0]].append(token[1])
-        
-        # If either has no address, require firstname and last name to be identical and also middle name if both have it.
-        if not dict1[5] or not  dict2[5]:
-            identical = (dict2[1] == dict1[1]) and (dict2[2] == dict1[2]) and ((dict2[3] == dict1[3]) if (dict2[3] and dict1[3]) else True )
-            return identical
-        
-        # IF BOTH HAVE ADDRESSES:
-                       
-        # If street addresses aren't identical, then fail
-        if dict1[5] != dict2[5]: 
-            identical = False;
-            return identical
-              
-        
-        # if both have middlenames, they should be the same
-        if dict1[3] and dict2[3]:
-            if dict1[3] != dict2[3]: identical = False
-        
-        # if 1 doesn't have a middle name but 2 does, then 2 is not the "parent" of 1
-        if not dict1[3] and dict2[3]: identical = False
-          
-        # if last names arden't close enough, fail.
-#         if dict1[1] != dict2[1]: identical = False;
-        if not dict2[1] or not dict1[1]: 
-            identical = False       
-        elif editdist.distance(dict1[1][0], dict2[1][0]) > 2: identical = False
-
-        # if first names don't overlap, then check if they are variants. If not, fail
-#         if not any(i in dict1[2] for i in dict2[2]): identical = False
-        firstname1 = ' '.join(dict1[2])
-        firstname2 = ' '.join(dict2[2])  
-        if editdist.distance(firstname1,firstname2) > 1:
-            if firstname2 in self.dict_name_variants:
-                if firstname1 not in self.dict_name_variants[firstname2]: 
-                    identical = False
-            else:
-                identical = False
-        
-        return identical
-                   
+        for record in  self.list_of_records:
+            print record.vector
+ 
     
     def get_nearest_neighbors(self, B, sigma):
         ''' given a list of strings or hashes, this function computes the nearest
@@ -156,7 +92,7 @@ class Disambiguator():
             Input:
                 self.LSH_hash: a list of strings of same length. The strings comprise 0 and 1/
                 B: an even integer. The number of adjacent strings to check for proximity for each string
-                sigma: float in [0,1], proximity threshold; maximum fraction of all digits in the two strings
+                sigma: NOT BEING USED. float in [0,1], proximity threshold; maximum fraction of all digits in the two strings
                     that can differ for them to be considered neighbors.
             Output: dictionary of indices. For each key (string index), the value is a list of indices
                     of all its nearest neighbors
@@ -188,8 +124,10 @@ class Disambiguator():
             for j in iteration_indices:
                 # i,j: current index in the sorted has list
                 # sort_indices[i]: the original index of the item residing at index i of the sorted list
-#                 if Hamming_distance(list_of_hashes_sorted[i], list_of_hashes_sorted[j]) < sigma * m:
-                if self.__is_close_enough(self.list_of_vectors[sort_indices[i]], self.list_of_vectors[sort_indices[j]]):
+                    
+                # New implementation: comparison is done via instance function of the Record class
+                if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]]):
+#                 if self.__is_close_enough(self.list_of_records[sort_indices[i]].vector, self.list_of_records[sort_indices[j]].vector):
                     dict_neighbors[sort_indices[i]].append(sort_indices[j])
         return dict_neighbors      
     
@@ -197,7 +135,7 @@ class Disambiguator():
         ''' Input:
                 list_of_vectors:    list of vectors. Each vector is a dictionary {vector coordinate index, value}
                 hash_dim:    dimension of the generated hash.
-                dimensions: dimension of the input vectors (this is necessary because the vectors come in a sparse form)
+
             Output:
                 list of hashes of the vectors. Each hash is an m-tuple.
         '''
@@ -206,7 +144,7 @@ class Disambiguator():
         self.hash_dim = hash_dim
         
         # Number of vectors
-        N = len(self.list_of_vectors)
+        N = len(self.list_of_records)
         
         LSH_hash = ['' for i in range(N)]
         
@@ -220,7 +158,8 @@ class Disambiguator():
             # convert to sparse form
             vec = sparse_vector(vec_tmp)
             vec_n = vec_norm(vec)
-            for v, i in zip(self.list_of_vectors, range(N)):
+            for record, i in zip(self.list_of_records, range(N)):
+                v = record.vector
                 c = '1' if inner_product(v, vec) > 0 else '0'
     #             c = 1 if inner_product(v, vec) / vec_n / vec_norm(v) > 0.0001 else 0
                 LSH_hash[i] += c
@@ -228,8 +167,8 @@ class Disambiguator():
         self.LSH_hash = LSH_hash
         
         
-    def save_LSH_hash(self, filename=None):
-        if not filename: filename = '../results/' + self.batch_id + '-LSH_hash.txt'
+    def save_LSH_hash(self, filename=None, batch_id = 0):
+        if not filename: filename = '../results/' + batch_id + '-LSH_hash.txt'
         f = open(filename, 'w')
         for s in  self.LSH_hash:
             f.write(s + "\n")
@@ -244,12 +183,12 @@ class Disambiguator():
         with multiple transactions per person. '''
         self.adjacency = {} 
         i = 0
-        while i < len(self.list_of_vectors):
+        while i < len(self.list_of_records):
             self.adjacency[i] = []
             j = i + 1
             
             current_group = [i]
-            while (j < len(self.list_of_vectors)) and (self.LSH_hash[i] == self.LSH_hash[j]):
+            while (j < len(self.list_of_records)) and (self.LSH_hash[i] == self.LSH_hash[j]):
                     current_group.append(j)
                     j += 1
             print current_group
@@ -311,7 +250,7 @@ class Disambiguator():
         the content of the corresponding vectors. ''' 
         counter = 0
         if not self.adjacency: return
-        N = len(self.list_of_vectors)
+        N = len(self.list_of_records)
         while counter < 20:
             x = random.randint(0, N - 1)
             
@@ -322,7 +261,7 @@ class Disambiguator():
             if 1.0 * (x - y) / x < 0.1:
                 counter += 1
                 
-                print x, y, '-----', self.list_of_vectors[x], self.list_of_vectors[y]
+                print x, y, '-----', self.list_of_records[x].vector, self.list_of_records[y].vector
                 print self.adjacency[x]
                 print self.LSH_hash[x], '\n', self.LSH_hash[y], "\n", Hamming_distance(self.LSH_hash[x], self.LSH_hash[y]) * 1.0 / self.hash_dim, "\n\n"
            
@@ -465,9 +404,10 @@ if __name__ == '__main__':
     # Number of adjacent hashes to compare
     B = 30
     
-    list_of_vectors = generate_rand_list_of_vectors(N, dim)
-    
-    D = Disambiguator(list_of_vectors, None,None,dim,1111)
+#     list_of_vectors = generate_rand_list_of_vectors(N, dim)
+#     
+    # Won't work as is!
+    D = Disambiguator(None, None, None, dim, 1111)
     
     # compute the hashes
     print "Computing the hashes..."
@@ -490,5 +430,4 @@ if __name__ == '__main__':
     # pl.imshow(ADJ, interpolation='none', cmap='gray')
     pl.show()
         
-
 

@@ -40,7 +40,7 @@ def myplot(obj,target=None, *args, **kwds):
 
 
 
-#~ p = ig.Plot("test.svg", background = None)
+#~ p = ig.Plot("py.svg", background = None)
 
 colornum = 100
 

@@ -46,8 +46,8 @@ def show_histories_distribution(contributors_subgraphs):
 
 debug = False
 
-affiliation='occupation'
-# affiliation='employer'
+# affiliation='occupation'
+affiliation='employer'
 
 
 
@@ -61,13 +61,15 @@ batch_id = 83   # Alaska
 # batch_id = 92  # Massachussetes
 # batch_id = 93   # Nevada
 # batch_id = 94   # Vermont
+batch_id = 189  # NY
+
+
 
 pp = pprint.PrettyPrinter(indent=4)
 data_path = '/home/navid/data/FEC/'
 # data_path = '../results/'
 file_adjacency = open(data_path + str(batch_id) + '-adjacency.json')
 file_nodes = open(data_path + str(batch_id) + '-list_of_nodes.json')
-
 file_sample_affiliations = open(data_path + 'sample_'+affiliation+'s.json', 'w')
 
 ''' Gives a list of links where each link is a list:[source,target].
@@ -121,7 +123,7 @@ for counter, g in enumerate(contributors_subgraphs):
     timeline = []
     dict_temp_affiliations = {}
     for v in g.vs:
-        affiliation_index = 1 if affiliation == 'employer' else (6 if affiliation == 'occupation' else None)
+        affiliation_index = 2 if affiliation == 'employer' else (6 if affiliation == 'occupation' else None)
         affiliation_identifier = dict_nodes[str(v['name'])]['aux'][affiliation_index]
         if bad_identifier(affiliation_identifier,type=affiliation): 
             if debug: print affiliation_identifier
@@ -383,81 +385,3 @@ quit()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-dict_first_names = {}
-dict_last_names = {}
-
-for link in adjacency:
-    # print link
-    source = str(link[0])
-    target = str(link[1])
-    source_last_name, source_first_name, target_last_name, target_first_name = '', '', '', ''
-    if '1' in dict_nodes[source]['ident_tokens']: 
-        source_last_name = dict_nodes[source]['ident_tokens']['1'] 
-    else: 
-        print dict_nodes[source]['ident_tokens']
-    if '2' in dict_nodes[source]['ident_tokens']: source_first_name = dict_nodes[source]['ident_tokens']['2']
-    if '1' in dict_nodes[target]['ident_tokens']: target_last_name = dict_nodes[target]['ident_tokens']['1']
-    if '2' in dict_nodes[target]['ident_tokens']: target_first_name = dict_nodes[target]['ident_tokens']['2']
-    # print source_last_name,target_last_name
-    if source_first_name not in dict_first_names:
-        dict_first_names[source_first_name] = []
-    if source_last_name not in dict_last_names:
-        dict_last_names[source_last_name] = []
-        
-    if source_last_name != target_last_name:
-        dict_last_names[source_last_name].append(target_last_name)
-    if source_first_name != target_first_name:
-        dict_first_names[source_first_name].append(target_first_name)
-        
-        
-pp.pprint(dict_first_names)
-    
-quit()
-
-for node_id in dict_nodes:
-    print '________________________________________________________________________________________________________________________'
-    print node_id, dict_nodes[node_id]['ident'];
-#     print tmp2[node]['node']
-#    raw_input()
-
-
-
-
-
-
-''' old data sets '''
-# batch_id = 79  # NY
-# batch_id = 80   # OH
-# batch_id = 81   # Delaware
-# batch_id = 82   # Missouri
-# batch_id = 83   # Alaska
-# batch_id = 84  # Massachussetes
-# batch_id = 85   # Nevada
-# batch_id = 86   # Vermont

@@ -5,7 +5,7 @@ from address import Address, AddressParser
 
 
 if __name__ == '__main__':
-    # The mini test program takes a list of addresses, creates Address objects, and prints errors for each one
+    # The mini py program takes a list of addresses, creates Address objects, and prints errors for each one
     # with unmatched terms. Takes a filename as the first and only argument. The file should be one address per line.
     if len(sys.argv) != 2:
         print "Usage: test_list.py filename"

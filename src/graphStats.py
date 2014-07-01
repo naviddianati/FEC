@@ -35,7 +35,7 @@ class GraphStats():
                 
         
     def save_all(self, path,test = False):
-        id = 'test' if test else self.id 
+        id = 'py' if test else self.id 
         if not os.path.isdir(path):
             os.makedirs(path)
        

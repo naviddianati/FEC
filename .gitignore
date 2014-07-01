@@ -4,3 +4,5 @@
 *.gephi
 *.gml
 *.so
+./src/*.pdf
+*.list
