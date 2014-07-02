@@ -40,6 +40,7 @@ class FecRetriever:
         # Get string list from MySQL query and set it as analyst's list_of_records_identifier
         # query_result = MySQL_query("select " + ','.join(identifier_fields) + " from newyork_addresses where NAME <> '' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
         query = "select " + ','.join(self.query_fields) + " from " + self.table_name + self.where_clause + self.order_by + self.limit + ";"
+        print query
         self.query = query
         
         query_result = self.MySQL_query(query)

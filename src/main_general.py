@@ -106,15 +106,15 @@ def main():
 
     
     record_start = 1
-    record_no = 5000
+    record_no = 50000000
 
     project.log('Batch ID' , batch_id)
 
     
     time1 = time.time()
     
-    list_tokenized_fields = ['FIRST_NAME', 'LAST_NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1']
-#     list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1', 'OCCUPATION']
+#    list_tokenized_fields = ['NAME','FIRST_NAME', 'LAST_NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1']
+    list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1', 'OCCUPATION']
     project.list_tokenized_fields = list_tokenized_fields
     
     list_auxiliary_fields = ['TRANSACTION_DT', 'EMPLOYER', 'TRANSACTION_AMT', 'CITY', 'CMTE_ID', 'ENTITY_TP']
@@ -146,8 +146,8 @@ def main():
     retriever = FecRetriever(table_name=param_state,
                       query_fields=all_fields,
                       limit=(record_start, record_start + record_no),
-                      list_order_by=["NAME", 'LAST_NAME', 'FIRST_NAME', "TRANSACTION_DT", "ZIP_CODE", "CMTE_ID"],
-                      where_clause=' where NAME like "%COHEN%" ')
+                      list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE", "CMTE_ID"],
+                      where_clause=" WHERE ENTITY_TP='IND' ")
     retriever.retrieve()
     project.query = retriever.getQuery()
     
@@ -177,7 +177,7 @@ def main():
     
     
     # desired dimension (length) of hashes
-    hash_dim = 20
+    hash_dim = 40
     project.log('Hash dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
@@ -185,7 +185,7 @@ def main():
     
     
     # Number of times the hashes are permutated and sorted
-    no_of_permutations = 50
+    no_of_permutations = 500
     project.log('Number of permutations' , str(no_of_permutations))
 
     
@@ -196,9 +196,9 @@ def main():
     t1 = time.time()
     # compute the hashes
     D.compute_LSH_hash(hash_dim)
-    D.save_LSH_hash(batch_id)
+    D.save_LSH_hash(batch_id=batch_id)
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
-    D.show_sample_adjacency()
+    #D.show_sample_adjacency()
 
     t2 = time.time()
     print 'Done...'

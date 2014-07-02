@@ -1,0 +1,5 @@
+param_state : country_addresses
+Batch ID : 202
+All Fields : NAME,FIRST_NAME,LAST_NAME,CONTRIBUTOR_ZIP,CONTRIBUTOR_STREET_1,TRANSACTION_DT,EMPLOYER,TRANSACTION_AMT,CITY,CMTE_ID,ENTITY_TP
+Hash dim : 20
+Number of permutations : 5

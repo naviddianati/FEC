@@ -1,3 +1,0 @@
-ANALYZE WHOLE STATE TABLES
-
-Here, rather than <state>_addresses

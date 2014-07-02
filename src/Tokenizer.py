@@ -3,6 +3,12 @@ Created on Jul 1, 2014
 
 @author: navid
 '''
+
+'''
+TODO:
+    The address tokenizer fails in the case of PO BOX addresses.
+'''
+
 import json
 import os
 import pprint
@@ -44,8 +50,8 @@ class Tokenizer():
 #                                 'CONTRIBUTOR_ZIP':[4],
 #                                 'CONTRIBUTOR_STREET_1':[5]}
         self.token_identifiers = {'NAME':[1, 2, 3],
-#                                   'LAST_NAME':[1],
-#                                   'FIRST_NAME':[2],
+                                   'LAST_NAME':[1],
+                                   'FIRST_NAME':[2],
                                 'CONTRIBUTOR_ZIP':[4],
                                 'CONTRIBUTOR_STREET_1':[5]}
         self.ap = AddressParser()
