@@ -20,6 +20,14 @@ class Record(dict):
         self.tokendata = None
         # Therefore, its dimension should be stored separately.
         self.dim = 0        
+        
+        # Normalized attributes. Used for detailed pairwise comparison.
+        # The Tokenizer can compute and load these attributes
+        self['N_first_name'] = []
+        self['N_last_name'] = []
+        self['N_middle_name'] = []
+        self['N_address'] = []
+        self['N_zipcode'] = []
 
     
 #     @staticmethod
@@ -27,7 +35,7 @@ class Record(dict):
 #         return Record._is_close_enough(record1.vector, record2.vector) 
 #     
     def compare(self, otherRecord):
-        return self._is_close_enough(self.vector, otherRecord.vector)
+        return self._is_close_enough_new(self, otherRecord)
     
     def __getitem__(self, key):
         val = dict.__getitem__(self, key)
@@ -112,7 +120,56 @@ class Record(dict):
         
         
     
+    def _is_close_enough_new(self, r1, r2):
+        ''' This function returns True or False indicating whether two name vectors are close enough to be considered identical or not '''
+        ''' If one has no address, then comparison should be much more strict.
+            If both have addresses, then addresses should be idenetical, and other fields must be close enough.'''
+        identical = True
+#         return identical
+     
+        
+        # If either has no address, require firstname and last name to be identical and also middle name if both have it.
+        if not r1['N_address'] or not  r2['N_address']:
+            identical = (r1['N_last_name'] == r2['N_last_name']) \
+                        and (r1['N_first_name'] == r2['N_first_name']) \
+                        and ((r1['N_middle_name'] == r2['N_middle_name']) \
+                            if (r1['N_middle_name'] and r2['N_middle_name']) else True)
+            return identical
+        
+        # IF BOTH HAVE ADDRESSES:
+                       
+        # If street addresses aren't identical, then fail
+        if r1['N_address'] != r2['N_address'] : 
+            identical = False;
+            return identical
+              
+        
+        # if both have middlenames, they should be the same
+        if r1['N_middle_name'] and r2['N_middle_name']:
+            if r1['N_middle_name'] != r2['N_middle_name']: identical = False
+        
+        # if 1 doesn't have a middle name but 2 does, then 2 is not the "parent" of 1
+        if not r1['N_middle_name'] and r2['N_middle_name']: identical = False
+          
+        # if last names arden't close enough, fail.
+#         if dict1[1] != dict2[1]: identical = False;
+        if not r1['N_last_name'] or not r2['N_last_name']: 
+            identical = False       
+        elif editdist.distance(''.join(sorted(r1['N_last_name'])), ''.join(sorted(r2['N_last_name']))) > 2: identical = False
 
+        # if first names don't overlap, then check if they are variants. If not, fail
+#         if not any(i in dict1[2] for i in dict2[2]): identical = False
+        firstname1 = ' '.join(r1['N_first_name'])
+        firstname2 = ' '.join(r2['N_first_name'])  
+        if editdist.distance(firstname1, firstname2) > 1:
+            if firstname2 in self.tokendata.dict_name_variants:
+                if firstname1 not in self.tokendata.dict_name_variants[firstname2]: 
+                    identical = False
+            else:
+                identical = False
+        
+        return identical
+                   
 
 
          

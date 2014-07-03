@@ -3,7 +3,5 @@
 *.o*
 *.gephi
 *.gml
-*.so
 ./src/*.pdf
-*.list
 *.pyc

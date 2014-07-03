@@ -23,9 +23,15 @@
         ? Address is same
         ? Employer is
         '''
-''' Strategy:
-    1- Find possible matches using Disambiguator and the core set of features.
-    2-
+'''
+Strategy:
+    - Using <state>_addresses, find possible matches (use Disambiguator)
+    - Using the results, use AffiliationAnalyzer to derive network of affiliations
+    -
+    - Query <state>_combined. Contains all records from <state>, and for some, additional data from <state>_addresses
+    - Find possible matches using Disambiguator and additional attributes: frequencies, affiliations, etc.
+    - A different comparison function is needed.
+    -
 '''
 ''' Notes:
     1- The <state> tables are 3~4 times as large as <state>_addresses tables.
@@ -44,7 +50,7 @@ import time
 
 from Disambiguator import Disambiguator
 from Retriever import FecRetriever
-from Tokenizer import Tokenizer
+from Tokenizer import Tokenizer, TokenizerNgram
 
 
 def find_all_in_list(regex, str_list):
@@ -99,14 +105,14 @@ def main():
     if len(sys.argv) > 1:
         param_state = sys.argv[1]
     else:
-        param_state = 'country_addresses'
+        param_state = 'newyork_addresses'
     print "Analyzing data for state: ", param_state 
     
     project.log('param_state' , param_state)
 
     
     record_start = 1
-    record_no = 50000000
+    record_no = 5000
 
     project.log('Batch ID' , batch_id)
 
@@ -161,12 +167,18 @@ def main():
 #     list_of_records_auxiliary = [[record[index] for index in index_auxiliary_fields] for record in tmp_list]  
     
     
-    tokenizer = Tokenizer()
+    tokenizer = TokenizerNgram()
     project.tokenizer = tokenizer
     tokenizer.setRecords(list_of_records)
     tokenizer.setTokenizedFields(list_tokenized_fields)
     tokenizer.tokenize()
+    
+    tokenizer.tokens.save_to_file(project.data_path + batch_id + "-tokendata.pickle")
     list_of_records = tokenizer.getRecords()
+    
+    print len(tokenizer.tokens.token_2_index.keys())
+    
+    
     project.list_of_records = list_of_records
     
     # dimension of input vectors
@@ -174,10 +186,11 @@ def main():
 
     D = Disambiguator(list_of_records, tokenizer.tokens.index_2_token, tokenizer.tokens.token_2_index, dim)
     project.D = D
+    D.project = project
     
     
     # desired dimension (length) of hashes
-    hash_dim = 40
+    hash_dim = 20
     project.log('Hash dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
@@ -185,7 +198,7 @@ def main():
     
     
     # Number of times the hashes are permutated and sorted
-    no_of_permutations = 500
+    no_of_permutations = 5
     project.log('Number of permutations' , str(no_of_permutations))
 
     
@@ -198,7 +211,10 @@ def main():
     D.compute_LSH_hash(hash_dim)
     D.save_LSH_hash(batch_id=batch_id)
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
-    #D.show_sample_adjacency()
+    
+#     print json.dumps(D.dict_already_compared_pairs.keys(),indent=2)
+#     quit()
+    # D.show_sample_adjacency()
 
     t2 = time.time()
     print 'Done...'
@@ -222,7 +238,7 @@ def main():
     # project.D.imshow_adjacency_matrix(r=(0, record_no))
     
     print 'Printing list of identifiers and text of adjacency matrix to file...'
-    project.save_data()
+    project.save_data(with_tokens = False)
     print 'Done...'
     
     time2 = time.time()
@@ -309,7 +325,7 @@ class Project:
         self.list_of_records_identifier = list_of_records_identifier
     
     
-    def save_data(self, r=[], verbose=False):
+    def save_data(self, r=[], verbose=False,with_tokens = False):
             ''' This function does three things:
                 1- saves a full description of the nodes with all attributes in json format to a file <batch_id>-list_of_nodes.json
                    This file, together with the <batch-id>-adjacency.txt file provides all the information about the graph and its
@@ -356,8 +372,11 @@ class Project:
                                              'ident_tokens':tokens}
                     
 
-                    
-                    s1 = "%d %s        %s\n" % (i, record_as_list_tokenized , '|'.join(tokens_str))
+                    if with_tokens:
+                        s1 = "%d %s        %s\n" % (i, record_as_list_tokenized , '|'.join(tokens_str))
+                    else:
+                        s1 = "%d %s\n" % (i, record_as_list_tokenized)
+
                     s2 = "%d %s \n" % (i, record_as_list_auxiliary)
                     file1.write(separator + '\n' + s1)   
                     file2.write(separator + '\n' + s2)
@@ -370,7 +389,12 @@ class Project:
 
                         tokens_str = [str(x) for x in tmp_tokens]
                         tokens = {x[0]:x[1] for x in tmp_tokens} 
-                        s1 = "    %d %s        %s\n" % (j, record_as_list_tokenized__2  , '|'.join(tokens_str))
+                        
+                        if with_tokens:
+                            s1 = "    %d %s        %s\n" % (j, record_as_list_tokenized__2 , '|'.join(tokens_str))
+                        else:
+                            s1 = "    %d %s\n" % (j, record_as_list_tokenized__2)
+                            
                         s2 = "    %d %s \n" % (j, record_as_list_auxiliary__2)
                         file1.write(s1)   
                         file2.write(s2)    

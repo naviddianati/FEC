@@ -20,7 +20,7 @@ import json
     index_2_token and token_2_index can be used.
     ''' 
 class Disambiguator():
-    def __init__(self, list_of_records, index_2_token, token_2_index,vector_dimension):
+    def __init__(self, list_of_records, index_2_token, token_2_index, vector_dimension):
         
         self.index_2_token = index_2_token
         self.token_2_index = token_2_index
@@ -36,6 +36,11 @@ class Disambiguator():
         # Load the name variants file
         self.dict_name_variants = json.load(open('../data/name-variants.json'))
         
+        # dict  {tuple:1} of pris of indices of hash strings that have already been compared. Skip them if encountered.
+        self.dict_already_compared_pairs = {}
+        self.debug = False
+        self.project = None
+
 
     def imshow_adjacency_matrix(self, r=()):
         ''' public wrapper for __dict_imshow '''
@@ -126,9 +131,10 @@ class Disambiguator():
                 # sort_indices[i]: the original index of the item residing at index i of the sorted list
                     
                 # New implementation: comparison is done via instance function of the Record class
-                if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]]):
-#                 if self.__is_close_enough(self.list_of_records[sort_indices[i]].vector, self.list_of_records[sort_indices[j]].vector):
-                    dict_neighbors[sort_indices[i]].append(sort_indices[j])
+                if (sort_indices[i], sort_indices[j]) not in self.dict_already_compared_pairs:
+                    if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]]):
+                        dict_neighbors[sort_indices[i]].append(sort_indices[j])
+                    self.dict_already_compared_pairs[(sort_indices[i], sort_indices[j])] = 1
         return dict_neighbors      
     
     def compute_LSH_hash(self, hash_dim):
@@ -167,7 +173,7 @@ class Disambiguator():
         self.LSH_hash = LSH_hash
         
         
-    def save_LSH_hash(self, filename=None, batch_id = 0):
+    def save_LSH_hash(self, filename=None, batch_id=0):
         if not filename: filename = '../results/' + batch_id + '-LSH_hash.txt'
         f = open(filename, 'w')
         for s in  self.LSH_hash:
@@ -191,12 +197,13 @@ class Disambiguator():
             while (j < len(self.list_of_records)) and (self.LSH_hash[i] == self.LSH_hash[j]):
                     current_group.append(j)
                     j += 1
-            print current_group
+            if self.debug: print current_group
             for index in current_group:
-                print '-->', index
                 self.adjacency[index] = list(current_group)
                 self.adjacency[index].remove(index)
-                print '    ', index, self.adjacency[index]
+                if self.debug:
+                    print '-->', index
+                    print '    ', index, self.adjacency[index]
             i = j
             
                     # set neighbors of all items in current group and move on to the next item
@@ -216,6 +223,8 @@ class Disambiguator():
         n = len(self.LSH_hash)
         
         
+        self.dict_already_compared_pairs = {}
+        
 #         for i in range(n): self.adjacency[i]=[]
 #         pl.ion()
 
@@ -230,6 +239,10 @@ class Disambiguator():
             print 'Shuffling list of hashes and computing nearest neighbors' + str(i)
             adjacency_new = self.get_nearest_neighbors(B=B1, sigma=sigma1)        
             self.__update_dict(self.adjacency, adjacency_new)
+            
+            
+            if self.project:
+                self.project.log('Suffling hash list...',str(i))
 #             pl.cla()
 #             self.imshow_adjacency_matrix()
 #             pl.draw()
@@ -407,7 +420,7 @@ if __name__ == '__main__':
 #     list_of_vectors = generate_rand_list_of_vectors(N, dim)
 #     
     # Won't work as is!
-    D = Disambiguator(None, None, None, dim, 1111)
+    D = Disambiguator(None, None, None, dim)
     
     # compute the hashes
     print "Computing the hashes..."

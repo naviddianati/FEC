@@ -3,7 +3,6 @@ Created on Jul 1, 2014
 
 @author: navid
 '''
-
 '''
 TODO:
     The address tokenizer fails in the case of PO BOX addresses.
@@ -11,10 +10,12 @@ TODO:
 
 import json
 import os
+import pickle
 import pprint
 import re
 
 from address import AddressParser
+from nltk.util import ngrams
 
 
 class Tokenizer():
@@ -26,10 +27,11 @@ class Tokenizer():
 
         QUESTION: How do we use the auxiliary fields as well?'''
    
-    
+        
+        
     def __init__(self):
         self.list_of_records = []
-        self.tokens = self.TokenData()
+        self.tokens = TokenData()
         
         # This is the main data passed to the Disambiguator object.
         # A list where each element is a vector: a dictionary {token_index: (0 or 1)} showing which tokens exist in the given record.
@@ -38,12 +40,20 @@ class Tokenizer():
         
         self.list_of_records_identifier = []
         
+        # These functions update the record in place by adding new items to the Record's dictionary for each attribute
+        # and inserting into it a normalized version of the attribute.
+        self.normalize_functions = {'NAME':self._normalize_NAME,
+                                    'LAST_NAME':self._normalize_LAST_NAME,
+                                    'FIRST_NAME':self._normalize_FIRST_NAME,
+                                    'CONTRIBUTOR_ZIP':self._normalize_ZIP,
+                                    'CONTRIBUTOR_STREET_1':self._normalize_STREET}
+        
         # I think I won't need to use these now, since names are already split up into their parts
         self.tokenize_functions = {'NAME':self._get_tokens_NAME,
                                    'LAST_NAME':self._get_tokens_LAST_NAME,
                                    'FIRST_NAME':self._get_tokens_FIRST_NAME,
-                                 'CONTRIBUTOR_ZIP':self._get_tokens_ZIP,
-                                 'CONTRIBUTOR_STREET_1':self._get_tokens_STREET}
+                                   'CONTRIBUTOR_ZIP':self._get_tokens_ZIP,
+                                   'CONTRIBUTOR_STREET_1':self._get_tokens_STREET}
        
 #         # Used when NAME is retrieved from MySQL query, not FIRST_NAME and LAST_NAME
 #         self.token_identifiers = {'NAME':[1, 2, 3],
@@ -52,8 +62,8 @@ class Tokenizer():
         self.token_identifiers = {'NAME':[1, 2, 3],
                                    'LAST_NAME':[1],
                                    'FIRST_NAME':[2],
-                                'CONTRIBUTOR_ZIP':[4],
-                                'CONTRIBUTOR_STREET_1':[5]}
+                                   'CONTRIBUTOR_ZIP':[4],
+                                   'CONTRIBUTOR_STREET_1':[5]}
         self.ap = AddressParser()
 #         self.query = ''
         self.data_path = os.path.expanduser('~/data/FEC/')
@@ -123,83 +133,14 @@ class Tokenizer():
             file1.close()
             file2.close()
             
-        
-    ''' This function tokenizes a list of selected fields for the given record'''        
-    def _get_tokens(self, record, list_fields):
-        tokens = []
-        # Iterate through all specified fields in the retrieved record
-        for field in list_fields:
-            # Get the field 
-            try:
-                s = record[field]
-            except KeyError:
-                print "record does not contain field %s" % field
-                continue
-            # Tokenize only those fields that have a tokenizer function specified in self.tokenize_functions
-            if field in self.tokenize_functions:
-                ''' For each field type, call the appropriate tokenize function'''
-                tokens += self.tokenize_functions[field](s)
-#         print tokens
-        return tokens
-    
-    #===========================================================================
-    # 
-    #===========================================================================
-    def _get_tokens_FIRST_NAME(self, name):
-        ''' Some first names are contaminated with middle names. clean them up.'''
-        identifier = self.token_identifiers['FIRST_NAME'][0]
-        s = re.sub(r'\b\w\b\.?', ' ', name)
-        parts = re.split(r'\s+', s)
-        sizes = [len(x) for x in parts]
-        largest_index = sizes.index(max(sizes))
-        s = parts[largest_index]
-        return [(identifier, s)]
-    
-    #===========================================================================
-    # 
-    #===========================================================================
-    def _get_tokens_LAST_NAME(self, s):
-        identifier = self.token_identifiers['LAST_NAME'][0]
-        return [(identifier, s)]        
-    
-    #===========================================================================
-    # 
-    #===========================================================================
-    def _get_tokens_ZIP(self, s):
-        identifier = self.token_identifiers['CONTRIBUTOR_ZIP'][0]
-        zipcode = s if len(s) < 5 else s[0:5] 
-        return [(identifier, zipcode)]
-    
-    #===========================================================================
-    # 
-    #===========================================================================
-    def _get_tokens_STREET(self, s):
-        try:
-            address = self.ap.parse_address(s)
-        
-            tmp = [address.house_number, address.street_prefix, address.street, address.street_suffix]
-            tmp = [x  for x in tmp if x is not None]
-#             print s
-#             print tmp
-#             print '__________________________'
-
-            address_new = ' '.join(tmp)
-            identifier = self.token_identifiers['CONTRIBUTOR_STREET_1'][0]
-#             print "ADDRESS parsed properly=================================================================="
-            return [(identifier, address_new)]
-        except:
-#             print 'error'
-#             print "ADDRESS FAILED=================================================================="
-
-            identifier = self.token_identifiers['CONTRIBUTOR_STREET_1'][0]
-            return [(identifier, s)]
-        
-    #===========================================================================
-    # 
-    #===========================================================================
-    def _get_tokens_NAME(self, s):
-        ''' this tokenizer is applied to the whole name, that is, when first/middle/last name and titles are all mixed into one string.'''
+            
+   
+   
+    # Void. updates the record
+    def _normalize_NAME(self, record):
+        ''' this normalizer is applied to the whole name, that is, when first/middle/last name and titles are all mixed into one string.'''
         # remove all numerals
+        s = record['NAME']
         s1 = re.sub(r'\.|[0-9]+', '', s)
         
         # List of all suffixes found then remove them
@@ -264,24 +205,146 @@ class Tokenizer():
 #         print "    Middle name:--------- ", middle_name
 #         print "    Suffixes:--------- ", suffix_list
 
-        tokens = []
+#         tokens = []
 #         if middle_name==[]: middle_name=''
         tmp = list(self.token_identifiers)
         
-        identifier = self.token_identifiers['NAME'][0]
         for s in last_name_list:
-            tokens.append((identifier, s))
-        identifier = self.token_identifiers['NAME'][1]
+            record['N_last_name'].append(s)
+            
         for s in first_name_list:
-            tokens.append((identifier, s))
-#         for s in suffix_list:
-#             tokens.append((4,s))
+            record['N_first_name'].append(s)
             
         # middle_name is set up to be a string at this point
-        identifier = self.token_identifiers['NAME'][2]
         if len(middle_name) > 0:
-            tokens.append((identifier, middle_name[0]))
+            record['N_middle_name'].append(s)
         
+     
+    ''' Not implemented since we mostly use the NAME fields of the FEC database instead '''
+    def _normalize_LAST_NAME(self, record):
+        pass
+    
+    ''' Not implemented since we mostly use the NAME fields of the FEC database instead '''
+    def _normalize_FIRST_NAME(self, record):
+        pass
+    
+    # Void. updates the record
+    def _normalize_ZIP(self, record):
+        s = record['CONTRIBUTOR_ZIP']
+        record['N_zipcode'].append(s if len(s) < 5 else s[0:5]) 
+    
+    # Void. updates the record
+    def _normalize_STREET(self, record):
+        s = record['CONTRIBUTOR_STREET_1']
+        try:
+            address = self.ap.parse_address(s)
+        
+            tmp = [address.house_number, address.street_prefix, address.street, address.street_suffix]
+            tmp = [x  for x in tmp if x is not None]
+
+            address_new = ' '.join(tmp)
+#             print "ADDRESS parsed properly=================================================================="
+            record["N_address"] = address_new
+        except:
+#             print 'error'
+#             print "ADDRESS FAILED=================================================================="
+            record["N_address"] = s
+
+   
+   
+   
+   
+  
+   
+   
+   
+   
+   
+   
+        
+    ''' This function tokenizes a list of selected fields for the given record'''        
+    def _get_tokens(self, record, list_fields):
+        tokens = []
+        # Iterate through all specified fields in the retrieved record
+        for field in list_fields:
+            # Get the field 
+            try:
+                s = record[field]
+            except KeyError:
+                print "record does not contain field %s" % field
+                continue
+            # Tokenize only those fields that have a tokenizer function specified in self.tokenize_functions
+            if field in self.tokenize_functions:
+                
+                # For each field, call the appropriate normalize function
+                # NOTE: has to be done before calling tokenize functions
+                self.normalize_functions[field](record)
+
+                # For each field type, call the appropriate tokenize function'''
+                tokens += self.tokenize_functions[field](record)
+#         print tokens
+        return tokens
+    
+    #===========================================================================
+    # 
+    #===========================================================================
+
+    def _get_tokens_FIRST_NAME(self, record):
+        name = record['N_first_name']
+        ''' Some first names are contaminated with middle names. clean them up.'''
+        identifier = self.token_identifiers['FIRST_NAME'][0]
+        
+        
+        return [(identifier, s) for s in name]
+    
+    #===========================================================================
+    # 
+    #===========================================================================
+    def _get_tokens_LAST_NAME(self, record):
+        lastname = record['N_last_name']
+        identifier = self.token_identifiers['LAST_NAME'][0]
+        return [(identifier, s) for s in lastname]        
+    
+    #===========================================================================
+    # 
+    #===========================================================================
+    def _get_tokens_ZIP(self, record):
+        zipcode = record['N_zipcode']
+        identifier = self.token_identifiers['CONTRIBUTOR_ZIP'][0]
+        return [(identifier, s) for s in zipcode]
+    
+    #===========================================================================
+    # 
+    #===========================================================================
+    def _get_tokens_STREET(self, record):
+        address = record['N_address']
+        identifier = self.token_identifiers['CONTRIBUTOR_STREET_1'][0]
+        return [(identifier, s) for s in address]
+
+        
+    #===========================================================================
+    # 
+    #===========================================================================
+    def _get_tokens_NAME(self, record):
+        lastname = record['N_lastname']
+        firstname = record['N_first_name']
+        middlename = record['N_middle_name']
+        
+        tokens = []
+        
+        # last name
+        identifier = self.token_identifiers['NAME'][0]
+        tokens += [(identifier, s) for s in lastname]
+        
+        # first name
+        identifier = self.token_identifiers['NAME'][1]
+        tokens += [(identifier, s) for s in firstname]
+        
+        # middle name
+        identifier = self.token_identifiers['NAME'][2]
+        if len(middlename) > 0:
+            tokens += [(identifier, middlename[0])]
+    
         return tokens    
         
                 
@@ -296,6 +359,7 @@ class Tokenizer():
             s_split = self._get_tokens(record, self.list_tokenized_fields)
             # A dictionary {token_index: (0 or 1)} showing which tokens exist in the given record
             record.vector = {}
+            
             
             # Here, each token is a tuple (token_identifier(name? address?, etc?), string)
             for token in s_split:
@@ -315,6 +379,10 @@ class Tokenizer():
 #         pp.pprint(self.list_of_records_identifier)
 #         quit()
 
+        # set "self" as the Tokenizer object associated with each record
+        for record in self.list_of_records:
+            record.tokendata = self.tokens
+
 
     
   
@@ -330,21 +398,101 @@ class Tokenizer():
             self.list_of_records = list_of_records
         
     def getRecords(self):
-        # set "self" as the Tokenizer object associated with each record
-        for record in self.list_of_records:
-            record.tokendata = self.tokens 
         return self.list_of_records   
 
-    #===========================================================================
-    #     Class containing all token data
-    #===========================================================================
-    class TokenData():
-        def __init__(self):
-            self.token_2_index = {}
-            self.index_2_token = {}
-            self.no_of_tokens = 0
-            self.token_counts = {}
-            # Load the name variants file
-            self.dict_name_variants = json.load(open('../data/name-variants.json'))
+#===========================================================================
+#     Class containing all token data
+#===========================================================================
 
+
+
+'''
+Subclass of Tokenizer that implements different tokenizer functions for FIRST_NAME,LAST_NAME,etc
+'''
+class TokenizerNgram(Tokenizer):
+    
+    def __init__(self):
+        Tokenizer.__init__(self)
+        
+        # Features are bigrams
+        self.ngram_n = 2
        
+    ''' split string into tokens and then extract all ngrams in all tokens '''
+    def ngrams(self, sentence, n):
+        list_ngrams = []
+        tokens = sentence.split()
+        for token in tokens:
+            myngrams = ngrams(token, n)
+            for grams in myngrams:
+                list_ngrams.append("".join(grams)) 
+        return list_ngrams
+    
+    # Override: here, tokenz are ngrams
+    def _get_tokens_NAME(self, record):
+        lastname = record['N_last_name']
+        firstname = record['N_first_name']
+        middlename = record['N_middle_name']
+        
+        tokens = []
+        
+        # last name
+        identifier = self.token_identifiers['NAME'][0]
+        tokens += [(identifier, s) for word in lastname for s in self.ngrams(word, self.ngram_n) ]
+
+        
+        # first name
+        identifier = self.token_identifiers['NAME'][1]
+        tokens += [(identifier, s) for word in firstname for s in self.ngrams(word, self.ngram_n) ]
+        # middle name
+        identifier = self.token_identifiers['NAME'][2]
+        if len(middlename) > 0:
+            tokens += [(identifier, middlename[0])]
+    
+        return tokens    
+        
+                
+    
+    # Override: here, tokens are ngrams
+    def _get_tokens_FIRST_NAME(self, record):
+        firstname = record['N_first_name']
+        identifier = self.token_identifiers['NAME'][1]
+        tokens = [(identifier, s) for word in firstname for myngram in self.ngrams(word, self.ngram_n) for s in myngram]
+        return  tokens
+    
+    
+    # Override: here, tokens are ngrams
+    def _get_tokens_LAST_NAME(self, record):
+        lastname = record['N_last_name']
+        identifier = self.token_identifiers['NAME'][0]
+        tokens = [(identifier, s) for word in lastname for myngram in self.ngrams(word, self.ngram_n) for s in myngram]
+        return  tokens
+    
+   
+    def _get_tokens_ZIP(self, record):
+        return Tokenizer._get_tokens_ZIP(self, record)
+    
+   
+    # override
+    def _get_tokens_STREET(self, record):
+        return Tokenizer._get_tokens_STREET(self, record)
+
+        
+
+
+'''
+This class encapsulates the global token data derived from all
+records processed by a Tokenizer instance.
+'''
+class TokenData():
+    def __init__(self):
+        self.token_2_index = {}
+        self.index_2_token = {}
+        self.no_of_tokens = 0
+        self.token_counts = {}
+        # Load the name variants file
+        self.dict_name_variants = json.load(open('../data/name-variants.json'))
+    def save_to_file(self, filename):
+        pickler = pickle.Pickler(open(filename, 'w'))
+        pickler.dump(self)
+
+   
