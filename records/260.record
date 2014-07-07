@@ -1,0 +1,10 @@
+param_state : newyork_addresses
+Batch ID : 260
+All Fields : NAME,CONTRIBUTOR_ZIP,CONTRIBUTOR_STREET_1,OCCUPATION,TRANSACTION_DT,EMPLOYER,TRANSACTION_AMT,CITY,CMTE_ID,ENTITY_TP
+Hash dim : 20
+Number of permutations : 5
+Suffling hash list... : 0
+Suffling hash list... : 1
+Suffling hash list... : 2
+Suffling hash list... : 3
+Suffling hash list... : 4

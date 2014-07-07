@@ -217,7 +217,7 @@ class Tokenizer():
             
         # middle_name is set up to be a string at this point
         if len(middle_name) > 0:
-            record['N_middle_name'].append(s)
+            record['N_middle_name'].append(middle_name[0])
         
      
     ''' Not implemented since we mostly use the NAME fields of the FEC database instead '''

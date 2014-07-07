@@ -105,30 +105,29 @@ def main():
     if len(sys.argv) > 1:
         param_state = sys.argv[1]
     else:
-        param_state = 'newyork_addresses'
+        param_state = 'alaska_addresses'
     print "Analyzing data for state: ", param_state 
     
-    project.log('param_state' , param_state)
+    project.putData('param_state' , param_state)
 
     
     record_start = 1
-    record_no = 5000
+    record_no = 5000000
 
-    project.log('Batch ID' , batch_id)
+    project.putData('batch_id' , batch_id)
 
     
     time1 = time.time()
     
 #    list_tokenized_fields = ['NAME','FIRST_NAME', 'LAST_NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1']
     list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1', 'OCCUPATION']
-    project.list_tokenized_fields = list_tokenized_fields
+    project.putData("list_tokenized_fields", list_tokenized_fields)
     
     list_auxiliary_fields = ['TRANSACTION_DT', 'EMPLOYER', 'TRANSACTION_AMT', 'CITY', 'CMTE_ID', 'ENTITY_TP']
-    project.list_auxiliary_fields = list_auxiliary_fields
+    project.putData("list_auxiliary_fields", list_auxiliary_fields)
     
     all_fields = list_tokenized_fields + list_auxiliary_fields 
-    project.all_fields = all_fields
-    project.log('All Fields' , ",".join(all_fields))
+    project.putData('all_fields' , all_fields)
 
 
     # I BELIEVE THESE ARE UNNECCESSARY
@@ -141,10 +140,10 @@ def main():
     
     # dictionaries indicating the index numbers associated with all fields
     index_2_field = { all_fields.index(s):s for s in all_fields}
-    project.index_2_field = index_2_field
+    project.putData("index_2_field", index_2_field)
     
     field_2_index = { s:all_fields.index(s) for s in all_fields}
-    project.field_2_index = field_2_index
+    project.putData("field_2_index", field_2_index)
     
     
     
@@ -155,7 +154,7 @@ def main():
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE", "CMTE_ID"],
                       where_clause=" WHERE ENTITY_TP='IND' ")
     retriever.retrieve()
-    project.query = retriever.getQuery()
+    project.putData("query", retriever.getQuery())
     
     list_of_records = retriever.getRecords()
     
@@ -173,8 +172,15 @@ def main():
     tokenizer.setTokenizedFields(list_tokenized_fields)
     tokenizer.tokenize()
     
-    tokenizer.tokens.save_to_file(project.data_path + batch_id + "-tokendata.pickle")
+    tokenizer.tokens.save_to_file(project["data_path"] + batch_id + "-tokendata.pickle")
     list_of_records = tokenizer.getRecords()
+    
+    
+    
+    for r in list_of_records:
+        print r['NAME'],"               ",r['N_first_name'],"=====",r['N_middle_name'],"======",r['N_last_name']
+    quit() 
+    
     
     print len(tokenizer.tokens.token_2_index.keys())
     
@@ -191,15 +197,15 @@ def main():
     
     # desired dimension (length) of hashes
     hash_dim = 20
-    project.log('Hash dim' , str(hash_dim))
+    project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
     B = 20
     
     
     # Number of times the hashes are permutated and sorted
-    no_of_permutations = 5
-    project.log('Number of permutations' , str(no_of_permutations))
+    no_of_permutations = 50
+    project.putData('number_of_permutations' , str(no_of_permutations))
 
     
 #     self.D = Disambiguator(self.list_of_vectors, self.tokens.index_2_token, self.tokens.token_2_index, dim, self.batch_id)
@@ -238,7 +244,7 @@ def main():
     # project.D.imshow_adjacency_matrix(r=(0, record_no))
     
     print 'Printing list of identifiers and text of adjacency matrix to file...'
-    project.save_data(with_tokens = False)
+    project.save_data(with_tokens=False)
     print 'Done...'
     
     time2 = time.time()
@@ -254,45 +260,47 @@ def main():
 
 
 
-class Project:
+class Project(dict):
     def __init__(self, batch_id):
-        self.batch_id = batch_id
-        self.data_path = os.path.expanduser('~/data/FEC/')
-        self.logfilename = '../records/' + str(self.batch_id) + '.record'
-        self.logfile = open(self.logfilename, 'w', 0)
-        self.messages = []
-        self.list_tokenized_fields = []
-        self.list_auxiliary_fields = []
+        self["batch_id"] = batch_id
+        self["data_path"] = os.path.expanduser('~/data/FEC/')
+        self["logfilename"] = '../records/' + str(self["batch_id"]) + '.record'
+        self["logfile"] = open(self["logfilename"], 'w', 0)
+        self["messages"] = []
+        self["list_tokenized_fields"] = []
+        self["list_auxiliary_fields"] = []
         
     def saveSettings(self):
         settings = {}
-        for item in self.__dict__:
+        for item in self.keys():
             if item not in ['list_of_records', "D", "tokenizer"]:
 #             if True:
                 try:
-                    tmp = json.dumps(self.__dict__[item])
-                    settings[item] = self.__dict__[item]
+                    tmp = json.dumps(self[item])
+                    settings[item] = self[item]
                 except TypeError:
                     print "WWARNING: ", item, " not serializable. Skiping." 
-        f = open(self.data_path + self.batch_id + '-settings.json', 'w')
+        f = open(self["data_path"] + self["batch_id"] + '-settings.json', 'w')
         f.write(json.dumps(settings, indent=4))
         f.close()
+    def putData(self, key, value):
+        self[key] = value
     
     def log(self, key, value):
-        self.messages.append((key, value))
-        self.logfile.write("%s : %s\n" % (key, value))  # write without buffering
+#         self.messages.append((key, value))
+        self["logfile"].write("%s : %s\n" % (key, value))  # write without buffering
 #         self.logfile.close()
 #         self.logfile = open(self.logfilename, 'w')
     
     def setBatchId(self, batch_id):
-        self.batch_id = batch_id
+        self["batch_id"] = batch_id
         self.log('Batch ID' , self.batch_id)
 
         
       
 
     def save_graph_to_file_json(self, filename=None, list_of_nodes=[]):
-        if not filename: filename = self.data_path + self.batch_id + '-adjacency.json'
+        if not filename: filename = self["data_path"] + self["batch_id"] + '-adjacency.json'
         # save adjacency matrix to file
         f = open(filename, 'w') 
         if  not self.D.adjacency: return 
@@ -306,7 +314,7 @@ class Project:
         f.close()
 
     def save_graph_to_file(self, filename=None, list_of_nodes=[]):
-        if not filename: filename = self.data_path + self.batch_id + '-adjacency.edges'
+        if not filename: filename = self["data_path"] + self["batch_id"] + '-adjacency.edges'
         # save adjacency matrix to file
         f = open(filename, 'w') 
         if  not self.D.adjacency: return 
@@ -325,7 +333,7 @@ class Project:
         self.list_of_records_identifier = list_of_records_identifier
     
     
-    def save_data(self, r=[], verbose=False,with_tokens = False):
+    def save_data(self, r=[], verbose=False, with_tokens=False):
             ''' This function does three things:
                 1- saves a full description of the nodes with all attributes in json format to a file <batch_id>-list_of_nodes.json
                    This file, together with the <batch-id>-adjacency.txt file provides all the information about the graph and its
@@ -334,9 +342,9 @@ class Project:
                 3- saves a formatted text representation of the adjacency matrix with auxiliary field information.
             '''
             
-            filename1 = self.data_path + self.batch_id + '-adj_text_identifiers.json'
-            filename2 = self.data_path + self.batch_id + '-adj_text_auxiliary.json'
-            filename3 = self.data_path + self.batch_id + '-list_of_nodes.json'
+            filename1 = self["data_path"] + self["batch_id"] + '-adj_text_identifiers.json'
+            filename2 = self["data_path"] + self["batch_id"] + '-adj_text_auxiliary.json'
+            filename3 = self["data_path"] + self["batch_id"] + '-list_of_nodes.json'
             if self.D and self.D.adjacency:
     #             separator = '----------------------------------------------------------------------------------------------------------------------'
                 separator = '______________________________________________________________________________________________________________________'
@@ -356,7 +364,7 @@ class Project:
                 
                 list_tokens = []
                 for i in save_range:
-                    list_tokens.append(self.tokenizer._get_tokens(self.list_of_records[i], self.list_tokenized_fields))
+                    list_tokens.append(self.tokenizer._get_tokens(self.list_of_records [i], self["list_tokenized_fields"]))
                     
                 for i in save_range:
 
@@ -364,11 +372,12 @@ class Project:
                     tokens_str = [str(x) for x in tmp_tokens]
                     tokens = {x[0]:x[1] for x in tmp_tokens} 
                     
-                    record_as_list_tokenized = [self.list_of_records[i][field] for field in sorted(self.list_tokenized_fields)]
-                    record_as_list_auxiliary = [self.list_of_records[i][field] for field in sorted(self.list_auxiliary_fields)]
+                    record_as_list_tokenized = [self.list_of_records [i][field] for field in sorted(self["list_tokenized_fields"])]
+                    record_as_list_auxiliary = [self.list_of_records [i][field] for field in sorted(self["list_auxiliary_fields"])]
 
 #                     dict_all3[i] = {'ident':record_as_list_tokenized, 'aux':record_as_list_auxiliary, 'ident_tokens':tokens}
-                    dict_all3[i] = {'data':[self.list_of_records[i][field] for field in self.all_fields],
+                    print self["all_fields"][0]
+                    dict_all3[i] = {'data':[self.list_of_records[i][field] for field in self["all_fields"]],
                                              'ident_tokens':tokens}
                     
 
@@ -380,10 +389,10 @@ class Project:
                     s2 = "%d %s \n" % (i, record_as_list_auxiliary)
                     file1.write(separator + '\n' + s1)   
                     file2.write(separator + '\n' + s2)
-                    for j in sorted(self.D.adjacency[i], key=lambda k:self.list_of_records[k]['TRANSACTION_DT']):
+                    for j in sorted(self.D.adjacency[i], key=lambda k:self.list_of_records [k]['TRANSACTION_DT']):
 #                         record_as_list_tokenized__2 = [self.list_of_records[j][field] for field in sorted(self.list_of_records[j].keys())]
-                        record_as_list_tokenized__2 = [self.list_of_records[j][field] for field in sorted(self.list_tokenized_fields)]
-                        record_as_list_auxiliary__2 = [self.list_of_records[j][field] for field in sorted(self.list_auxiliary_fields)]
+                        record_as_list_tokenized__2 = [self.list_of_records [j][field] for field in sorted(self["list_tokenized_fields"])]
+                        record_as_list_auxiliary__2 = [self.list_of_records [j][field] for field in sorted(self["list_tokenized_fields"])]
                         
                         tmp_tokens = [str(x) for x in list_tokens[j]]
 

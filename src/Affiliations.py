@@ -195,7 +195,9 @@ class AffilliationAnalyzer(object):
 
 
 
-    def save_data(self):
+    def save_data(self,label = ""):
+        if label == "":
+            label = self.batch_id
         # Generate the graph of linked affiliation names
         tmp_adj = [(link[0], link[1], self.affiliation_adjacency[link], self.dict_likelihoods[link]) for link in self.affiliation_adjacency] 
         G_affiliations = igraph.Graph.TupleList(edges=tmp_adj, edge_attrs=["weight", "confidence"])
@@ -216,18 +218,18 @@ class AffilliationAnalyzer(object):
         #     v['size'] = round(np.log(affiliation_score[v['name']])+10)
             v['size'] = np.sqrt(self.affiliation_score[v['name']])
         
-        G_affiliations.save(f=self.data_path + str(self.batch_id) + '-' + self.affiliation + '_graph.gml', format='gml')
+        G_affiliations.save(f=self.data_path + label + '-' + self.affiliation + '_graph.gml', format='gml')
         
         clustering = G_affiliations.components()
         
         subgraphs = sorted(clustering.subgraphs(), key=lambda g:len(g.vs), reverse=True)
         for g, i in zip(subgraphs[1:5], range(1, 5)):
             print len(g.vs)
-            g.save(f=self.data_path + str(self.batch_id) + '-' + self.affiliation + '_graph_component-' + str(i) + '.gml', format='gml')
+            g.save(f=self.data_path + label + '-' + self.affiliation + '_graph_component-' + str(i) + '.gml', format='gml')
         
         # save the giant component of the graph
         G = clustering.giant()
-        G.save(f=self.data_path + str(self.batch_id) + '-' + self.affiliation + '_graph_giant_component.gml', format='gml')
+        G.save(f=self.data_path + label + '-' + self.affiliation + '_graph_giant_component.gml', format='gml')
         # quit()
 
 
@@ -374,17 +376,19 @@ def bad_identifier(identifier, type='employer'):
     
 def main():
     
-    analyst = AffilliationAnalyzer(batch_id=194, affiliation="occupation")
+    analyst = AffilliationAnalyzer(batch_id=280, affiliation="occupation")
+    state = analyst.settings["param_state"]
     analyst.load_data()
     analyst.extract()
     analyst.compute_affiliation_links()
-    analyst.save_data()
+    analyst.save_data(label = state)
 
-    analyst = AffilliationAnalyzer(batch_id=194, affiliation="employer")
+    analyst = AffilliationAnalyzer(batch_id=280, affiliation="employer")
+    state = analyst.settings["param_state"]
     analyst.load_data()
     analyst.extract()
     analyst.compute_affiliation_links()
-    analyst.save_data()
+    analyst.save_data(label = state)
     
     
     
