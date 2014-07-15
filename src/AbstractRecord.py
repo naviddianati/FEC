@@ -5,9 +5,7 @@ Created on Jun 25, 2014
 '''
 
 class AbstractRecord():
-    '''
-    TODO: document class
-    '''
+  
 
     ''' A vector is a dictionary {index:(0 or 1)} where index is a unique indicator of a feature
     '''

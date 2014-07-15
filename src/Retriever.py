@@ -50,10 +50,11 @@ class FecRetriever:
         
         
         self.list_of_records = []
-        for item in tmp_list:
+        for index,item in enumerate(tmp_list):
             r = Record()
             for i, field in enumerate(self.query_fields):
                 r[field] = item[i]
+            r.index = index
             self.list_of_records.append(r) 
         
 #     

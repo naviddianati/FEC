@@ -13,6 +13,7 @@ import os
 import pickle
 import pprint
 import re
+from nameparser import HumanName
 
 from address import AddressParser
 from nltk.util import ngrams
@@ -33,19 +34,14 @@ class Tokenizer():
         self.list_of_records = []
         self.tokens = TokenData()
         
-        # This is the main data passed to the Disambiguator object.
-        # A list where each element is a vector: a dictionary {token_index: (0 or 1)} showing which tokens exist in the given record.
-        # A token index is an integer assigned to each unique tuple (token_identifier, string) where a token identifier is an integer
-        # indicating the type of the token (Last_NAME? FIRST_NAME? CONTRIBUTOR_ZIP? etc?)
-        
-        self.list_of_records_identifier = []
-        
+               
         # These functions update the record in place by adding new items to the Record's dictionary for each attribute
         # and inserting into it a normalized version of the attribute.
         self.normalize_functions = {'NAME':self._normalize_NAME,
                                     'LAST_NAME':self._normalize_LAST_NAME,
                                     'FIRST_NAME':self._normalize_FIRST_NAME,
                                     'CONTRIBUTOR_ZIP':self._normalize_ZIP,
+                                    'ZIP_CODE': self._normalize_ZIP,
                                     'CONTRIBUTOR_STREET_1':self._normalize_STREET}
         
         # I think I won't need to use these now, since names are already split up into their parts
@@ -53,6 +49,7 @@ class Tokenizer():
                                    'LAST_NAME':self._get_tokens_LAST_NAME,
                                    'FIRST_NAME':self._get_tokens_FIRST_NAME,
                                    'CONTRIBUTOR_ZIP':self._get_tokens_ZIP,
+                                   'ZIP_CODE': self._get_tokens_ZIP,
                                    'CONTRIBUTOR_STREET_1':self._get_tokens_STREET}
        
 #         # Used when NAME is retrieved from MySQL query, not FIRST_NAME and LAST_NAME
@@ -63,94 +60,54 @@ class Tokenizer():
                                    'LAST_NAME':[1],
                                    'FIRST_NAME':[2],
                                    'CONTRIBUTOR_ZIP':[4],
+                                   'ZIP_CODE':[4],
                                    'CONTRIBUTOR_STREET_1':[5]}
         self.ap = AddressParser()
 #         self.query = ''
         self.data_path = os.path.expanduser('~/data/FEC/')
 
-     
-   
-    def save_data(self, r=[], verbose=False):
-        ''' This function does three things:
-            1- saves a full description of the nodes with all attributes in json format to a file <batch_id>-list_of_nodes.json
-               This file, together with the <batch-id>-adjacency.txt file provides all the information about the graph and its
-               node attributes.
-            2- saves a formatted text representation of the adjacency matrix with identifier information
-            3- saves a formatted text representation of the adjacency matrix with auxiliary field information.
-        '''
-        
-        filename1 = self.data_path + self.batch_id + '-adj_text_identifiers.json'
-        filename2 = self.data_path + self.batch_id + '-adj_text_auxiliary.json'
-        filename3 = self.data_path + self.batch_id + '-list_of_nodes.json'
-        if self.D and self.D.adjacency:
-#             separator = '----------------------------------------------------------------------------------------------------------------------'
-            separator = '______________________________________________________________________________________________________________________'
-            pp = pprint.PrettyPrinter(indent=4)
-            pp.pprint(self.D.adjacency)
-
-            n = len(self.list_of_records)
-            if r:
-                save_range = range(max(0, r[0]), min(n, r[1]))
-            else: 
-                save_range = range(len(self.list_of_records_identifier))
-
-            file1 = open(filename1, 'w')
-            file2 = open(filename2, 'w')
-            file3 = open(filename3, 'w')
-            dict_all3 = {}
-            for i in save_range:
-                tmp_tokens = self._get_tokens(self.list_of_records_identifier[i])
-                tokens_str = [str(x) for x in tmp_tokens]
-                tokens = {x[0]:x[1] for x in tmp_tokens} 
-                tmp_record1 = [i, self.list_of_records_identifier[i], tokens]
-                tmp_record2 = [i, self.list_of_records_auxiliary[i]]
-                dict_all3[i] = {'ident':self.list_of_records_identifier[i], 'aux':self.list_of_records_auxiliary[i], 'ident_tokens':tokens}
-
-                s1 = "%d %s        %s\n" % (i, self.list_of_records_identifier[i]  , '|'.join(tokens_str))
-                s2 = "%d %s \n" % (i, self.list_of_records_auxiliary[i])
-                file1.write(separator + '\n' + s1)   
-                file2.write(separator + '\n' + s2)
-                for j in self.D.adjacency[i]:
-                    tmp_tokens = [str(x) for x in self._get_tokens(self.list_of_records_identifier[j])]
-                    tokens_str = [str(x) for x in tmp_tokens]
-                    tokens = {x[0]:x[1] for x in tmp_tokens} 
-                    s1 = "    %d %s        %s\n" % (j, self.list_of_records_identifier[j]  , '|'.join(tokens_str))
-                    s2 = "    %d %s \n" % (j, self.list_of_records_auxiliary[j])
-                    file1.write(s1)   
-                    file2.write(s2)    
-#                     tmp_neighbor1 = [j,self.list_of_records_identifier[j],tokens]
-#                     tmp_neighbor2 = [j,self.list_of_records_auxiliary[j]]
-#                     list1.append(tmp_neighbor1)
-#                     list2.append(tmp_neighbor2)
-#                 dict_all1[i]={}
-#                 dict_all2[i]={}
-#                 dict_all1[i]['neighbors'] = list1
-#                 dict_all1[i]['node'] = tmp_record1 
-#                 dict_all2[i]['neighbors'] = list2
-#                 dict_all2[i]['node'] = tmp_record2 
-            file3.write(json.dumps(dict_all3))    
-            
-            file1.close()
-            file2.close()
-            
-            
-   
-   
-    # Void. updates the record
+    # Uses nameparser
     def _normalize_NAME(self, record):
         ''' this normalizer is applied to the whole name, that is, when first/middle/last name and titles are all mixed into one string.'''
         # remove all numerals
         s = record['NAME']
+        
+        s1 = re.sub(r'\.|[0-9]+', '', s)
+        s1 = re.sub(r'(\bESQ\b)|(\bENG\b)|(\bINC\b)|(\bLLC\b)|(\bLLP\b)|(\bMRS\b)|(\bPHD\b)|(\bSEN\b)', '', s1)
+        s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bSR\b)|(\bSGT\b)|(\bDC\b)', '', s1)
+        s1 = re.sub(r'\.', '', s1)
+                
+        name = HumanName(s1)
+#         print "%s ----- %s ---- %s ---- %s" % (s, name.last, name.first, name.middle)
+       
+        
+        record['N_last_name'] = name.last
+            
+        record['N_first_name']= name.first
+            
+        record['N_middle_name']= name.middle
+
+   
+    # Void. updates the record
+    # This one doesn't use nameparser. My own version
+    def _normalize_NAME_old(self, record):
+        ''' this normalizer is applied to the whole name, that is, when first/middle/last name and titles are all mixed into one string.'''
+        # remove all numerals
+        s = record['NAME']
+        
         s1 = re.sub(r'\.|[0-9]+', '', s)
         
         # List of all suffixes found then remove them
-        suffix_list = re.findall(r'\bESQ\b|\bENG\b|\bINC\b|\bLLC\b|\bLLP\b|\bMRS\b|\bPHD\b|\bSEN\b', s)
-        suffix_list += re.findall(r'\bDR\b|\bII\b|\bIII\b|\bIV\b|\bJR\b|\bMD\b|\bMR\b|\bMS\b|\bSR\b', s)
+#         suffix_list = re.findall(r'\bESQ\b|\bENG\b|\bINC\b|\bLLC\b|\bLLP\b|\bMRS\b|\bPHD\b|\bSEN\b', s)
+#         suffix_list += re.findall(r'\bDR\b|\bII\b|\bIII\b|\bIV\b|\bJR\b|\bMD\b|\bMR\b|\bMS\b|\bSR\b', s)
         s1 = re.sub(r'(\bESQ\b)|(\bENG\b)|(\bINC\b)|(\bLLC\b)|(\bLLP\b)|(\bMRS\b)|(\bPHD\b)|(\bSEN\b)', '', s1)
-        s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bSR\b)', '', s1)
+        s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bSR\b)|(\bSGT\b)|(\bDC\b)', '', s1)
      
         s1 = re.sub(r'\.', '', s1)
                 
+        name = HumanName(s1)
+        print "%s ----- %s ---- %s ---- %s" % (s, name.last, name.first, name.middle)
+        return
         # Find the first single-letter token and save it as middle name, then remove it 
         middle_name_single = re.findall(r'\b\w\b', s1)
         if middle_name_single:
@@ -230,7 +187,11 @@ class Tokenizer():
     
     # Void. updates the record
     def _normalize_ZIP(self, record):
-        s = record['CONTRIBUTOR_ZIP']
+#         s = record['CONTRIBUTOR_ZIP'] if record['CONTRIBUTOR_ZIP'] else record['ZIP_CODE']
+        s = record['ZIP_CODE']
+        if not s:
+            record['N_zipcode'].append(None)           
+        
         record['N_zipcode'].append(s if len(s) < 5 else s[0:5]) 
     
     # Void. updates the record
@@ -279,9 +240,13 @@ class Tokenizer():
                 # For each field, call the appropriate normalize function
                 # NOTE: has to be done before calling tokenize functions
                 self.normalize_functions[field](record)
+                
+                # TODO: update dictionary of normalized name frequencies
+                self.update_normalized_token_counts(record)
 
                 # For each field type, call the appropriate tokenize function'''
-                tokens += self.tokenize_functions[field](record)
+                new_tokens = self.tokenize_functions[field](record)
+                if new_tokens: tokens += new_tokens 
 #         print tokens
         return tokens
     
@@ -318,6 +283,8 @@ class Tokenizer():
     #===========================================================================
     def _get_tokens_STREET(self, record):
         address = record['N_address']
+        if not address:
+            return None
         identifier = self.token_identifiers['CONTRIBUTOR_STREET_1'][0]
         return [(identifier, s) for s in address]
 
@@ -348,7 +315,32 @@ class Tokenizer():
         return tokens    
         
                 
-    
+    ''' updates self.tokens.normalized_token_counts by tracking/updating the frequency of the
+        normalized tokens belonging to the given record.
+    ''' 
+    def update_normalized_token_counts(self, record):
+        last_name = " ".join(record['N_last_name'])
+        first_name = " ".join(record['N_first_name'])
+        
+        # TODO: check if first names and last names are ever empty 
+        
+        # Last name
+        try:
+            token_identifier = self.token_identifiers['LAST_NAME'][0]
+            self.tokens.normalized_token_counts[(token_identifier, last_name)] += 1
+        except KeyError:
+            self.tokens.normalized_token_counts[(token_identifier, last_name)] = 1
+            
+        # First name
+        try:
+            token_identifier = self.token_identifiers['FIRST_NAME'][0]
+            self.tokens.normalized_token_counts[(token_identifier, first_name)] += 1
+        except KeyError:
+            self.tokens.normalized_token_counts[(token_identifier, first_name)] = 1
+            
+            
+        
+        
     def tokenize(self):
         if not self.list_tokenized_fields:
             raise Exception("ERROR: Specify the fields to be tokenized.")
@@ -360,6 +352,7 @@ class Tokenizer():
             # A dictionary {token_index: (0 or 1)} showing which tokens exist in the given record
             record.vector = {}
             
+            self.update_normalized_token_counts(record)
             
             # Here, each token is a tuple (token_identifier(name? address?, etc?), string)
             for token in s_split:
@@ -489,6 +482,10 @@ class TokenData():
         self.index_2_token = {}
         self.no_of_tokens = 0
         self.token_counts = {}
+        
+        # A dictionary {(token_id:normalized_token):frequency} showing the 
+        # frequency of each normalized token
+        self.normalized_token_counts = {}
         # Load the name variants file
         self.dict_name_variants = json.load(open('../data/name-variants.json'))
     def save_to_file(self, filename):

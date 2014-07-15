@@ -25,11 +25,11 @@ class AffilliationAnalyzer(object):
         self.affiliation = affiliation
         self.pp = pprint.PrettyPrinter(indent=4)
         self.G = None
-        self.dict_name_2_ind = {}
-        self.dict_ind_2_name = {}
+        self.dict_string_2_name = {}
+        self.dict_name_2_string = {}
         self.affiliation_adjacency = {}
         self.affiliation_score = {}
-        self.affiliation_names = []
+#         self.affiliation_names = []
         self.affiliation_name_counter = 1
                 
         self.list_timelines = []
@@ -87,8 +87,8 @@ class AffilliationAnalyzer(object):
     Computes the adjacency matrix between affiliation identifiers.
     The main product is self.affiliation_adjacency which is a dictionary {link:weight} where
     link is a tuple (ind1,ind2).
-    The affiliation node indices are stored in two dictionaries self.dict_name_2_ind  and
-    self.dict_ind_2_name.
+    The affiliation node indices are stored in two dictionaries self.dict_string_2_name  and
+    self.dict_name_2_string.
     '''
     def extract(self):         
         clustering = self.G.components()
@@ -112,20 +112,20 @@ class AffilliationAnalyzer(object):
             timeline = []
             dict_temp_affiliations = {}
             for v in g.vs:
-                affiliation_index =  self.settings['field_2_index'][self.affiliation.upper()]
+                affiliation_index = self.settings['field_2_index'][self.affiliation.upper()]
 #                 affiliation_index = 1 if self.affiliation == 'employer' else (6 if self.affiliation == 'occupation' else None)
                 affiliation_identifier = self.dict_record_nodes[str(v['name'])]['data'][affiliation_index]
                 if bad_identifier(affiliation_identifier, type=self.affiliation): 
                     if self.debug: print affiliation_identifier
                     continue   
-                date_index =  self.settings['field_2_index']['TRANSACTION_DT']
+                date_index = self.settings['field_2_index']['TRANSACTION_DT']
                 date = self.dict_record_nodes[str(v['name'])]['data'][date_index]
-                if affiliation_identifier not in self.dict_name_2_ind : 
-                    self.dict_name_2_ind[affiliation_identifier] = str(self.affiliation_name_counter)
+                if affiliation_identifier not in self.dict_string_2_name : 
+                    self.dict_string_2_name[affiliation_identifier] = str(self.affiliation_name_counter)
                     self.affiliation_name_counter += 1
-                    self.dict_ind_2_name[self.dict_name_2_ind[affiliation_identifier]] = affiliation_identifier
+                    self.dict_name_2_string[self.dict_string_2_name[affiliation_identifier]] = affiliation_identifier
         
-                affiliation_id = self.dict_name_2_ind[affiliation_identifier]
+                affiliation_id = self.dict_string_2_name[affiliation_identifier]
                 
                 ''' every unique affiliation occurring in this timeline should be associated with the timeline's id '''
                 if affiliation_identifier not in dict_temp_affiliations:
@@ -195,11 +195,15 @@ class AffilliationAnalyzer(object):
 
 
 
-    def save_data(self,label = ""):
+    def save_data(self, label=""):
         if label == "":
             label = self.batch_id
         # Generate the graph of linked affiliation names
         tmp_adj = [(link[0], link[1], self.affiliation_adjacency[link], self.dict_likelihoods[link]) for link in self.affiliation_adjacency] 
+        
+        # Apparently, when a graph is generated from an edge list like this where each edge is an tuple (ind1,ind2), 
+        # the resulting graph will assign ind1 and ind2 to the 'name' attribute of the generated vertices. Their index on the
+        # other hand, is apparently generated randomly
         G_affiliations = igraph.Graph.TupleList(edges=tmp_adj, edge_attrs=["weight", "confidence"])
         
         for v in G_affiliations.vs:
@@ -211,7 +215,7 @@ class AffilliationAnalyzer(object):
         
         # Set the vertex labels
         for v in G_affiliations.vs:
-            v['label'] = self.dict_ind_2_name[v['name']]
+            v['label'] = self.dict_name_2_string[v['name']]
         
         # Set vertex sizes
         for v in G_affiliations.vs:
@@ -230,7 +234,18 @@ class AffilliationAnalyzer(object):
         # save the giant component of the graph
         G = clustering.giant()
         G.save(f=self.data_path + label + '-' + self.affiliation + '_graph_giant_component.gml', format='gml')
-        # quit()
+        
+        # save affiliation identifier statistics
+        
+        f = open(self.data_path + label + '-' + self.affiliation + "-metadata.json", "w") 
+        
+        ''' affiliation_score is a dict {name:frequency} where '''
+        
+        dict_data = {
+                     "affiliation_score" :self.affiliation_score, 
+                      "batch_id": self.batch_id}
+        f.write(json.dumps(dict_data))
+        f.close()
 
 
 
@@ -262,7 +277,7 @@ class AffilliationAnalyzer(object):
             # set the prior
             prior = np.max([ratio0, ratio1])
             print link, "%d/%d   %d/%d" % (weight0 , self.affiliation_score[link[0]], weight1 , self.affiliation_score[link[1]]) , '    ', '%0.2f %0.2f %0.2f' % (ratio0, ratio1, prior)
-            print '          %s | %s' % (self.dict_ind_2_name[ind0], self.dict_ind_2_name[ind1])
+            print '          %s | %s' % (self.dict_name_2_string[ind0], self.dict_name_2_string[ind1])
             print "______________________________________________________________________________________________"
             self.dict_priors[link] = prior * 0.5
             self.dict_posteriors[link] = None
@@ -295,7 +310,7 @@ class AffilliationAnalyzer(object):
             combined_likelihood, signal, signal_string = indicator(list_likelihoods)  
         #     print signal
             if signal > -1000:
-                s = self.dict_ind_2_name[i0] + ' | ' + self.dict_ind_2_name[i1] + "\n"
+                s = self.dict_name_2_string[i0] + ' | ' + self.dict_name_2_string[i1] + "\n"
                 for timeline_collapsed in list_timelines_collapsed:
                     s += str(timeline_collapsed) + "\n" 
         #         print (i0, i1)
@@ -364,7 +379,7 @@ def bad_identifier(identifier, type='employer'):
     else:
         print 'invalid identifier type'
         quit()
-    print identifier
+#     print identifier
     if re.search(regex, identifier, flags=re.IGNORECASE): 
         return True
     else: 
@@ -375,23 +390,31 @@ def bad_identifier(identifier, type='employer'):
     
     
 def main():
-    
-    analyst = AffilliationAnalyzer(batch_id=280, affiliation="occupation")
+    batch_id = 286
+    analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
     state = analyst.settings["param_state"]
     analyst.load_data()
     analyst.extract()
     analyst.compute_affiliation_links()
-    analyst.save_data(label = state)
+    analyst.save_data(label=state)
 
-    analyst = AffilliationAnalyzer(batch_id=280, affiliation="employer")
+    analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="employer")
     state = analyst.settings["param_state"]
     analyst.load_data()
     analyst.extract()
     analyst.compute_affiliation_links()
-    analyst.save_data(label = state)
+    analyst.save_data(label=state)
     
     
+def loadAffiliationNetwork(label, data_path, affiliation):
+    G = igraph.Graph.Read_GML(f=data_path + label + '-' + affiliation + '_graph.gml')
+    return G
     
 
 if __name__ == "__main__":
     main()
+    quit()
+    data_path = os.path.expanduser('~/data/FEC/')
+    G = loadAffiliationNetwork('alaska_addresses', data_path, 'employer')
+    
+    

@@ -8,7 +8,7 @@ import os
 import editdist
 import json
 
-''' This class receives a list of vectors, each representing a node or record, and computes a similarity matrix between the nodes.
+''' This class receives a list of records and computes a similarity matrix between the nodes. Each record has a "vector".
     Each vector is a dictionary {index:(0 or 1)} where index is a unique integer representing a feature or token in the record.
     The tokens themselves can be specified via index_2_token and token_2_index.
 
@@ -18,18 +18,23 @@ import json
     This can be further augmented by overriding  the member function __is_close_enough(v1,v2). This functions takes two vectors as inputs
     and decides if they should be linked or not, and uses additional information about the features/tokens as well. This is where
     index_2_token and token_2_index can be used.
+    matching_mode can be "strict" or "thorough"
     ''' 
 class Disambiguator():
-    def __init__(self, list_of_records, index_2_token, token_2_index, vector_dimension):
+    def __init__(self, list_of_records, vector_dimension, matching_mode="strict"):
         
-        self.index_2_token = index_2_token
-        self.token_2_index = token_2_index
+        
+        # I Believe these are unnecessary. 
+#         self.index_2_token = index_2_token
+#         self.token_2_index = token_2_index
 #         self.list_of_vectors = list_of_vectors
         self.list_of_records = list_of_records
         
         # dimension of the input vectors (this is necessary because the vectors come in a sparse form)
         self.input_dimensions = vector_dimension
         self.LSH_hash = []
+        
+        # Now, this is dictionary {index:set of indexes}. It will be augmented in place with each call to self.update_nearest_neighbors() 
         self.adjacency = {}
         self.m = 1  # number of permutations of the hashes
         
@@ -37,9 +42,16 @@ class Disambiguator():
         self.dict_name_variants = json.load(open('../data/name-variants.json'))
         
         # dict  {tuple:1} of pris of indices of hash strings that have already been compared. Skip them if encountered.
+        # NOTE: This is incredibly memory intensive. I'm ditching it.
         self.dict_already_compared_pairs = {}
         self.debug = False
         self.project = None
+        self.matching_mode = matching_mode
+        
+        # Number of new matches found in each update of the adjacency matrix.
+        # Should be reset to 0 at the beginning of each call to self.update_nearest_neighbors
+        self.match_count = 0
+        self.adjacency_edgelist = []
 
 
     def imshow_adjacency_matrix(self, r=()):
@@ -79,8 +91,9 @@ class Disambiguator():
     
     def __update_dict(self, dict1, dict_add):
         ''' This function updates dict1 in place so that the corresponding values of dict_add are
-            added to and merged with the values in dict1'''
-    
+            added to and merged with the values in dict1
+            NOT BEING USED ANYMORE. Now, self.adjacency is updated in-place.
+            '''
         for s in dict1:
             dict1[s] = list(set(dict1[s] + dict_add[s]))
             
@@ -90,39 +103,46 @@ class Disambiguator():
             print record.vector
  
     
-    def get_nearest_neighbors(self, B, sigma):
+    def update_nearest_neighbors(self, B, hashes=None):
         ''' given a list of strings or hashes, this function computes the nearest
             neighbors of each string among the list.
 
             Input:
-                self.LSH_hash: a list of strings of same length. The strings comprise 0 and 1/
+                hashes: a list of strings of same length. The default is self.LSH_hashes: the strings comprise 0 and 1
+                    pass non-default hashes to perform the updating using a custom ordering of the records.
                 B: an even integer. The number of adjacent strings to check for proximity for each string
-                sigma: NOT BEING USED. float in [0,1], proximity threshold; maximum fraction of all digits in the two strings
-                    that can differ for them to be considered neighbors.
+
             Output: dictionary of indices. For each key (string index), the value is a list of indices
                     of all its nearest neighbors
         '''
-        list_of_hashes_sorted = sorted(self.LSH_hash)
-        sort_indices = argsort(self.LSH_hash)
+        
+        if hashes is None:
+            hashes = self.LSH_hash
+            
+        list_of_hashes_sorted = sorted(hashes)
+        sort_indices = argsort(hashes)
 #         print sort_indices
         # should be optimized. redundant sorting performed
         
         # number of hash strings in list_of_hashes
-        n = len(self.LSH_hash)
+        n = len(hashes)
         
-        # length of each hash string
-        m = len(self.LSH_hash[0])
+        # NOT USED length of each hash string
+        # m = len(hashes[0])
         
-        dict_neighbors = {}
+        # Now I'm directly updating self.adjacency. This won't be necessary
+        # dict_neighbors = {}
              
         for s, i in zip(list_of_hashes_sorted, range(n)):
-            dict_neighbors[sort_indices[i]] = []
+            # Now I'm directly updating self.adjacency. This won't be necessary
+            # dict_neighbors[sort_indices[i]] = []
+            
             # for entry s, find the B nearest entries in the list
-            j_low , j_high = i - B / 2, i + B / 2
-            if (i - B / 2 < 0):
-                j_low, j_high = 0, B
-            if (i + B / 2 > n - 1):
-                j_low, j_high = n - 1 - B, n - 1
+            j_low , j_high = max(0, i - B / 2), min(i + B / 2, n - 1)
+#             if (i - B / 2 < 0):
+#                 j_low, j_high = 0, B
+#             if (i + B / 2 > n - 1):
+#                 j_low, j_high = n - 1 - B, n - 1
             
             iteration_indices = range(j_low, j_high + 1)
             iteration_indices.remove(i)
@@ -131,11 +151,20 @@ class Disambiguator():
                 # sort_indices[i]: the original index of the item residing at index i of the sorted list
                     
                 # New implementation: comparison is done via instance function of the Record class
-                if (sort_indices[i], sort_indices[j]) not in self.dict_already_compared_pairs:
-                    if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]]):
-                        dict_neighbors[sort_indices[i]].append(sort_indices[j])
-                    self.dict_already_compared_pairs[(sort_indices[i], sort_indices[j])] = 1
-        return dict_neighbors      
+                # Comparison (matching) mode is passed to the Record's compare method.
+#                 print i, j
+                if sort_indices[j] in self.adjacency[sort_indices[i]]:
+                    continue
+                
+                if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]], mode=self.matching_mode):
+                    self.match_count += 1
+                    self.adjacency[sort_indices[i]].add(sort_indices[j])
+                    
+#                 if (sort_indices[i], sort_indices[j]) not in self.dict_already_compared_pairs:
+#                     if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]], mode=self.matching_mode):
+#                         dict_neighbors[sort_indices[i]].append(sort_indices[j])
+#                     self.dict_already_compared_pairs[(sort_indices[i], sort_indices[j])] = 1
+#         return dict_neighbors      
     
     def compute_LSH_hash(self, hash_dim):
         ''' Input:
@@ -190,7 +219,7 @@ class Disambiguator():
         self.adjacency = {} 
         i = 0
         while i < len(self.list_of_records):
-            self.adjacency[i] = []
+            self.adjacency[i] = set()
             j = i + 1
             
             current_group = [i]
@@ -199,34 +228,43 @@ class Disambiguator():
                     j += 1
             if self.debug: print current_group
             for index in current_group:
-                self.adjacency[index] = list(current_group)
+                self.adjacency[index] = set(current_group)
                 self.adjacency[index].remove(index)
                 if self.debug:
                     print '-->', index
                     print '    ', index, self.adjacency[index]
             i = j
+        
+        # update nearest neighbors once with the initial ordering of the records (before hashes are calculated and sorted)
+        self.update_nearest_neighbors(B=40, hashes=xrange(len(self.list_of_records)))
+
             
                     # set neighbors of all items in current group and move on to the next item
                     
                     
+    # Convert self.adjacency to an edgelist
+    def compute_edgelist(self):
+        n = len(self.list_of_records)
+        # place self-links 
+        self.adjacency_edgelist = [(i, i) for i in xrange(n)] 
         
+        for index in self.adjacency:
+            for neighbor in self.adjacency[index]:
+                self.adjacency_edgelist.append((index, neighbor))
+    
+    
     def compute_similarity(self, B1=30, m=100, sigma1=0.2):                
         # permutate the hash strings m times
         # then create dictionary of B nearest neighbors with distance threshold sigma = 0.7
         # sigma is the fraction of digits in hash that are equal between the two strings
         self.m = m
         print "B=", B1
-#         raw_input()
         print "Computing adjacency matrix"
         print "sigma = ", sigma1
 #         self.adjacency = self.get_nearest_neighbors(B, sigma)
         n = len(self.LSH_hash)
         
         
-        self.dict_already_compared_pairs = {}
-        
-#         for i in range(n): self.adjacency[i]=[]
-#         pl.ion()
 
         # Generate an adjacency dictionary and initially populate it with links between records that are identical
         print 'Initialize adjacency...'
@@ -234,20 +272,20 @@ class Disambiguator():
         print 'Done...'
         
         for i in range(m):
-            shuffle_list_of_str(self.LSH_hash)
-#             print self.LSH_hash[0]
-            print 'Shuffling list of hashes and computing nearest neighbors' + str(i)
-            adjacency_new = self.get_nearest_neighbors(B=B1, sigma=sigma1)        
-            self.__update_dict(self.adjacency, adjacency_new)
             
+            self.match_count = 0
+            self.update_nearest_neighbors(B=B1)
+            print "New matches found: " , self.match_count
+
+            shuffle_list_of_str(self.LSH_hash)
+            print 'Shuffling list of hashes and computing nearest neighbors' + str(i)
+
+#             adjacency_new = self.get_nearest_neighbors(B=B1, sigma=sigma1)        
+#             self.__update_dict(self.adjacency, adjacency_new)
             
             if self.project:
-                self.project.log('Suffling hash list...',str(i))
-#             pl.cla()
-#             self.imshow_adjacency_matrix()
-#             pl.draw()
-#             raw_input("Press Enter to continue...")
-             
+                self.project.log('Suffling hash list...', str(i))
+#         self.compute_edgelist()
         print "Adjacency matrix computed!"
             
     
@@ -269,7 +307,7 @@ class Disambiguator():
             
             if len(self.adjacency[x]) == 0  :continue
             j = random.randint(0, len(self.adjacency[x]) - 1) if len(self.adjacency[x]) > 1 else 0
-            y = self.adjacency[x][j]
+            y = list(self.adjacency[x])[j]
             if x == 0: continue
             if 1.0 * (x - y) / x < 0.1:
                 counter += 1
@@ -280,6 +318,10 @@ class Disambiguator():
            
           
 
+    ''' Refine the matching by building identity objects '''
+    def temper(self):
+        pass
+        
 
 
 
@@ -420,7 +462,7 @@ if __name__ == '__main__':
 #     list_of_vectors = generate_rand_list_of_vectors(N, dim)
 #     
     # Won't work as is!
-    D = Disambiguator(None, None, None, dim)
+    D = Disambiguator(None, None, None, dim, matching_mode="strict")
     
     # compute the hashes
     print "Computing the hashes..."
