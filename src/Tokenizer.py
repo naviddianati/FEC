@@ -286,14 +286,14 @@ class Tokenizer():
         if not address:
             return None
         identifier = self.token_identifiers['CONTRIBUTOR_STREET_1'][0]
-        return [(identifier, s) for s in address]
+        return [(identifier, s) for s in address.split()]
 
         
     #===========================================================================
     # 
     #===========================================================================
     def _get_tokens_NAME(self, record):
-        lastname = record['N_lastname']
+        lastname = record['N_last_name']
         firstname = record['N_first_name']
         middlename = record['N_middle_name']
         
@@ -422,6 +422,9 @@ class TokenizerNgram(Tokenizer):
     
     # Override: here, tokenz are ngrams
     def _get_tokens_NAME(self, record):
+        
+        #NOTE: with the new name normalizer, each of the following are a single string!
+        
         lastname = record['N_last_name']
         firstname = record['N_first_name']
         middlename = record['N_middle_name']
@@ -430,12 +433,15 @@ class TokenizerNgram(Tokenizer):
         
         # last name
         identifier = self.token_identifiers['NAME'][0]
-        tokens += [(identifier, s) for word in lastname for s in self.ngrams(word, self.ngram_n) ]
+        
+#         tokens += [(identifier, s) for word in lastname for s in self.ngrams(word, self.ngram_n) ]
+        tokens += [(identifier, s) for  s in self.ngrams(lastname, self.ngram_n) ]
 
         
         # first name
         identifier = self.token_identifiers['NAME'][1]
-        tokens += [(identifier, s) for word in firstname for s in self.ngrams(word, self.ngram_n) ]
+#         tokens += [(identifier, s) for word in firstname for s in self.ngrams(word, self.ngram_n) ]
+        tokens += [(identifier, s) for  s in self.ngrams(firstname, self.ngram_n) ]
         # middle name
         identifier = self.token_identifiers['NAME'][2]
         if len(middlename) > 0:

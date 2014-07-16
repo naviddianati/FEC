@@ -182,7 +182,7 @@ def generateAffiliationData(state=None):
     
     retriever = FecRetriever(table_name=table_name,
                       query_fields=all_fields,
-                      limit=(record_start,  record_no),
+                      limit=(record_start, record_no),
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE", "CMTE_ID"],
                       where_clause=" WHERE ENTITY_TP='IND' ")
     retriever.retrieve()
@@ -264,7 +264,7 @@ def generateAffiliationData(state=None):
 
     project.log('MESSAGE', 'Computing affiliation networks...')
 
-    analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation = "occupation")
+    analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
     state = analyst.settings["param_state"]
     analyst.load_data()
     analyst.extract()
@@ -273,7 +273,7 @@ def generateAffiliationData(state=None):
     analyst.save_data(label=state)
 #     analyst.save_data_textual(label=state)
 
-    analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation = "employer")
+    analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="employer")
     state = analyst.settings["param_state"]
     analyst.load_data()
     analyst.extract()
@@ -314,8 +314,8 @@ def disambiguate_main(state):
     project.putData('param_state' , param_state)
 
     
-    record_start = 340
-    record_no = 200
+    record_start = 1
+    record_no = 5000
 
     project.putData('batch_id' , batch_id)
 
@@ -433,7 +433,7 @@ def disambiguate_main(state):
     
     
     # Number of times the hashes are permutated and sorted
-    no_of_permutations = 0
+    no_of_permutations = 10
     project.putData('number_of_permutations' , str(no_of_permutations))
 
     
@@ -549,7 +549,7 @@ class Project(dict):
         css_code = "table{border-collapse:collapse;\
                     padding:5px;\
                     font-family:sans;\
-                    width:100%;\
+#                     width:100%;\
                     font-size:10px;\
                     border:dotted thin #efefef;}\
                     td{padding:5px;\
@@ -592,11 +592,11 @@ class Project(dict):
                     record_as_list_tokenized = [r[field] for field in self["list_tokenized_fields"]]
                     record_as_list_auxiliary = [r[field] for field in self["list_auxiliary_fields"]]
                     
-                    dataframe_data.append(record_as_list_tokenized+[r['N_first_name'],r['N_last_name'],r['N_middle_name']])
                     
                     tmp_tokens = list_tokens[index]
                     tokens_str = [str(x) for x in tmp_tokens]
                     
+                    dataframe_data.append(record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']])  # ,self.D.LSH_hash[index],tokens_str])
                     if with_tokens:
                         s1 = "%d %s        %s\n" % (index, record_as_list_tokenized , '|'.join(tokens_str))
                     else:
@@ -607,7 +607,7 @@ class Project(dict):
 #                 f1.write(df.to_string(justify='left'))
 #                 f1.write('\n' + separator + '\n')   
 
-            df = pd.DataFrame(dataframe_data, index=list_index)#, columns=self["list_tokenized_fields"])
+            df = pd.DataFrame(dataframe_data, index=list_index)  # , columns=self["list_tokenized_fields"])
             f2.write(df.to_html(justify='left'))
 
             f2.write("<br/><br/>")

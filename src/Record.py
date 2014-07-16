@@ -85,7 +85,10 @@ class Record(dict):
             return self._is_close_enough_STRICT(self, otherRecord)
         
         if mode == "thorough":
-            return self._is_close_enough_THOROUGH(self, otherRecord)
+            decision = self._is_close_enough_THOROUGH(self, otherRecord)
+            if self.debug: 
+                print decision
+            return decision
         
         raise ValueError("Specify comparison mode") 
     
@@ -163,7 +166,8 @@ class Record(dict):
                    
     # TODO: implement the new comparison function
     def _is_close_enough_THOROUGH(self, r1, r2):
-        self.debug = True if   r1['N_first_name'] == r2['N_first_name'] == "MARKUS" and r1['N_last_name'] == r2['N_last_name'] == "AAKKO" else False    
+#         self.debug = True if   r1['N_first_name'] == r2['N_first_name'] == "MARKUS" and r1['N_last_name'] == r2['N_last_name'] == "AAKKO" else False
+#         self.debug = True  if r1['N_first_name'] != r2['N_first_name']  else False;  
         if self.debug:
             print "_______________________________________________________________________________________________________________"
             print r1
