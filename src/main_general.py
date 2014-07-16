@@ -315,7 +315,7 @@ def disambiguate_main(state):
 
     
     record_start = 1
-    record_no = 5000
+    record_no = 500
 
     project.putData('batch_id' , batch_id)
 
@@ -602,18 +602,18 @@ class Project(dict):
                     else:
                         s1 = "%d %s\n" % (index, record_as_list_tokenized)
 #                     f1.write(s1)
-                list_index += ["", "", ""]
-                dataframe_data += [["" for i in range(len(dataframe_data[0]))] for j in range(3)]
-#                 f1.write(df.to_string(justify='left'))
+                list_index += ["|" for i in range(1)]
+                dataframe_data += [["" for i in range(len(dataframe_data[0]))] for j in range(1)]
 #                 f1.write('\n' + separator + '\n')   
 
-            df = pd.DataFrame(dataframe_data, index=list_index)  # , columns=self["list_tokenized_fields"])
-            f2.write(df.to_html(justify='left'))
-
-            f2.write("<br/><br/>")
-                
+            df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"]+['N_first_name', 'N_last_name', 'N_middle_name'])
+            f1.write(df.to_string(justify='left'))
             f1.close()
+
+            f2.write(df.to_html(justify='left'))
+            f2.write("<br/><br/>")
             f2.close()
+                
                 
                     
                     
