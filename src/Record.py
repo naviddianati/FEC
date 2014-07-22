@@ -11,10 +11,24 @@ import json
 
 from Affiliations import bad_identifier
 from Person import Person
+from Tokenizer import TokenData
 import editdist
 
 
 class Record(dict):
+    
+    # Print debug info or not.
+    debug = False
+    
+    LARGE_NEGATIVE = -1000
+    LARGE_POSITIVE = 1000
+    
+    
+    # strings are considered equivalent if editdist(s1,s2) < self.employer_str_tolerance * max(len(s1),len(s2))
+    # tolerance 0.5 is very lax, 0.1 is stringent
+    employer_str_tolerance = 0.3
+    occupation_str_tolerance = 0.2
+    
     def __init__(self):
         # a dictionary {token_index: (0 or 1)} showing which tokens exist in the given record.
         # A token index is an integer assigned to each unique tuple (token_identifier, string) where a token identifier is an integer
@@ -55,9 +69,7 @@ class Record(dict):
         self['N_middle_name'] = []
         self['N_address'] = []
         self['N_zipcode'] = []
-        
-        # Print debug info or not.
-        self.debug = False
+      
 
     
     ''' The follosing two methods need to be defined in order to make the object hashable.
@@ -66,7 +78,7 @@ class Record(dict):
     '''
     
     # Override
-    def __hash_(self):
+    def __hash__(self):
         return id(self)
     
     # Override
@@ -75,22 +87,35 @@ class Record(dict):
     
     
     
+    '''
+    return a short string summarizing the record
+    '''
+    def toString(self):
+        s = self['NAME']
+        return s
     
 #     @staticmethod
 #     def comparison(record1, record2):
 #         return Record._is_close_enough(record1.vector, record2.vector) 
 #     
+
+    '''
+    Returns an integer. Your code must interpret it by itself!
+    Positive values are True while others are False.
+    Negative numbers can be used to indicate strict irreconcilability.
+    '''
     def compare(self, otherRecord, mode="strict"):
         if mode == "strict":
-            return self._is_close_enough_STRICT(self, otherRecord)
+            return self.compare_STRICT(self, otherRecord) 
         
         if mode == "thorough":
-            decision = self._is_close_enough_THOROUGH(self, otherRecord)
-            if self.debug: 
+            decision = (self.compare_THOROUGH(self, otherRecord))
+            if Record.debug: 
                 print decision
             return decision
-        
         raise ValueError("Specify comparison mode") 
+    
+    
     
     def __getitem__(self, key):
         val = dict.__getitem__(self, key)
@@ -103,7 +128,7 @@ class Record(dict):
         
         
     
-    def _is_close_enough_STRICT(self, r1, r2):
+    def compare_STRICT(self, r1, r2):
         ''' This function returns True or False indicating whether two name vectors are close enough to be considered identical or not '''
         ''' If one has no address, then comparison should be much more strict.
             If both have addresses, then addresses should be idenetical, and other fields must be close enough.'''
@@ -164,16 +189,35 @@ class Record(dict):
                    
                    
                    
-    # TODO: implement the new comparison function
-    def _is_close_enough_THOROUGH(self, r1, r2):
-#         self.debug = True if   r1['N_first_name'] == r2['N_first_name'] == "MARKUS" and r1['N_last_name'] == r2['N_last_name'] == "AAKKO" else False
-#         self.debug = True  if r1['N_first_name'] != r2['N_first_name']  else False;  
-        if self.debug:
+    '''
+    Returns either an integer. One can use this function directly to get additional information about
+    the nature of the relationship. For instance, this function can return negative numbers to
+    indicate irreconcilable difference.
+    '''
+    def compare_THOROUGH(self, r1, r2):
+#         Record.debug = True if   r1['N_first_name'] == r2['N_first_name'] == "MARKUS" and r1['N_last_name'] == r2['N_last_name'] == "AAKKO" else False
+#         Record.debug = True  if r1['N_first_name'] != r2['N_first_name']  else False;  
+        if Record.debug:
             print "_______________________________________________________________________________________________________________"
             print r1
             print r2
             # If states are the same,
         
+        
+        #=======================================================================
+        # 
+        #=======================================================================
+        firstname1 = r1['N_first_name']
+        firstname2 = r2['N_first_name']
+        
+#         if firstname1 == "ROSALIE" or firstname2 == "ROSALIE":
+#             if self.compare_names(r1, r2):
+#                 print "------>", r1['NAME'], "     |     ", r2['NAME']
+             
+        #===================================================================
+        # 
+        #===================================================================
+    
         
         if r1['STATE'] == r2['STATE']:
             
@@ -192,30 +236,42 @@ class Record(dict):
                     else:
                         # TODO: if states and cities are the same but addresses are different
                         # Accept if zipcodes are the same and at least one of the affiliations is clearly related and exact same name
-                        return (self.compare_employers(r1, r2) >= 2 or  self.compare_occupations(r1, r2) >= 2)\
-                            and self.compare_names(r1, r2) and self.compare_zipcodes(r1, r2)                
+                        (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
+                                            self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
+                        
+                        # Return Record.LARGE_NEGATIVE if middle names are different
+                        if c_n < 0: return Record.LARGE_NEGATIVE
+                        return (c_e >= 2 or  c_o >= 2) and c_n and c_z                
                 
                 
                 # if at least one doesn't have an address
                 # TODO: if states and cities are the same, but at least one doesn't have an address
                 else:
+                    (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
+                                            self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
+                    
+                    # Return Record.LARGE_NEGATIVE if middle names are different
+                    if c_n < 0: return Record.LARGE_NEGATIVE
+                    
                     # if zip codes are the same, then relax the affiliation condition a bit
-                    if self.compare_zipcodes(r1, r2) == 2:
-                        return (self.compare_employers(r1, r2) >= 1 or  self.compare_occupations(r1, r2) >= 1)\
-                            and self.compare_names(r1, r2)
+                    if c_z == 2:
+                        return (c_e >= 1 or  c_o >= 1) and c_n
                     else:
                         # If at least one doesn't have an address and zipcodes are different
-                        # Accept if zipcodes are the same and at least one of the affiliations is clearly related and exact same name
-                        return (self.compare_employers(r1, r2) >= 2 and  self.compare_occupations(r1, r2) >= 2)\
-                                and self.compare_names(r1, r2) 
+                        # Accept if both the affiliations are clearly related and exact same name
+                        return (c_e >= 2 and  c_o >= 2) and c_n
 
             # If states are the same but cities are different
             else:
                 # TODO: if cities are different
                 # Accept if affiliations are clearly connected and names are exactly the same
                 # TODO: check for timeline consistency
-                return ((self.compare_employers(r1, r2) >= 2 and  self.compare_occupations(r1, r2) >= 2)\
-                          and self.compare_names(r1, r2))
+                (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
+                                            self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
+                
+                # Return LARGE_NEGATIVE if middle names are different
+                if c_n < 0: return Record.LARGE_NEGATIVE
+                return ((c_e >= 2 and  c_o >= 2) and c_n)
                 
 
             
@@ -227,7 +283,14 @@ class Record(dict):
             # 3- Employers should be close
             # 4- Name token frequency should be taken into account. 
             # 5- Check for timeline consistency: Requires the Person objects
-            pass
+            (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
+                                    self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
+            
+            # Return LARGE_NEGATIVE if middle names are different
+            if c_n < 0: return Record.LARGE_NEGATIVE
+            
+            # Actually, we will relax the conditions at this point. Cross-state consistency will be resolved on the Person level.
+            return (c_e >= 2 or  c_o >= 2)  and c_n
         return False
     
     
@@ -238,7 +301,7 @@ class Record(dict):
         2: zip codes are the same.'''
     def compare_zipcodes(self, r1, r2):
         if not r1['ZIP_CODE'] or not r2["ZIP_CODE"]:
-            if self.debug: print "One ZIP_CODE doesn't exist"
+            if Record.debug: print "One ZIP_CODE doesn't exist"
             return 1
         if r1['ZIP_CODE'][:5] == r2["ZIP_CODE"][:5]:
             return 2
@@ -257,13 +320,13 @@ class Record(dict):
         try:
             occupation1 = r1['OCCUPATION']
         except KeyError:
-            if self.debug: print "no occupation field found"
+            if Record.debug: print "no occupation field found"
             return 1
         
         try:
             occupation2 = r2['OCCUPATION']
         except KeyError:
-            if self.debug: print "no occupation field found"
+            if Record.debug: print "no occupation field found"
             return 1
         
 #         print occupation1, occupation2
@@ -273,24 +336,34 @@ class Record(dict):
 #             return False
         
         if occupation1 == occupation2:
-            if self.debug: print "occupations are the same" 
+            if Record.debug: print "occupations are the same" 
             return 3
         else:
             try:
                 ind1 = self.G_occupation.dict_string_2_ind[occupation1]
                 ind2 = self.G_occupation.dict_string_2_ind[occupation2]
             except KeyError:
-                if self.debug: print "one of the occupations not found"
+                if Record.debug: print "one of the occupations not found"
                 return 1
             
             
             # Check if the occupation identifiers are adjacent in the affiliations graph
             if self.G_occupation.get_eid(ind1, ind2, directed=False, error=False) == -1:
-                if self.debug: print "occupations are different and not adjacent"
-                return 0 
+              
+                # Not adjacent. Check if strings are close
+                if editdist.distance(occupation1, occupation2) < max(len(occupation1), len(occupation2)) * Record.occupation_str_tolerance:
+                    # Strings are close enough even though not linked on the affiliation graph
+                    return 2
+                else:
+                    # String distances not close enough
+                    if Record.debug: print "occupations are different and not adjacent"
+                    return 0
             else:
-                if self.debug: print "-------------", occupation1, occupation2
+                if Record.debug: print "-------------", occupation1, occupation2
                 return 2
+                
+                
+              
         
     
     
@@ -304,13 +377,13 @@ class Record(dict):
         try:
             employer1 = r1['EMPLOYER']
         except KeyError:
-            if self.debug: print "no employer field found"
+            if Record.debug: print "no employer field found"
             return 1
         
         try:
             employer2 = r2['EMPLOYER']
         except KeyError:
-            if self.debug: print "no employer field found"
+            if Record.debug: print "no employer field found"
             return 1
         
 #         print employer1,employer2
@@ -320,22 +393,29 @@ class Record(dict):
 #             return False
         
         if employer1 == employer2:
-            if self.debug: print "employers are the same"
+            if Record.debug: print "employers are the same"
             return 3
         else:
             try:
                 ind1 = self.G_employer.dict_string_2_ind[employer1]
                 ind2 = self.G_employer.dict_string_2_ind[employer2]
             except KeyError:
-                if self.debug: print "one of the employers not found"
+                if Record.debug: print "one of the employers not found"
                 return 1
             
             # Check if the employer identifiers are adjacent in the affiliations graph
             if self.G_employer.get_eid(ind1, ind2, directed=False, error=False) == -1:
-                if self.debug: print "employers are not adjacent"
-                return 0
+                
+                # Not adjacent. Check if strings are close
+                if editdist.distance(employer1, employer2) < max(len(employer1), len(employer2)) * Record.employer_str_tolerance:
+                    # Strings are close enough even though not linked on the affiliation graph
+                    return 2
+                else:
+                    # String distances not close enough
+                    if Record.debug: print "employers are not adjacent"
+                    return 0
             else:
-                if self.debug: print "-------------", employer1, employer2
+                if Record.debug: print "-------------", employer1, employer2
                 return 2
     
     
@@ -344,8 +424,8 @@ class Record(dict):
         # if both have middlenames, they should be the same
         if r1['N_middle_name'] and r2['N_middle_name']:
             if r1['N_middle_name'] != r2['N_middle_name']: 
-                if self.debug: print "middle names are different"
-                identical = False
+                if Record.debug: print "middle names are different"
+                identical = -10
                 return identical
         
 #         # if 1 doesn't have a middle name but 2 does, then 2 is not the "parent" of 1
@@ -355,51 +435,99 @@ class Record(dict):
           
         # if last names aren't close enough, fail.
         if not r1['N_last_name'] or not r2['N_last_name']: 
-            if self.debug:
+            if Record.debug:
                 print "one of the last names doesn't exist"
             identical = False 
             return identical      
-        # TODO: if both have last names takce into account their frequencies
-        elif editdist.distance(''.join(sorted(r1['N_last_name'])), ''.join(sorted(r2['N_last_name']))) > 2: 
+        
+        # TODO: if both have last names take into account their frequencies
+        elif editdist.distance(r1['N_last_name'], r2['N_last_name']) > 1: 
             identical = False
-            if self.debug:
+            if Record.debug:
                 print "Distance between last names too far"
             return identical      
 
         # if first names don't overlap, then check if they are variants. If not, fail
-#         if not any(i in dict1[2] for i in dict2[2]): identical = False
+        # if not any(i in dict1[2] for i in dict2[2]): identical = False
         firstname1 = r1['N_first_name']
         firstname2 = r2['N_first_name']
+       
         
-        if editdist.distance(firstname1, firstname2) > 1:
-            if self.debug: print "First names are different"
-            one_var_two = None
-            two_var_one = None
-#             print firstname1,"-----",firstname2  
+        # If first name saren't identical, check if one is a variant of the other. If not, see if either one is a misspelling, 
+        # i.e., a name that doesn't appear in the dictionary of names.
+        # If either is a misspelling, then if they're close enough, accept, else reject.
+        # TODO: How do you define misspelling? Word frequency should also be part of it...
+
+        if firstname1 != firstname2:            
+            if Record.debug: print "First names are different"
+            one_var_two = False
+            two_var_one = False
             
             # Check if firstname1 is a variant of firstname2
             if firstname2 in self.tokendata.dict_name_variants:
-                if firstname1 not in self.tokendata.dict_name_variants[firstname2]: 
-                    one_var_two = False
-                else:
+                if firstname1  in self.tokendata.dict_name_variants[firstname2]: 
                     one_var_two = True
+                else:
+                    one_var_two = False
 
             # Check if firstname2 is a variant of firstname1
             if firstname1 in self.tokendata.dict_name_variants:
-                if firstname2 not in self.tokendata.dict_name_variants[firstname1]: 
-                    two_var_one = False
-                else:
+                if firstname2  in self.tokendata.dict_name_variants[firstname1]: 
                     two_var_one = True
+                else:
+                    two_var_one = False
             
             # If at least one of them is registered as the other's variant:
             if one_var_two or two_var_one:
-                if self.debug: print "first names ARE variants of each other"
+                if Record.debug: 
+                    print "first names ARE variants of each other"
+                    print "VARIANTS:    ", firstname1, "-------------", firstname2
                 identical = True
             else:
-                if self.debug: print "first names aren't variants of each other"
-                identical = False
-        
+                # If first names are different and neither is a variant of the other
+                if Record.debug: print "first names aren't variants of each other"
+                
+                # If neither one is a misspelling, reject
+                if firstname1  in self.tokendata.set_all_names and firstname2  in self.tokendata.set_all_names:
+                    identical = False
+                    return identical
+                else:
+                    # if at least one seems to be misspelled, (doesn't exists in list of all names) check edit distances.
+                    # If the two names are different by only one edit and at least one of them is too rare, then we 
+                    # consider them to be the same, only misspelled.
+                    if editdist.distance(firstname1, firstname2) < 2:
+                        
+                        # get the tokens' frequencies.
+                        f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], firstname1))
+                        f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], firstname2))
+                        
+                        # Accept if one of the names is very rare
+                        if f1 <= TokenData.RARE_FREQUENCY or f2 <= TokenData.RARE_FREQUENCY:
+                            identical = True
+                        else:
+                            identical  = False
+                            # print "EQUIVALENT:    ", firstname1, "-------------", firstname2
+                    else: identical = False
+                        
+
         return identical
+
+
+    def reformat_data(self):
+        try:
+            d = self['TRANSSCTION_DT']
+        except KeyError:
+            return 
+        
+        self['TRANSSCTION_DT'] = self.get_date
+
+    def get_date(self):
+        try:
+            d = self['TRANSSCTION_DT']
+        except KeyError:
+            return ''
+                
+        return d[:4] + "-" + d[4:6] + "-" + d[6:]
         
         
                     

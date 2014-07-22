@@ -38,9 +38,6 @@ def MySQL_query(query):
     
     
 
-''' TODO:
-    Document the class FEC_analyst.
-    Rename if necessary.'''
 
 class FEC_analyst():
     

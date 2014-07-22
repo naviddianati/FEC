@@ -56,12 +56,9 @@ class Tokenizer():
 #         self.token_identifiers = {'NAME':[1, 2, 3],
 #                                 'CONTRIBUTOR_ZIP':[4],
 #                                 'CONTRIBUTOR_STREET_1':[5]}
-        self.token_identifiers = {'NAME':[1, 2, 3],
-                                   'LAST_NAME':[1],
-                                   'FIRST_NAME':[2],
-                                   'CONTRIBUTOR_ZIP':[4],
-                                   'ZIP_CODE':[4],
-                                   'CONTRIBUTOR_STREET_1':[5]}
+
+        self.token_identifiers = self.tokens.token_identifiers
+                            
         self.ap = AddressParser()
 #         self.query = ''
         self.data_path = os.path.expanduser('~/data/FEC/')
@@ -74,18 +71,18 @@ class Tokenizer():
         
         s1 = re.sub(r'\.|[0-9]+', '', s)
         s1 = re.sub(r'(\bESQ\b)|(\bENG\b)|(\bINC\b)|(\bLLC\b)|(\bLLP\b)|(\bMRS\b)|(\bPHD\b)|(\bSEN\b)', '', s1)
-        s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bSR\b)|(\bSGT\b)|(\bDC\b)', '', s1)
+        s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bSR\b)|(\bSGT\b)|(\bDC\b)|(\bREV\b)|(\bFR\b)', '', s1)
         s1 = re.sub(r'\.', '', s1)
                 
         name = HumanName(s1)
 #         print "%s ----- %s ---- %s ---- %s" % (s, name.last, name.first, name.middle)
        
         
-        record['N_last_name'] = name.last
+        record['N_last_name'] = name.last.upper()        
             
-        record['N_first_name']= name.first
+        record['N_first_name'] = name.first.upper()
             
-        record['N_middle_name']= name.middle
+        record['N_middle_name'] = name.middle.upper()
 
    
     # Void. updates the record
@@ -205,7 +202,7 @@ class Tokenizer():
 
             address_new = ' '.join(tmp)
 #             print "ADDRESS parsed properly=================================================================="
-            record["N_address"] = address_new
+            record["N_address"] = address_new.upper()
         except:
 #             print 'error'
 #             print "ADDRESS FAILED=================================================================="
@@ -241,7 +238,7 @@ class Tokenizer():
                 # NOTE: has to be done before calling tokenize functions
                 self.normalize_functions[field](record)
                 
-                # TODO: update dictionary of normalized name frequencies
+                # update dictionary of normalized name frequencies
                 self.update_normalized_token_counts(record)
 
                 # For each field type, call the appropriate tokenize function'''
@@ -301,11 +298,11 @@ class Tokenizer():
         
         # last name
         identifier = self.token_identifiers['NAME'][0]
-        tokens += [(identifier, s) for s in lastname]
+        tokens += [(identifier, s) for s in lastname.split(" ")]
         
         # first name
         identifier = self.token_identifiers['NAME'][1]
-        tokens += [(identifier, s) for s in firstname]
+        tokens += [(identifier, s) for s in firstname.split(" ")]
         
         # middle name
         identifier = self.token_identifiers['NAME'][2]
@@ -423,13 +420,14 @@ class TokenizerNgram(Tokenizer):
     # Override: here, tokenz are ngrams
     def _get_tokens_NAME(self, record):
         
-        #NOTE: with the new name normalizer, each of the following are a single string!
+        # NOTE: with the new name normalizer, each of the following are a single string!
         
         lastname = record['N_last_name']
         firstname = record['N_first_name']
         middlename = record['N_middle_name']
         
-        tokens = []
+        # Get the "word tokens" and then add ngrams below
+        tokens = Tokenizer._get_tokens_NAME(self, record)
         
         # last name
         identifier = self.token_identifiers['NAME'][0]
@@ -442,10 +440,13 @@ class TokenizerNgram(Tokenizer):
         identifier = self.token_identifiers['NAME'][1]
 #         tokens += [(identifier, s) for word in firstname for s in self.ngrams(word, self.ngram_n) ]
         tokens += [(identifier, s) for  s in self.ngrams(firstname, self.ngram_n) ]
+        
+        
+        # No need anymore. The superclass method takes care of the middle name        
         # middle name
-        identifier = self.token_identifiers['NAME'][2]
-        if len(middlename) > 0:
-            tokens += [(identifier, middlename[0])]
+        # identifier = self.token_identifiers['NAME'][2]
+        # if len(middlename) > 0:
+        #    tokens += [(identifier, middlename[0])]
     
         return tokens    
         
@@ -483,6 +484,12 @@ This class encapsulates the global token data derived from all
 records processed by a Tokenizer instance.
 '''
 class TokenData():
+
+    # If the frequency of a name token is less than this, it is considered rare 
+    # and maybe considered a misspelling depending on its edit distance from a similar name 
+    RARE_FREQUENCY = 5
+    
+    
     def __init__(self):
         self.token_2_index = {}
         self.index_2_token = {}
@@ -494,8 +501,34 @@ class TokenData():
         self.normalized_token_counts = {}
         # Load the name variants file
         self.dict_name_variants = json.load(open('../data/name-variants.json'))
+        self.set_all_names = set(json.load(open('../data/all-names.json')))
+        
+        self.token_identifiers = {'NAME':[1, 2, 3],
+                                   'LAST_NAME':[1],
+                                   'FIRST_NAME':[2],
+                                   'CONTRIBUTOR_ZIP':[4],
+                                   'ZIP_CODE':[4],
+                                   'CONTRIBUTOR_STREET_1':[5]}
+    
     def save_to_file(self, filename):
         pickler = pickle.Pickler(open(filename, 'w'))
         pickler.dump(self)
-
+    
+    '''
+    Return the frequency of the token (id,string) from self.token_counts
+    '''
+    def get_token_frequency(self, tokenTuple):    
+        try:
+            frequency = self.token_counts[tokenTuple]
+        except KeyError:
+            frequency = 0
+        return frequency
+        
+        
+        
+        
+        
+        
+        
+        
    

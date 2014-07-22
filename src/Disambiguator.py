@@ -1,13 +1,4 @@
-import random
-import pprint
-import numpy as np
-import pylab as pl
 # import visual as vs 
-import time
-import os
-import editdist
-import json
-
 ''' This class receives a list of records and computes a similarity matrix between the nodes. Each record has a "vector".
     Each vector is a dictionary {index:(0 or 1)} where index is a unique integer representing a feature or token in the record.
     The tokens themselves can be specified via index_2_token and token_2_index.
@@ -20,6 +11,20 @@ import json
     index_2_token and token_2_index can be used.
     matching_mode can be "strict" or "thorough"
     ''' 
+
+import igraph
+import json
+import os
+import pprint
+import random
+import time
+
+from Person import Person
+import editdist
+import numpy as np
+import pylab as pl
+
+
 class Disambiguator():
     def __init__(self, list_of_records, vector_dimension, matching_mode="strict"):
         
@@ -45,6 +50,8 @@ class Disambiguator():
         # NOTE: This is incredibly memory intensive. I'm ditching it.
         self.dict_already_compared_pairs = {}
         self.debug = False
+        self.verbose = True
+        
         self.project = None
         self.matching_mode = matching_mode
         
@@ -52,6 +59,12 @@ class Disambiguator():
         # Should be reset to 0 at the beginning of each call to self.update_nearest_neighbors
         self.match_count = 0
         self.adjacency_edgelist = []
+       
+        # A set() container for the identities (Person objects) 
+        self.set_of_persons = None
+        
+        # A set of new matched id pairs (tuples). This is a private field and can be reset after each call to self.update_nearest_neighbors()
+        self.new_match_buffer = set()
 
 
     def imshow_adjacency_matrix(self, r=()):
@@ -103,7 +116,7 @@ class Disambiguator():
             print record.vector
  
     
-    def update_nearest_neighbors(self, B, hashes=None):
+    def update_nearest_neighbors(self, B, hashes=None, allow_repeats = False):
         ''' given a list of strings or hashes, this function computes the nearest
             neighbors of each string among the list.
 
@@ -149,16 +162,25 @@ class Disambiguator():
             for j in iteration_indices:
                 # i,j: current index in the sorted has list
                 # sort_indices[i]: the original index of the item residing at index i of the sorted list
+                
+                if  not allow_repeats:
+                    if sort_indices[j] in self.adjacency[sort_indices[i]]:
+                        continue
+                
+                # If the two records already have identities and they are the same, skip.
+                if None != self.list_of_records[sort_indices[j]].identity == self.list_of_records[sort_indices[i]].identity != None:
+                    continue
+                    
+                    
                     
                 # New implementation: comparison is done via instance function of the Record class
                 # Comparison (matching) mode is passed to the Record's compare method.
-#                 print i, j
-                if sort_indices[j] in self.adjacency[sort_indices[i]]:
-                    continue
-                
-                if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]], mode=self.matching_mode):
+                if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]], mode=self.matching_mode) > 0:
+                    
+#                     if self.verbose: print self.list_of_records[sort_indices[i]].toString(), "-------", self.list_of_records[sort_indices[j]].toString()
                     self.match_count += 1
                     self.adjacency[sort_indices[i]].add(sort_indices[j])
+                    self.new_match_buffer.add((sort_indices[i], sort_indices[j]))
                     
 #                 if (sort_indices[i], sort_indices[j]) not in self.dict_already_compared_pairs:
 #                     if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]], mode=self.matching_mode):
@@ -236,7 +258,7 @@ class Disambiguator():
             i = j
         
         # update nearest neighbors once with the initial ordering of the records (before hashes are calculated and sorted)
-        self.update_nearest_neighbors(B=40, hashes=xrange(len(self.list_of_records)))
+        self.update_nearest_neighbors(B=80, hashes=xrange(len(self.list_of_records)))
 
             
                     # set neighbors of all items in current group and move on to the next item
@@ -318,12 +340,340 @@ class Disambiguator():
            
           
 
-    ''' Refine the matching by building identity objects '''
-    def temper(self):
-        pass
+
+
+    ''' Generate Person objects from the records and the adjacency matrix
+        The main product is self.set_of_persons
+        TODO: Generate each person's set of possible neighbors'''
+    def generate_identities(self):
+        self.compute_edgelist()
+    
+        G = igraph.Graph.TupleList(edges=self.adjacency_edgelist)
+        clustering = G.components()
+
+        # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
+        persons_subgraphs = clustering.subgraphs()
         
+        self.set_of_persons = set()
+        
+        # Temp list to preserve the ordering of the persons, so neihbors can be assigned
+        list_of_persons = []
+        
+        # Sort the subgraphs by the their smallest node "name"
+        for g in sorted(persons_subgraphs, key=lambda g: min([int(v['name']) for v in g.vs])):
+            person = Person()
+            
+            for v in sorted(g.vs, key=lambda v:int(v['name'])):
+                index = int(v['name'])
+                r = self.list_of_records [index]
+                person.addRecord(r)
+                
+            self.set_of_persons.add(person)
+            list_of_persons.append(person)
+        
+        n = len(list_of_persons)
+        
+        
+        # Assign neighbors. Consider adjacent persons in list_of_persons.
+        # TODO: decide if more need to be considered
+        # Note: you can't define neighborhood based on compatibility because 
+        #     by construction, different persons start out having zero compatibility. 
+        for i, person in enumerate(list_of_persons):
+            for j in range(i - 3, i + 4):
+                if i != j: 
+                    try:
+                        person.neighbors.add(list_of_persons[j])
+                    except IndexError:
+                        pass
+                        
+                    
 
 
+
+
+    '''
+    Split identities if the middle names within aren't consistent
+    '''
+
+    # print two persons and their compatibility to stdout
+    def print_compatibility(self, p1, p2):
+        print p1.toString(),
+        print "-"*40
+        print p2.toString()
+        print p1.compatibility(p1, p2)
+        print '_' * 80
+
+    
+    def print_set_of_persons(self, list_persons, message):
+        
+        print "_"*30 + message + "_"*30
+        if not list_persons:
+            print "NONE"
+        for person in list_persons:
+            print person.toString()
+            print (" "*20 + "|" + "\n") * 3
+        print ("="*70 + "\n") * 3
+    
+    
+    def refine_identities_on_MIDDLENAME(self):
+        set_new_persons = set()
+        set_dead_persons = set()
+        for person in self.set_of_persons:
+            middlenames = person.get_middle_names()
+            
+            # If there are more than 1 middle names, person needs to split
+            if len(middlenames) > 1:
+
+                # set of Persons to replace this one
+                spawns = person.split_on_MIDDLENAME()
+                
+                self.print_set_of_persons(spawns, message="Spawns of the person")
+                self.print_set_of_persons(person.neighbors, message="Neighbors of the person")
+                
+                
+                set_stillborn_spawns = set()
+                
+                # TODO: check that the neighbor isn't already dead
+                
+                
+                # Go through all neighbors of the person and decide if the child should be merged with them
+                # See if you can merge the spawns with any of the parent's neighbors
+                for child in spawns:
+#                     print "-------spawn:"
+#                     print child.toString()
+                    for neighbor in person.neighbors:
+                        if neighbor.isDead: continue
+                        if neighbor.isCompatible(child):
+                           
+                            self.print_compatibility(neighbor, child)
+                            # TODO: update self.adjacency as well
+                            
+                            neighbor.merge(child)
+#                             print '----------merging'
+#                             print neighbor.toString()
+#                             print "-"*20
+#                             print child.toString()
+#                             print "="*40
+                            
+                            set_stillborn_spawns.add(child)
+                            break
+                
+#                 print "--------new persons:"
+#                 print set(spawns).difference(set_stillborn_spawns),"\n\n"
+                
+                
+                for child in spawns.difference(set_stillborn_spawns):
+                    set_new_persons.add(child)
+#                     if self.verbose:
+#                         print child.toString()
+                        
+#                 if self.verbose:
+#                     print ("="*70 + "\n")*3
+
+                # Schedule exploded person for burial
+                set_dead_persons.add(person)
+                
+                
+                
+#                 person.destroy()
+                
+                
+                        
+        for person in set_dead_persons:
+            # Destroy the exploded person 
+            if self.verbose:
+                print "DEAD" + "="*70
+                print person.toString()  
+            self.set_of_persons.remove(person)
+            person.destroy()
+
+
+    
+        for person in set_new_persons:
+            if self.verbose:
+                print "BORN" + "="*70
+                print person.toString()
+            self.set_of_persons.add(person)
+            
+            pass
+        
+        
+        
+    
+    
+    
+    '''
+    Use self.new_matches_buffer to look for Person objects that are potentially connected.
+    If so, merge the Persons.
+    ''' 
+    def merge_identities(self):
+        
+        for pair in self.new_match_buffer:
+            i, j = pair
+            r1 = self.list_of_records[i]
+            r2 = self.list_of_records[j]
+            
+            p1 , p2 = r1.identity, r2.identity
+            
+            # If both records belong to the same person continue
+            if p1 is p2:
+                continue
+            
+            # Otherwise compare persons and if compatible, merge
+            if p1.isCompatible(p2):
+                print "MERGING two persons" + "="*70
+                print p1.toString()       
+                print "-"*50       
+                print p2.toString()
+                print "="*70
+                p1.merge(p2)
+            
+            
+            
+            
+            
+            
+            
+            
+           
+    
+    
+        
+    
+    '''
+    Run self.update_nearest_neighbors() a few more times; this time consider matches across different Persons
+    and if necessary merge the corresponding Persons.
+    Parameters:
+        m: how many times to shuffle the hashes and recompute
+    '''
+    def refine_identities_merge_similars(self, m):
+        if self.project:
+            self.project.log('v', 'Looking for similar Persons to merge...')
+        for i in range(m):
+            self.match_count = 0
+            
+            # reset the new_math_buffer
+            self.new_match_buffer = set()
+
+            print 'Shuffling list of hashes and computing nearest neighbors' + str(i)
+            shuffle_list_of_str(self.LSH_hash)
+            
+            # update adjacency AND get a set of new matches that belong to different persons
+            self.update_nearest_neighbors(B=20, allow_repeats = True)
+            print "New matches found: " , self.match_count
+            
+            # process the newly found matches and if necessary merge their corresponding Persons
+            self.merge_identities() 
+
+            
+            
+            
+            if self.project:
+                self.project.log('Suffling hash list...', str(i))
+#         self.compute_edgelist()
+        print "Adjacency matrix computed!"
+            
+        
+    # TODO:
+    def refine_identities_on_(self):
+        set_new_persons = set()
+        set_dead_persons = set()
+        for person in self.set_of_persons:
+            middlenames = person.get_middle_names()
+            
+            # If there are more than 1 middle names, person needs to split
+            if len(middlenames) > 1:
+                
+
+                # set of Persons to replace this one
+                spawns = person.split_on_MIDDLENAME()
+                self.print_set_of_persons(spawns, message="Spawns of the person")
+                self.print_set_of_persons(person.neighbors, message="Neighbors of the person")
+                
+                
+                set_stillborn_spawns = set()
+                
+                # TODO: check that the neighbor isn't already dead
+                
+                
+                # Go through all neighbors of the person and decide if the child should be merged with them
+                # See if you can merge the spawns with any of the parent's neighbors
+                for child in spawns:
+#                     print "-------spawn:"
+#                     print child.toString()
+                    for neighbor in person.neighbors:
+                        if neighbor.isDead: continue
+                        if neighbor.isCompatible(child):
+                            
+                           
+                            self.print_compatibility(neighbor, child)
+                            # TODO: update self.adjacency as well
+                           
+                            
+                            neighbor.merge(child)
+#                             print '----------merging'
+#                             print neighbor.toString()
+#                             print "-"*20
+#                             print child.toString()
+#                             print "="*40
+                            
+                            set_stillborn_spawns.add(child)
+
+                            break
+                
+#                 print "--------new persons:"
+#                 print set(spawns).difference(set_stillborn_spawns),"\n\n"
+                
+                
+                for child in spawns.difference(set_stillborn_spawns):
+                    set_new_persons.add(child)
+#                     if self.verbose:
+#                         print child.toString()
+                        
+#                 if self.verbose:
+#                     print ("="*70 + "\n")*3
+
+                # Schedule exploded person for burial
+                set_dead_persons.add(person)
+                
+                
+                
+#                 person.destroy()
+                
+                
+                        
+        for person in set_dead_persons:
+            # Destroy the exploded person 
+            if self.verbose:
+                print "DEAD" + "="*70
+                print person.toString()  
+            self.set_of_persons.remove(person)
+            person.destroy()
+
+
+    
+        for person in set_new_persons:
+            if self.verbose:
+                print "BORN" + "="*70
+                print person.toString()
+            self.set_of_persons.add(person)
+            
+            pass
+        
+        
+    
+    '''
+    Refine the list of Persons: split, merge, etc.
+    '''
+    def refine_identities(self):
+        
+        self.refine_identities_on_MIDDLENAME()
+        
+        print "Merging similar persons..." 
+        self.refine_identities_merge_similars(5)
+        
+                
+        
 
 
 

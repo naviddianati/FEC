@@ -132,6 +132,7 @@ def generateAffiliationData(state=None):
     project = Project(batch_id=batch_id)
     
     if state:
+        
         param_state = state
     else: 
         param_state = 'newyork_addresses'
@@ -139,7 +140,11 @@ def generateAffiliationData(state=None):
     print "Analyzing data for state: ", param_state 
     
     table_name = param_state + "_addresses"
-    
+  
+    # If this is for a multi-state table
+    if param_state == "multi_state":
+
+        table_name = "multi_state_combined"
     project.putData('param_state' , param_state)
 
     
@@ -306,6 +311,9 @@ def disambiguate_main(state):
         param_state = state
     else:
         # TODO: this is the table name. Which table should be used for the final disambiguation?
+        # Answer: for the state level, <state>_combined. For the whole country, probably the union
+        # of all state tables.
+        
         param_state = 'newyork_combined'
     print "Analyzing data for state: ", param_state 
     
@@ -315,7 +323,7 @@ def disambiguate_main(state):
 
     
     record_start = 1
-    record_no = 500
+    record_no = 2000
 
     project.putData('batch_id' , batch_id)
 
@@ -323,7 +331,7 @@ def disambiguate_main(state):
     time1 = time.time()
     
 #    list_tokenized_fields = ['NAME','FIRST_NAME', 'LAST_NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1']
-    list_tokenized_fields = ['NAME', 'ZIP_CODE' , 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+    list_tokenized_fields = ['NAME', 'TRANSACTION_DT', 'ZIP_CODE' , 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
     project.putData("list_tokenized_fields", list_tokenized_fields)
     
     list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP']
@@ -354,8 +362,8 @@ def disambiguate_main(state):
     retriever = FecRetriever(table_name=table_name,
                       query_fields=all_fields,
                       limit=(record_start, record_no),
-                      list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE", "CMTE_ID"],
-                      where_clause=" WHERE ENTITY_TP='IND' ")
+                      list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
+                      where_clause=" WHERE ENTITY_TP='IND' and LAST_NAME='COHEN'")
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
     
@@ -378,13 +386,15 @@ def disambiguate_main(state):
     tokenizer.tokens.save_to_file(project["data_path"] + batch_id + "-tokendata.pickle")
     list_of_records = tokenizer.getRecords()
     
+
     
     ''' Load affiliation graph data.
         These graph objects also contain a dictionary G.dict_string_2_ind
         for faster vertex access based on affiliation string.
 
         For affiliation data to exist, one must have previously executed
-        Affiliations on the <state>_addresses data.
+      When used via self.compare(), a positive value is
+    interpreted as True.   Affiliations on the <state>_addresses data.
     '''
     
     G_employer = loadAffiliationNetwork(param_state, project['data_path'], 'employer')
@@ -433,7 +443,7 @@ def disambiguate_main(state):
     
     
     # Number of times the hashes are permutated and sorted
-    no_of_permutations = 10
+    no_of_permutations = 20
     project.putData('number_of_permutations' , str(no_of_permutations))
 
     
@@ -447,6 +457,13 @@ def disambiguate_main(state):
     D.save_LSH_hash(batch_id=batch_id)
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     
+    D.generate_identities()
+    D.refine_identities()
+    
+    project.save_data_textual(with_tokens=False, file_label="before")
+
+
+
 #     print json.dumps(D.dict_already_compared_pairs.keys(),indent=2)
 #     quit()
     # D.show_sample_adjacency()
@@ -460,7 +477,7 @@ def disambiguate_main(state):
     print 'Saving adjacency matrix to file...'
     print 'Printing list of identifiers and text of adjacency matrix to file...'
 #     project.save_data(with_tokens=False)
-    project.save_data_textual(with_tokens=False)
+    project.save_data_textual(with_tokens=False, file_label="after")
     print 'Done...'
     
     time2 = time.time()
@@ -545,7 +562,7 @@ class Project(dict):
         ''' This functions sets the main list of strings on which the similarity analysis is performed'''
         self.list_of_records_identifier = list_of_records_identifier
     
-    def save_data_textual(self, with_tokens=False):
+    def save_data_textual(self, with_tokens=False, file_label=""):
         css_code = "table{border-collapse:collapse;\
                     padding:5px;\
                     font-family:sans;\
@@ -554,8 +571,8 @@ class Project(dict):
                     border:dotted thin #efefef;}\
                     td{padding:5px;\
                     border:dotted thin #efefef;} "
-        filename1 = self["data_path"] + self["batch_id"] + '-adj_clusters.json'
-        filename2 = self["data_path"] + self["batch_id"] + '-adj_clusters.html'
+        filename1 = self["data_path"] + file_label + self["batch_id"] + '-adj_clusters.json'
+        filename2 = self["data_path"] + file_label + self["batch_id"] + '-adj_clusters.html'
 
         f1 = open(filename1, 'w')
         f2 = open(filename2, 'w')
@@ -572,41 +589,56 @@ class Project(dict):
         separator = '______________________________________________________________________________________________________________________'
 
         if self.D and self.D.adjacency:
-            adj_temp = OrderedDict()
-            for index in sorted(self.D.adjacency.keys()):
-                adj_temp[index] = self.D.adjacency[index]
-            self.D.compute_edgelist()
-            G = igraph.Graph.TupleList(edges=self.D.adjacency_edgelist)
-            clustering = G.components()
-
-            # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
-            self.persons_subgraphs = clustering.subgraphs()
-            # Sort the subgraphs by the their smallest node "name"
+           
             list_index = []
             dataframe_data = []
-            for g in sorted(self.persons_subgraphs, key=lambda g: min([int(v['name']) for v in g.vs])):
-                for v in sorted(g.vs, key=lambda v:int(v['name'])):
-                    index = int(v['name'])
+            
+            # Old version, before D.set_of_persons was implemented
+            # for g in sorted(self.persons_subgraphs, key=lambda g: min([int(v['name']) for v in g.vs])):
+            #     for v in sorted(g.vs, key=lambda v:int(v['name'])):
+            #           index = int(v['name'])
+            #           r = self.list_of_records [index]
+            
+            # Where in self["list_tokenized_fields"] is the date field? Used below
+            time_index = self["list_tokenized_fields"].index('TRANSACTION_DT')
+            
+            for person in sorted(list(self.D.set_of_persons), key=lambda person:min([r.index for r in person.set_of_records ])):
+                new_block = []
+                for r in sorted(list(person.set_of_records), key=lambda record : record.index):
+                
+                    index = r.index
                     list_index.append(index)
-                    r = self.list_of_records [index]
                     record_as_list_tokenized = [r[field] for field in self["list_tokenized_fields"]]
                     record_as_list_auxiliary = [r[field] for field in self["list_auxiliary_fields"]]
-                    
                     
                     tmp_tokens = list_tokens[index]
                     tokens_str = [str(x) for x in tmp_tokens]
                     
-                    dataframe_data.append(record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']])  # ,self.D.LSH_hash[index],tokens_str])
+                    # new_row = record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
+
+                    # With tokens
+                    new_row = record_as_list_tokenized + [' '.join(tokens_str)] + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
+                    
+                    # Without tokens
+                    new_row = record_as_list_tokenized  + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
+                    new_row = ["" if s is None else s.encode('utf-8', 'ignore')  for s in new_row ]
+                    new_block.append(new_row)
+
+                    
                     if with_tokens:
                         s1 = "%d %s        %s\n" % (index, record_as_list_tokenized , '|'.join(tokens_str))
                     else:
                         s1 = "%d %s\n" % (index, record_as_list_tokenized)
 #                     f1.write(s1)
-                list_index += ["|" for i in range(1)]
-                dataframe_data += [["" for i in range(len(dataframe_data[0]))] for j in range(1)]
+                new_block = sorted(new_block, key=lambda row:row[time_index])
+                dataframe_data += new_block
+                list_index += ["" for i in range(1)]
+                dataframe_data += [["" for i in range(len(dataframe_data[0]) - 1)] + ["|"] for j in range(1)]
 #                 f1.write('\n' + separator + '\n')   
 
-            df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"]+['N_first_name', 'N_last_name', 'N_middle_name'])
+#             df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"]+['N_first_name', 'N_last_name', 'N_middle_name'])
+#             df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"] + ['tokens']+['N_first_name', 'N_last_name', 'N_middle_name'])
+            df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"] +['N_first_name', 'N_last_name', 'N_middle_name'])
             f1.write(df.to_string(justify='left'))
             f1.close()
 
@@ -718,6 +750,11 @@ if __name__ == "__main__":
 #     generateAffiliationData('newyork')   
     disambiguate_main('newyork')
     
+#     generateAffiliationData('delaware')   
+#     disambiguate_main('delaware')
     
+#     generateAffiliationData('delaware')   
+#     disambiguate_main('delaware')
     
-    
+#     generateAffiliationData("multi_state")   
+#     disambiguate_main('multi_state')
