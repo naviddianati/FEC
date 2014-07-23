@@ -139,7 +139,7 @@ def generateAffiliationData(state=None):
         
     print "Analyzing data for state: ", param_state 
     
-    table_name = param_state + "_addresses"
+    table_name = param_state + "_combined"
   
     # If this is for a multi-state table
     if param_state == "multi_state":
@@ -160,7 +160,7 @@ def generateAffiliationData(state=None):
     list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
     project.putData("list_tokenized_fields", list_tokenized_fields)
     
-    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP']
+    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP','id']
     project.putData("list_auxiliary_fields", list_auxiliary_fields)
     
     all_fields = list_tokenized_fields + list_auxiliary_fields 
