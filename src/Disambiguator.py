@@ -403,9 +403,10 @@ class Disambiguator():
         print p1.compatibility(p1, p2)
         print '_' * 80
 
+
+
     
     def print_set_of_persons(self, list_persons, message):
-        
         print "_"*30 + message + "_"*30
         if not list_persons:
             print "NONE"
@@ -413,6 +414,8 @@ class Disambiguator():
             print person.toString()
             print (" "*20 + "|" + "\n") * 3
         print ("="*70 + "\n") * 3
+    
+    
     
     
     def refine_identities_on_MIDDLENAME(self):
@@ -513,8 +516,11 @@ class Disambiguator():
             r1 = self.list_of_records[i]
             r2 = self.list_of_records[j]
             
+            
+            
             p1 , p2 = r1.identity, r2.identity
             
+                        
             # If both records belong to the same person continue
             if p1 is p2:
                 continue
@@ -527,17 +533,10 @@ class Disambiguator():
                 print p2.toString()
                 print "="*70
                 p1.merge(p2)
+        pass
             
             
             
-            
-            
-            
-            
-            
-           
-    
-    
         
     
     '''
@@ -565,9 +564,6 @@ class Disambiguator():
             # process the newly found matches and if necessary merge their corresponding Persons
             self.merge_identities() 
 
-            
-            
-            
             if self.project:
                 self.project.log('Suffling hash list...', str(i))
 #         self.compute_edgelist()

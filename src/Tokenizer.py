@@ -30,6 +30,8 @@ class Tokenizer():
    
         
         
+       
+        
     def __init__(self):
         self.list_of_records = []
         self.tokens = TokenData()
@@ -42,7 +44,9 @@ class Tokenizer():
                                     'FIRST_NAME':self._normalize_FIRST_NAME,
                                     'CONTRIBUTOR_ZIP':self._normalize_ZIP,
                                     'ZIP_CODE': self._normalize_ZIP,
-                                    'CONTRIBUTOR_STREET_1':self._normalize_STREET}
+                                    'CONTRIBUTOR_STREET_1':self._normalize_STREET,
+                                    'OCCUPATION': self._normalize_OCCUPATION,
+                                    'EMPLOYER': self._normalize_EMPLOYER}
         
         # I think I won't need to use these now, since names are already split up into their parts
         self.tokenize_functions = {'NAME':self._get_tokens_NAME,
@@ -50,7 +54,9 @@ class Tokenizer():
                                    'FIRST_NAME':self._get_tokens_FIRST_NAME,
                                    'CONTRIBUTOR_ZIP':self._get_tokens_ZIP,
                                    'ZIP_CODE': self._get_tokens_ZIP,
-                                   'CONTRIBUTOR_STREET_1':self._get_tokens_STREET}
+                                   'CONTRIBUTOR_STREET_1':self._get_tokens_STREET,
+                                   'OCCUPATION': self._get_tokens_OCCUPATION,
+                                   'EMPLOYER': self._get_tokens_EMPLOYER}
        
 #         # Used when NAME is retrieved from MySQL query, not FIRST_NAME and LAST_NAME
 #         self.token_identifiers = {'NAME':[1, 2, 3],
@@ -211,9 +217,23 @@ class Tokenizer():
    
    
    
-   
-  
-   
+    # TODO: is it a waste of memory to define record['N_occupation'] ?
+    def _normalize_OCCUPATION(self, record):
+      
+        if record['OCCUPATION']:
+            record['N_occupation'] = record['OCCUPATION'].upper()
+        else:
+            record['N_occupation'] = None
+            
+         
+        
+    def _normalize_EMPLOYER(self, record):
+        if record['EMPLOYER']:
+            record['N_employer'] = record['EMPLOYER'].upper()
+        else:
+            record['N_employer'] = None
+    
+       
    
    
    
@@ -312,6 +332,35 @@ class Tokenizer():
         return tokens    
         
                 
+                
+                
+               
+               
+    
+
+    def _get_tokens_OCCUPATION(self, record):
+        occupation = record['N_occupation']
+        identifier = self.token_identifiers['OCCUPATION'][0]
+        tokens = []
+        if occupation:
+            tokens += [(identifier, s) for s in occupation.split(" ") ]
+        return tokens
+     
+     
+    def _get_tokens_EMPLOYER(self, record):
+        employer = record['N_employer']
+        identifier = self.token_identifiers['EMPLOYER'][0]
+        tokens = []
+        
+        if employer:
+            tokens += [(identifier, s) for s in employer.split(" ") ]
+        return tokens
+     
+    
+                   
+                
+
+
     ''' updates self.tokens.normalized_token_counts by tracking/updating the frequency of the
         normalized tokens belonging to the given record.
     ''' 
@@ -487,7 +536,7 @@ class TokenData():
 
     # If the frequency of a name token is less than this, it is considered rare 
     # and maybe considered a misspelling depending on its edit distance from a similar name 
-    RARE_FREQUENCY = 5
+    RARE_FREQUENCY = 2
     
     
     def __init__(self):
@@ -508,7 +557,9 @@ class TokenData():
                                    'FIRST_NAME':[2],
                                    'CONTRIBUTOR_ZIP':[4],
                                    'ZIP_CODE':[4],
-                                   'CONTRIBUTOR_STREET_1':[5]}
+                                   'CONTRIBUTOR_STREET_1':[5],
+                                   'OCCUPATION':[6],
+                                   'EMPLOYER': [7]}
     
     def save_to_file(self, filename):
         pickler = pickle.Pickler(open(filename, 'w'))

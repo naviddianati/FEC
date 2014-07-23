@@ -188,12 +188,27 @@ class Record(dict):
         return identical
                    
                    
+    
+    def pvalue(self, r1, r2):
+        
+        f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r1['N_last_name']))
+        f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r2['N_last_name']))
+        
+        g1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], r1['N_first_name']))
+        g2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], r2['N_first_name']))
+        
+        
+        
+
+
                    
     '''
     Returns either an integer. One can use this function directly to get additional information about
     the nature of the relationship. For instance, this function can return negative numbers to
     indicate irreconcilable difference.
     '''
+
+    
     def compare_THOROUGH(self, r1, r2):
 #         Record.debug = True if   r1['N_first_name'] == r2['N_first_name'] == "MARKUS" and r1['N_last_name'] == r2['N_last_name'] == "AAKKO" else False
 #         Record.debug = True  if r1['N_first_name'] != r2['N_first_name']  else False;  
@@ -202,6 +217,11 @@ class Record(dict):
             print r1
             print r2
             # If states are the same,
+        
+        
+        
+        
+#         print self.pvalue(r1,r2)
         
         
         #=======================================================================
@@ -432,6 +452,7 @@ class Record(dict):
 #         if not r1['N_middle_name'] and r2['N_middle_name']: 
 #             identical = False
 #             return identical
+        
           
         # if last names aren't close enough, fail.
         if not r1['N_last_name'] or not r2['N_last_name']: 
@@ -440,12 +461,29 @@ class Record(dict):
             identical = False 
             return identical      
         
+        # Compute edit distance of last names
+        distance = editdist.distance(r1['N_last_name'], r2['N_last_name'])
+
         # TODO: if both have last names take into account their frequencies
-        elif editdist.distance(r1['N_last_name'], r2['N_last_name']) > 1: 
-            identical = False
-            if Record.debug:
-                print "Distance between last names too far"
-            return identical      
+    
+        if 0 < distance < 3 : 
+            # get the tokens' frequencies.
+            f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r1['N_last_name']))
+            f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r2['N_last_name']))
+            
+            if f1 <= TokenData.RARE_FREQUENCY or f2 <= TokenData.RARE_FREQUENCY:
+                # They are very similar and at least one is rare. Must be misspelling. Accept
+                identical = True
+            else:
+                identical = False
+                return identical
+
+        
+        # Both have last names and they are too different. Reject
+        else:
+            if  distance >= 3:
+                identical = False
+                return identical
 
         # if first names don't overlap, then check if they are variants. If not, fail
         # if not any(i in dict1[2] for i in dict2[2]): identical = False

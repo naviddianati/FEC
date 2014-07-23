@@ -50,11 +50,13 @@ class FecRetriever:
         
         
         self.list_of_records = []
-        for index,item in enumerate(tmp_list):
+        for counter,item in enumerate(tmp_list):
             r = Record()
             for i, field in enumerate(self.query_fields):
                 r[field] = item[i]
-            r.index = index
+            
+            # I require that each row have a unique "id" column
+            r.index = r['id']
             self.list_of_records.append(r) 
         
 #     

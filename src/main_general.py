@@ -148,7 +148,7 @@ def generateAffiliationData(state=None):
     project.putData('param_state' , param_state)
 
     
-    record_start = 1
+    record_start = 0
     record_no = 5000000
 
     project.putData('batch_id' , batch_id)
@@ -287,7 +287,7 @@ def generateAffiliationData(state=None):
 
 
 
-def disambiguate_main(state):  
+def disambiguate_main(state, record_limit=(0, 5000000)):  
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -322,8 +322,10 @@ def disambiguate_main(state):
     project.putData('param_state' , param_state)
 
     
-    record_start = 1
-    record_no = 2000
+    
+    
+    record_start = record_limit[0]
+    record_no = record_limit[1]
 
     project.putData('batch_id' , batch_id)
 
@@ -334,7 +336,7 @@ def disambiguate_main(state):
     list_tokenized_fields = ['NAME', 'TRANSACTION_DT', 'ZIP_CODE' , 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
     project.putData("list_tokenized_fields", list_tokenized_fields)
     
-    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP']
+    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
     project.putData("list_auxiliary_fields", list_auxiliary_fields)
     
     all_fields = list_tokenized_fields + list_auxiliary_fields 
@@ -363,7 +365,8 @@ def disambiguate_main(state):
                       query_fields=all_fields,
                       limit=(record_start, record_no),
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
-                      where_clause=" WHERE ENTITY_TP='IND' and LAST_NAME='COHEN'")
+#                       where_clause=" WHERE ENTITY_TP='IND' ")
+                      where_clause=" ")
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
     
@@ -457,10 +460,11 @@ def disambiguate_main(state):
     D.save_LSH_hash(batch_id=batch_id)
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     
+#     project.save_data_textual(with_tokens=False, file_label="before")
+
     D.generate_identities()
     D.refine_identities()
     
-    project.save_data_textual(with_tokens=False, file_label="before")
 
 
 
@@ -585,9 +589,14 @@ class Project(dict):
         list_tokens = []
         for record in self.list_of_records:
             list_tokens.append(self.tokenizer._get_tokens(record, self["list_tokenized_fields"]))
+            
+        print len(list_tokens), len(self.list_of_records)
+#         quit()
 
-        separator = '______________________________________________________________________________________________________________________'
 
+        # how many blocks at a time to dump to file
+        page_size = 20;
+        
         if self.D and self.D.adjacency:
            
             list_index = []
@@ -602,25 +611,33 @@ class Project(dict):
             # Where in self["list_tokenized_fields"] is the date field? Used below
             time_index = self["list_tokenized_fields"].index('TRANSACTION_DT')
             
-            for person in sorted(list(self.D.set_of_persons), key=lambda person:min([r.index for r in person.set_of_records ])):
+            person_counter = 0 
+            for person in sorted(list(self.D.set_of_persons), key=lambda person:min([r.index - 1 for r in person.set_of_records ])):
                 new_block = []
                 for r in sorted(list(person.set_of_records), key=lambda record : record.index):
                 
-                    index = r.index
-                    list_index.append(index)
+                
+                    
+                    index = r.index - 1
+                    list_index.append(r.index)
                     record_as_list_tokenized = [r[field] for field in self["list_tokenized_fields"]]
                     record_as_list_auxiliary = [r[field] for field in self["list_auxiliary_fields"]]
                     
+#                     print len(list_tokens), index
                     tmp_tokens = list_tokens[index]
                     tokens_str = [str(x) for x in tmp_tokens]
                     
                     # new_row = record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
 
                     # With tokens
-                    new_row = record_as_list_tokenized + [' '.join(tokens_str)] + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
+                    # new_row = record_as_list_tokenized + [' '.join(tokens_str)] + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
                     
                     # Without tokens
-                    new_row = record_as_list_tokenized  + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
+                    # new_row = record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
+                    
+                    # without normalized names
+                    new_row = record_as_list_tokenized 
+                    
                     new_row = ["" if s is None else s.encode('utf-8', 'ignore')  for s in new_row ]
                     new_block.append(new_row)
 
@@ -632,18 +649,39 @@ class Project(dict):
 #                     f1.write(s1)
                 new_block = sorted(new_block, key=lambda row:row[time_index])
                 dataframe_data += new_block
-                list_index += ["" for i in range(1)]
-                dataframe_data += [["" for i in range(len(dataframe_data[0]) - 1)] + ["|"] for j in range(1)]
+                list_index += ["" for i in range(3)]
+                dataframe_data += [["" for i in range(len(dataframe_data[0]) - 1)] + ["|"] for j in range(3)]
+                
+                person_counter += 1
+                
+                # Save a group of blocks to file
+                if person_counter % page_size == 0:
+                    df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"])
+                    f1.write(df.to_string(justify='left'))
+                    f2.write(df.to_html(justify='left'))
+                    f2.write("<br/><br/>")
+                    
+                    # Reset the output buffer
+                    list_index = []
+                    dataframe_data = []
+                    
+
+
+                
 #                 f1.write('\n' + separator + '\n')   
 
 #             df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"]+['N_first_name', 'N_last_name', 'N_middle_name'])
 #             df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"] + ['tokens']+['N_first_name', 'N_last_name', 'N_middle_name'])
-            df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"] +['N_first_name', 'N_last_name', 'N_middle_name'])
-            f1.write(df.to_string(justify='left'))
-            f1.close()
+            
+            # if there's a fraction of a page left at the end, write that too. 
+            if dataframe_data:
+                df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"])
+                f1.write(df.to_string(justify='left'))
+    
+                f2.write(df.to_html(justify='left'))
+                f2.write("<br/><br/>")
 
-            f2.write(df.to_html(justify='left'))
-            f2.write("<br/><br/>")
+            f1.close()
             f2.close()
                 
                 
@@ -748,13 +786,13 @@ if __name__ == "__main__":
 #     disambiguate_main('alaska')
     
 #     generateAffiliationData('newyork')   
-    disambiguate_main('newyork')
+#     disambiguate_main('newyork')
     
 #     generateAffiliationData('delaware')   
 #     disambiguate_main('delaware')
     
 #     generateAffiliationData('delaware')   
-#     disambiguate_main('delaware')
+    disambiguate_main('delaware',record_limit = (0,50))
     
 #     generateAffiliationData("multi_state")   
 #     disambiguate_main('multi_state')
