@@ -488,6 +488,8 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     print time2 - time1
 
     project.saveSettings()
+    
+    project.dump_full_adjacency()
 
 
 
@@ -558,7 +560,24 @@ class Project(dict):
 #         nmin = list_of_nodes[0]
 #         for node1 in list_of_nodes:
 #             for node2 in self.D.adjacency[node1]:
-        
+    
+    
+    # Computes the full adjacency matrix from the D.set_of_persons and dumps it to a text file as edgelist
+    def dump_full_adjacency(self):
+        print "writing full adjacency to file... "
+        filename_edgelist = self["data_path"] + self["batch_id"] + '-adjacency.edges'
+        f = open(filename_edgelist,'w')
+        for person in self.D.set_of_persons:
+            for record1 in person.set_of_records:
+                for record2 in person.set_of_records:
+                    if record1 is not record2:
+                        f.write(str(record1.index)+" "+str(record2.index)+"\n")
+        f.close()
+                        
+        pass  
+
+    
+    
     def set_list_of_records_auxiliary(self, tmp_list):
         ''' This functions sets the list of auxiliary records associated with the items in list_of_records_identifier'''
         self.list_of_records_auxiliary = tmp_list
@@ -792,7 +811,7 @@ if __name__ == "__main__":
 #     disambiguate_main('delaware')
     
 #     generateAffiliationData('delaware')   
-    disambiguate_main('delaware',record_limit = (0,50))
+    disambiguate_main('delaware',record_limit = (0,500000))
     
 #     generateAffiliationData("multi_state")   
 #     disambiguate_main('multi_state')
