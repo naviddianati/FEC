@@ -164,7 +164,7 @@ def generateAffiliationData(state=None):
     list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
     project.putData("list_tokenized_fields", list_tokenized_fields)
     
-    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP','id']
+    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
     project.putData("list_auxiliary_fields", list_auxiliary_fields)
     
     all_fields = list_tokenized_fields + list_auxiliary_fields 
@@ -570,12 +570,12 @@ class Project(dict):
     def dump_full_adjacency(self):
         print "writing full adjacency to file... "
         filename_edgelist = self["data_path"] + self["batch_id"] + '-adjacency.edges'
-        f = open(filename_edgelist,'w')
+        f = open(filename_edgelist, 'w')
         for person in self.D.set_of_persons:
             for record1 in person.set_of_records:
                 for record2 in person.set_of_records:
                     if record1 is not record2:
-                        f.write(str(record1.index)+" "+str(record2.index)+"\n")
+                        f.write(str(record1.index) + " " + str(record2.index) + "\n")
         f.close()
                         
         pass  
@@ -760,7 +760,7 @@ class Project(dict):
                     record_as_list_auxiliary = [self.list_of_records [i][field] for field in sorted(self["list_auxiliary_fields"])]
 
 #                     dict_all3[i] = {'ident':record_as_list_tokenized, 'aux':record_as_list_auxiliary, 'ident_tokens':tokens}
-                    #print self["all_fields"][0]
+                    # print self["all_fields"][0]
                     dict_all3[i] = {'data':[self.list_of_records[i][field] for field in self["all_fields"]],
                                              'ident_tokens':tokens}
                     
@@ -803,14 +803,14 @@ class Project(dict):
 def worker(conn):
     data = conn.recv()
     proc_name = multiprocessing.current_process().name
-    print proc_name,data
+    print proc_name, data
     
     for state in data:
-        #print state
+        # print state
         generateAffiliationData(state)   
-        print "="*70,"\n"+state+" done."+str(datetime.datetime.now())+"\n"+"="*70 
-    #time.sleep(random.randint(1,10))
-    #conn.send(proc_name+" Done!")    
+        print "="*70, "\n" + state + " done." + str(datetime.datetime.now()) + "\n" + "="*70 
+    # time.sleep(random.randint(1,10))
+    # conn.send(proc_name+" Done!")    
     
 #     generateAffiliationData('alaska')   
 #     disambiguate_main('alaska')
@@ -834,12 +834,12 @@ def worker(conn):
 
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     
     list_jobs = []
 
     list_states = sorted(dict_state.values())
-    N =  len(list_states)
+    N = len(list_states)
 
     dict_states = {}
     
@@ -851,7 +851,7 @@ if __name__=="__main__":
 
         dict_states[ind] = set()
 
-        for i in range(ind*6,(ind+1)*6):
+        for i in range(ind * 6, (ind + 1) * 6):
             print i
             try:
                 state = list_states[i]
@@ -861,12 +861,12 @@ if __name__=="__main__":
     print dict_states
 
     for id in dict_states:
-        #queue = multiprocessing.Queue()
-        conn_parent,conn_child = multiprocessing.Pipe()
-        dict_conns[id] = (conn_parent,conn_child)        
+        # queue = multiprocessing.Queue()
+        conn_parent, conn_child = multiprocessing.Pipe()
+        dict_conns[id] = (conn_parent, conn_child)        
 
 
-        p = multiprocessing.Process(target=worker, name = str(id), args=(conn_child,))
+        p = multiprocessing.Process(target=worker, name=str(id), args=(conn_child,))
 
         # set process as daemon. Let it run in the background
         # p.daemon = True
@@ -877,7 +877,7 @@ if __name__=="__main__":
     
 
     
-    #for id in dict_states:
+    # for id in dict_states:
     #    (conn_parent,conn_child) = dict_conns[id] 
     #    print conn_parent.recv()
         
