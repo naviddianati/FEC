@@ -49,6 +49,10 @@ import pprint
 import re
 import sys
 import time
+from states import *
+import multiprocessing 
+import random
+import datetime
 
 from Affiliations import AffilliationAnalyzer
 from Disambiguator import Disambiguator
@@ -756,7 +760,7 @@ class Project(dict):
                     record_as_list_auxiliary = [self.list_of_records [i][field] for field in sorted(self["list_auxiliary_fields"])]
 
 #                     dict_all3[i] = {'ident':record_as_list_tokenized, 'aux':record_as_list_auxiliary, 'ident_tokens':tokens}
-                    print self["all_fields"][0]
+                    #print self["all_fields"][0]
                     dict_all3[i] = {'data':[self.list_of_records[i][field] for field in self["all_fields"]],
                                              'ident_tokens':tokens}
                     
@@ -796,10 +800,17 @@ class Project(dict):
             
 
 
-
+def worker(conn):
+    data = conn.recv()
+    proc_name = multiprocessing.current_process().name
+    print proc_name,data
     
-
-if __name__ == "__main__":
+    for state in data:
+        #print state
+        generateAffiliationData(state)   
+        print "="*70,"\n"+state+" done."+str(datetime.datetime.now())+"\n"+"="*70 
+    #time.sleep(random.randint(1,10))
+    #conn.send(proc_name+" Done!")    
     
 #     generateAffiliationData('alaska')   
 #     disambiguate_main('alaska')
@@ -810,8 +821,66 @@ if __name__ == "__main__":
 #     generateAffiliationData('delaware')   
 #     disambiguate_main('delaware')
     
-#     generateAffiliationData('delaware')   
-    disambiguate_main('delaware',record_limit = (0,500000))
+#    generateAffiliationData('california')   
+#    disambiguate_main('california')
     
 #     generateAffiliationData("multi_state")   
 #     disambiguate_main('multi_state')
+
+
+
+
+
+
+
+
+if __name__=="__main__":
+    
+    list_jobs = []
+
+    list_states = sorted(dict_state.values())
+    N =  len(list_states)
+
+    dict_states = {}
+    
+    dict_conns = {}
+
+    for ind in range(10):
+        query = ''
+        query_index = ''
+
+        dict_states[ind] = set()
+
+        for i in range(ind*6,(ind+1)*6):
+            print i
+            try:
+                state = list_states[i]
+                dict_states[ind].add(state)
+            except IndexError:
+                print "state no %d not found." % i
+    print dict_states
+
+    for id in dict_states:
+        #queue = multiprocessing.Queue()
+        conn_parent,conn_child = multiprocessing.Pipe()
+        dict_conns[id] = (conn_parent,conn_child)        
+
+
+        p = multiprocessing.Process(target=worker, name = str(id), args=(conn_child,))
+
+        # set process as daemon. Let it run in the background
+        # p.daemon = True
+
+        list_jobs.append(p)
+        conn_parent.send(dict_states[id])
+        p.start()
+    
+
+    
+    #for id in dict_states:
+    #    (conn_parent,conn_child) = dict_conns[id] 
+    #    print conn_parent.recv()
+        
+        
+
+ 
