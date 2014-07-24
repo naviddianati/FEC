@@ -276,11 +276,15 @@ class AffilliationAnalyzer(object):
            
             # set the prior
             prior = np.max([ratio0, ratio1])
+            
+            self.dict_priors[link] = prior * 0.5
+            self.dict_posteriors[link] = None
+
+            continue
+            
             print link, "%d/%d   %d/%d" % (weight0 , self.affiliation_score[link[0]], weight1 , self.affiliation_score[link[1]]) , '    ', '%0.2f %0.2f %0.2f' % (ratio0, ratio1, prior)
             print '          %s | %s' % (self.dict_name_2_string[ind0], self.dict_name_2_string[ind1])
             print "______________________________________________________________________________________________"
-            self.dict_priors[link] = prior * 0.5
-            self.dict_posteriors[link] = None
         
         
         
@@ -328,7 +332,7 @@ class AffilliationAnalyzer(object):
         #         dict_posteriors[link] = combined_likelihood
                 s += '%0.2f     %0.2f  --->   %0.2f      %0.2f\n' % (combined_likelihood, 1 - p, 1 - new_p, self.dict_likelihoods[link])
                 s += '--------------------------------------------------------------------------------'
-                print s
+                # print s
                 f.write(s)
         f.close()
     
