@@ -500,6 +500,8 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     print time2 - time1
 
     project.saveSettings()
+    
+    project.dump_full_adjacency()
 
 
 
@@ -570,7 +572,24 @@ class Project(dict):
 #         nmin = list_of_nodes[0]
 #         for node1 in list_of_nodes:
 #             for node2 in self.D.adjacency[node1]:
-        
+    
+    
+    # Computes the full adjacency matrix from the D.set_of_persons and dumps it to a text file as edgelist
+    def dump_full_adjacency(self):
+        print "writing full adjacency to file... "
+        filename_edgelist = self["data_path"] + self["batch_id"] + '-adjacency.edges'
+        f = open(filename_edgelist, 'w')
+        for person in self.D.set_of_persons:
+            for record1 in person.set_of_records:
+                for record2 in person.set_of_records:
+                    if record1 is not record2:
+                        f.write(str(record1.index) + " " + str(record2.index) + "\n")
+        f.close()
+                        
+        pass  
+
+    
+    
     def set_list_of_records_auxiliary(self, tmp_list):
         ''' This functions sets the list of auxiliary records associated with the items in list_of_records_identifier'''
         self.list_of_records_auxiliary = tmp_list
@@ -749,7 +768,7 @@ class Project(dict):
                     record_as_list_auxiliary = [self.list_of_records [i][field] for field in sorted(self["list_auxiliary_fields"])]
 
 #                     dict_all3[i] = {'ident':record_as_list_tokenized, 'aux':record_as_list_auxiliary, 'ident_tokens':tokens}
-                    #print self["all_fields"][0]
+                    # print self["all_fields"][0]
                     dict_all3[i] = {'data':[self.list_of_records[i][field] for field in self["all_fields"]],
                                              'ident_tokens':tokens}
                     
@@ -792,15 +811,15 @@ class Project(dict):
 def worker(conn):
     data = conn.recv()
     proc_name = multiprocessing.current_process().name
-    print proc_name,data
+    print proc_name, data
     
     for state in data:
         #print state
         #disambiguate_main(state,record_limit = (0,1000))
         generateAffiliationData(state)   
-        print "="*70,"\n"+state+" done."+str(datetime.datetime.now())+"\n"+"="*70 
-    #time.sleep(random.randint(1,10))
-    #conn.send(proc_name+" Done!")    
+        print "="*70, "\n" + state + " done." + str(datetime.datetime.now()) + "\n" + "="*70 
+    # time.sleep(random.randint(1,10))
+    # conn.send(proc_name+" Done!")    
     
 #     generateAffiliationData('alaska')   
 #     disambiguate_main('alaska')
@@ -824,7 +843,7 @@ def worker(conn):
 
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     
     #generateAffiliationData('california',affiliation = "employer")   
     #disambiguate_main('alaska')
@@ -868,12 +887,12 @@ if __name__=="__main__":
 
         
     for id in dict_states:
-        #queue = multiprocessing.Queue()
-        conn_parent,conn_child = multiprocessing.Pipe()
-        dict_conns[id] = (conn_parent,conn_child)        
+        # queue = multiprocessing.Queue()
+        conn_parent, conn_child = multiprocessing.Pipe()
+        dict_conns[id] = (conn_parent, conn_child)        
 
 
-        p = multiprocessing.Process(target=worker, name = str(id), args=(conn_child,))
+        p = multiprocessing.Process(target=worker, name=str(id), args=(conn_child,))
 
         # set process as daemon. Let it run in the background
         # p.daemon = True
@@ -885,7 +904,7 @@ if __name__=="__main__":
     
 
     
-    #for id in dict_states:
+    # for id in dict_states:
     #    (conn_parent,conn_child) = dict_conns[id] 
     #    print conn_parent.recv()
         
