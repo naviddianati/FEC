@@ -115,7 +115,7 @@ def loadAffiliationNetwork(label, data_path, affiliation):
     The output of this method will be the data files which can be loaded by loadAffiliationNetwork().
     The comparison method used by Records here should be strict.
     '''
-def generateAffiliationData(state=None):
+def generateAffiliationData(state=None, affiliation = None):
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -273,21 +273,29 @@ def generateAffiliationData(state=None):
 
     project.log('MESSAGE', 'Computing affiliation networks...')
 
-    analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
-    state = analyst.settings["param_state"]
-    analyst.load_data()
-    analyst.extract()
-    analyst.compute_affiliation_links()
-    
-    analyst.save_data(label=state)
-#     analyst.save_data_textual(label=state)
+    if affiliation is None or affiliation == 'occupation':
+        try:
+            analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
+            state = analyst.settings["param_state"]
+            analyst.load_data()
+            analyst.extract()
+            analyst.compute_affiliation_links()
+            
+            analyst.save_data(label=state)
+        #     analyst.save_data_textual(label=state)
+        except Exception as e:
+            print e
 
-    analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="employer")
-    state = analyst.settings["param_state"]
-    analyst.load_data()
-    analyst.extract()
-    analyst.compute_affiliation_links()
-    analyst.save_data(label=state)
+    if affiliation is None or affiliation == 'employer':
+        try:
+            analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="employer")
+            state = analyst.settings["param_state"]
+            analyst.load_data()
+            analyst.extract()
+            analyst.compute_affiliation_links()
+            analyst.save_data(label=state)
+        except Exception as e:
+            print e
 
 
 
@@ -410,7 +418,7 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
             record.G_employer = G_employer
     else:
         print "WARNING: EMPLOYER network not found."
-        project.log('WARNING', "EMPLOYER network not found.")
+        project.log('WARNING', param_state + " EMPLOYER network not found.")
 
     
     
@@ -420,7 +428,7 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
             record.G_occupation = G_occupation
     else:
         print "WARNING: OCCUPATION network not found."
-        project.log('WARNING', "OCCUPATION network not found.")
+        project.log('WARNING', param_state + " OCCUPATION network not found.")
 
     
     
@@ -485,7 +493,7 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     print 'Saving adjacency matrix to file...'
     print 'Printing list of identifiers and text of adjacency matrix to file...'
 #     project.save_data(with_tokens=False)
-    project.save_data_textual(with_tokens=False, file_label="after")
+    project.save_data_textual(with_tokens=False, file_label=param_state)
     print 'Done...'
     
     time2 = time.time()
@@ -662,7 +670,7 @@ class Project(dict):
                 if person_counter % page_size == 0:
                     df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"])
                     f1.write(df.to_string(justify='left'))
-                    f2.write(df.to_html(justify='left'))
+                    f2.write(df.to_html())
                     f2.write("<br/><br/>")
                     
                     # Reset the output buffer
@@ -682,7 +690,7 @@ class Project(dict):
                 df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"])
                 f1.write(df.to_string(justify='left'))
     
-                f2.write(df.to_html(justify='left'))
+                f2.write(df.to_html())
                 f2.write("<br/><br/>")
 
             f1.close()
@@ -788,6 +796,7 @@ def worker(conn):
     
     for state in data:
         #print state
+        #disambiguate_main(state,record_limit = (0,1000))
         generateAffiliationData(state)   
         print "="*70,"\n"+state+" done."+str(datetime.datetime.now())+"\n"+"="*70 
     #time.sleep(random.randint(1,10))
@@ -817,30 +826,47 @@ def worker(conn):
 
 if __name__=="__main__":
     
+    #generateAffiliationData('california',affiliation = "employer")   
+    #disambiguate_main('alaska')
+    #quit()
+
+    list_states = []
+
+    # Use custom list of states
+    list_states = ['california','texas','marshallislands','palau','georgia','newjersey']
+
     list_jobs = []
 
-    list_states = sorted(dict_state.values())
+    # if not specified,  load all states
+    if not list_states:
+        list_states = sorted(dict_state.values())
+
+
+    set_states = set(list_states)
+
     N =  len(list_states)
 
+    # No more than 10 processes
+    number_of_processes = min(N,10)
+
+    
+    
     dict_states = {}
     
     dict_conns = {}
 
-    for ind in range(10):
-        query = ''
-        query_index = ''
 
-        dict_states[ind] = set()
+    proc_id = 0
+    while set_states:
+        if proc_id not in dict_states: dict_states[proc_id] = set()
+        dict_states[proc_id].add(set_states.pop())
+        proc_id +=1
+        proc_id = proc_id %number_of_processes
 
-        for i in range(ind*6,(ind+1)*6):
-            print i
-            try:
-                state = list_states[i]
-                dict_states[ind].add(state)
-            except IndexError:
-                print "state no %d not found." % i
-    print dict_states
+    for id in dict_states:
+        print id, dict_states[id]
 
+        
     for id in dict_states:
         #queue = multiprocessing.Queue()
         conn_parent,conn_child = multiprocessing.Pipe()
@@ -854,6 +880,7 @@ if __name__=="__main__":
 
         list_jobs.append(p)
         conn_parent.send(dict_states[id])
+        time.sleep(1)
         p.start()
     
 

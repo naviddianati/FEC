@@ -149,8 +149,9 @@ class AffilliationAnalyzer(object):
             if self.debug: print "Number of unique affiliation strings: %d" % len(list_affiliations)
             if   len(list_affiliations) > 10:
                 self.list_sample_affiliation_groups.append([x[1] for x in list_affiliations])
-                for x in list_affiliations: print x[1]
-                print '======================================'
+                if self.debug:
+                    for x in list_affiliations: print x[1]
+                    print '======================================'
         
             # Populate the affiliation adjacency matrix
             for ind1, name1 in list_affiliations:
@@ -281,10 +282,10 @@ class AffilliationAnalyzer(object):
             self.dict_posteriors[link] = None
 
             continue
-            
-            print link, "%d/%d   %d/%d" % (weight0 , self.affiliation_score[link[0]], weight1 , self.affiliation_score[link[1]]) , '    ', '%0.2f %0.2f %0.2f' % (ratio0, ratio1, prior)
-            print '          %s | %s' % (self.dict_name_2_string[ind0], self.dict_name_2_string[ind1])
-            print "______________________________________________________________________________________________"
+            if self.debug:            
+                print link, "%d/%d   %d/%d" % (weight0 , self.affiliation_score[link[0]], weight1 , self.affiliation_score[link[1]]) , '    ', '%0.2f %0.2f %0.2f' % (ratio0, ratio1, prior)
+                print '          %s | %s' % (self.dict_name_2_string[ind0], self.dict_name_2_string[ind1])
+                print "______________________________________________________________________________________________"
         
         
         
