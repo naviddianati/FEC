@@ -31,7 +31,7 @@ class Record(dict):
     
     def __init__(self):
         # a dictionary {token_index: (0 or 1)} showing which tokens exist in the given record.
-        # A token index is an integer assigned to each unique tuple (token_identifier, string) where a token identifier is an integer
+        # A token id is an integer assigned to each unique tuple (token_identifier, string) where a token identifier is an integer
         # indicating the type of the token (Last_NAME? FIRST_NAME? CONTRIBUTOR_ZIP? etc?)
         # vector is a a sparse vector, namely a dictionary.
         self.vector = {}
@@ -40,7 +40,7 @@ class Record(dict):
         self.dim = 0
         
         # unique identifier of the record. Will be set at the time of retrieval from database
-        self.index = None
+        self.id = None
         
         
         # The Person object associated with the record. This attribute will be assigned during the process of disambiguation.
@@ -57,10 +57,11 @@ class Record(dict):
         # Graph objects containing the global affiliation network data. They can be used 
         # to perform comparison between records.
         # Each graph object G contains a dictionary called dict_string_2_ind which maps
-        # the affiliation strings to the index of the corresponding vertex in the affiliation
+        # the affiliation strings to the id of the corresponding vertex in the affiliation
         # graph to be used for fast access to the vertex.
-        self.G_employer = None
-        self.G_occupation = None
+        
+        self.list_G_employer = []
+        self.list_G_occupation = []
         
         # Normalized attributes. Used for detailed pairwise comparison.
         # The Tokenizer can compute and load these attributes
@@ -133,11 +134,11 @@ class Record(dict):
         ''' If one has no address, then comparison should be much more strict.
             If both have addresses, then addresses should be idenetical, and other fields must be close enough.'''
         
-        if r1.G_employer and r2.G_employer:
+        if r1.list_G_employer and r2.list_G_employer:
             # TODO: use employer field in comparison
             pass
         
-        if r1.G_occupation and r2.G_occupation:
+        if r1.list_G_occupation and r2.list_G_occupation:
             # TODO: use occupation field in comparison
             pass
         
@@ -248,6 +249,7 @@ class Record(dict):
                 if r1['N_address'] and r2['N_address']:
                     
                     # If addresses are the same
+                    # TODO: need finer comparison of addresses
                     if r1['N_address'] == r2['N_address']:
                         # TODO: if states are the same and addresses are the same
                         return self.compare_names(r1, r2)
@@ -359,38 +361,51 @@ class Record(dict):
             if Record.debug: print "occupations are the same" 
             return 3
         else:
-            try:
-                ind1 = self.G_occupation.dict_string_2_ind[occupation1]
-                ind2 = self.G_occupation.dict_string_2_ind[occupation2]
-            except KeyError:
-                if Record.debug: print "one of the occupations not found"
+            found_both = False
+            for G_occupation in self.list_G_employer:
+                try:
+                    ind1 = G_occupation.dict_string_2_ind[occupation1]
+                    ind2 = G_occupation.dict_string_2_ind[occupation2]
+                    found_both = True
+                except KeyError:
+                    if Record.debug: print "one of the occupations not found"
+                    continue
+                
+                
+                # Check if the occupation identifiers are adjacent in the affiliations graph
+                if self.G_occupation.get_eid(ind1, ind2, directed=False, error=False) != -1:
+                    if Record.debug: print "-------------", occupation1, occupation2
+                    return 2
+              
+            
+            
+            # Either there was no graph that contained both
+            # Or otherwise, they weren't adjacent in any of the graphs
+            
+            # If case 1
+            if not found_both:
                 return 1
             
             
-            # Check if the occupation identifiers are adjacent in the affiliations graph
-            if self.G_occupation.get_eid(ind1, ind2, directed=False, error=False) == -1:
-              
-                # Not adjacent. Check if strings are close
-                if editdist.distance(occupation1, occupation2) < max(len(occupation1), len(occupation2)) * Record.occupation_str_tolerance:
-                    # Strings are close enough even though not linked on the affiliation graph
-                    return 2
-                else:
-                    # String distances not close enough
-                    if Record.debug: print "occupations are different and not adjacent"
-                    return 0
-            else:
-                if Record.debug: print "-------------", occupation1, occupation2
+            # Not adjacent. Check if strings are close
+            if editdist.distance(occupation1, occupation2) < max(len(occupation1), len(occupation2)) * Record.occupation_str_tolerance:
+                # Strings are close enough even though not linked on the affiliation graph
                 return 2
-                
+            else:
+                # String distances not close enough
+                if Record.debug: print "occupations are different and not adjacent"
+                return 0
+        
+      
                 
               
         
     
     
-    ''' Right now, only return True if occupations are exactly the same
+    '''
     Returns a number:
         0: they both exist but are unrelated
-        1: at least one doesn't have the field
+        1: at least one doesn't have the field, or there is no affiliation graph that contains both
         2: connected in the affiliations network
         3: exactly the same'''
     def compare_employers(self, r1, r2):
@@ -416,28 +431,46 @@ class Record(dict):
             if Record.debug: print "employers are the same"
             return 3
         else:
-            try:
-                ind1 = self.G_employer.dict_string_2_ind[employer1]
-                ind2 = self.G_employer.dict_string_2_ind[employer2]
-            except KeyError:
-                if Record.debug: print "one of the employers not found"
-                return 1
+            found_both = False
             
-            # Check if the employer identifiers are adjacent in the affiliations graph
-            if self.G_employer.get_eid(ind1, ind2, directed=False, error=False) == -1:
+            for G_employer in self.list_G_employer:
+                try:
+                    ind1 = G_employer.dict_string_2_ind[employer1]
+                    ind2 = G_employer.dict_string_2_ind[employer2]
+                    found_both = True
+                except KeyError:
+                    if Record.debug: print "one of the employers not found"
+                    continue
                 
-                # Not adjacent. Check if strings are close
-                if editdist.distance(employer1, employer2) < max(len(employer1), len(employer2)) * Record.employer_str_tolerance:
-                    # Strings are close enough even though not linked on the affiliation graph
+                # Check if the employer identifiers are adjacent in the affiliations graph
+                if G_employer.get_eid(ind1, ind2, directed=False, error=False) != -1:
+                    
+                    # They are adjacent in at least one affiliation graph
+                    if Record.debug: print "-------------", employer1, employer2
                     return 2
-                else:
-                    # String distances not close enough
-                    if Record.debug: print "employers are not adjacent"
-                    return 0
-            else:
-                if Record.debug: print "-------------", employer1, employer2
+                    
+               
+            # Either there was no graph that contained both
+            # Or otherwise, they weren't adjacent in any of the graphs
+            
+            # If case 1
+            if not found_both:
+                return 1
+        
+            # Not adjacent. Check if strings are close
+            if editdist.distance(employer1, employer2) < max(len(employer1), len(employer2)) * Record.employer_str_tolerance:
+                # Strings are close enough even though not linked on the affiliation graph
                 return 2
-    
+            else:
+                # String distances not close enough
+                if Record.debug: print "employers are not adjacent"
+                return 0
+            
+            
+            
+            
+            
+            
     
     def compare_names(self, r1, r2):
         identical = True
@@ -543,7 +576,7 @@ class Record(dict):
                         if f1 <= TokenData.RARE_FREQUENCY or f2 <= TokenData.RARE_FREQUENCY:
                             identical = True
                         else:
-                            identical  = False
+                            identical = False
                             # print "EQUIVALENT:    ", firstname1, "-------------", firstname2
                     else: identical = False
                         
@@ -569,7 +602,24 @@ class Record(dict):
         
         
                     
-            
+    def updateTokenData(self, newtokendata):
+        ''' newtokendata is a TokenData object and is assumed to be a superset of self.tokendata. That is,
+        every token or normalized token that exists in self.tokendata, also exists in newtokendata, but perhaps
+        together with some additional tokens, and with different indexing.
+        The main task here is to recompute the record's vector using the indexes of the newtokendata.
+        Then, self.tokendata is replaced with newtokendata.'''
+        pass
+        vector = {}
+        
+        
+        # translate self.vector
+        for index_old in self.vector:
+            index_new = newtokendata.token_2_index[self.tokendata.index_2_token[index_old]]
+            vector[index_new] = 1
+        
+        self.vector = vector
+        self.tokendata = newtokendata
+        
                     
         
             

@@ -68,7 +68,7 @@ def set_edgeWidth(G, w_max, w_min, field='weight', threshold=None, percent=100):
         w = e['weight']
 #         tmp = int(w_min+(w_max-w_min)*(w-tmp_min)/(tmp_max-tmp_min))
         if w < threshold:
-            death_row.append(e.index)
+            death_row.append(e.id)
         else:
             tmp = w_min + (w_max - w_min) * (w - tmp_min) / (tmp_max - tmp_min) 
             e['width'] = tmp
@@ -80,16 +80,16 @@ def set_edgeWidth(G, w_max, w_min, field='weight', threshold=None, percent=100):
     for v in G.vs:
         edge_weights = []
         for u in v.neighbors():
-            edges = G.es.select(_between=([u.index], [v.index]))
+            edges = G.es.select(_between=([u.id], [v.id]))
             edge_weights += edges[field]
             
         if not edge_weights:
-            death_row.append(v.index)
+            death_row.append(v.id)
 #             G.delete_vertices(v)
             continue
 #         print edge_weights
         if max(edge_weights) < threshold:
-            death_row.append(v.index)
+            death_row.append(v.id)
 
 #             print 'vertex deleted'
     G.delete_vertices(death_row)
@@ -219,17 +219,17 @@ def graph_to_json(G, layout=None):
     emax = 0
     vmax = 0
     for v in G.vs:
-        print v.index
+        print v.id
         node = {}
         if vmax < v['id']: vmax = v['id']
         for attr in node_attributes:
             if attr in v.attribute_names():
                     node[attr] = v[attr]
-        node['id'] = '%d' % v.index      
+        node['id'] = '%d' % v.id      
         if layout is None:
             x, y = random.random(), random.random()
         else:
-            x, y = layout[v.index]
+            x, y = layout[v.id]
         node['x'], node['y'] = x, y
         g['nodes'].append(node)
     for i, e in enumerate(G.es):
@@ -304,7 +304,7 @@ def collapse_graph(G, identity_function, comparison_mode='vertex'):
     the function identity_function should be able to take two vertices as arguments
     and return True of False indicating whether the two should be considered identical.'''
     H = G.copy()
-    pointers = {v.index:v.index for v in G.vs}
+    pointers = {v.id:v.id for v in G.vs}
 
     edge_death_row = []
     for e in H.es:
@@ -321,7 +321,7 @@ def collapse_graph(G, identity_function, comparison_mode='vertex'):
             print H.vs[i0]['label'][0], '==================', H.vs[i1]['label'][0]
         else: 
 #             e.delete()
-            edge_death_row.append(e.index)
+            edge_death_row.append(e.id)
             print H.vs[i0]['label'][0], '888888888888888888', H.vs[i1]['label'][0]
     
     H.delete_edges(edge_death_row)
@@ -342,17 +342,17 @@ def collapse_graph(G, identity_function, comparison_mode='vertex'):
             
 #     This is no longer necessary
 #     counter = 0
-#     index  = 0
+#     id  = 0
 #     map_new = []
 #     all_indices = {}
 #     for i,x in enumerate(map):
 #         if map[i] not in all_indices:
-#             index = counter
+#             id = counter
 #             counter +=1
 #         else:
-#             index = all_indices[map[i]]
-#         map_new.append(index)
-#         all_indices[map[i]] = index
+#             id = all_indices[map[i]]
+#         map_new.append(id)
+#         all_indices[map[i]] = id
     
 
 #     my_map = [i for i in xrange(len(G.vs))]  # null collapse
@@ -451,7 +451,7 @@ print G.es['weight']
 # quit()
 make_dendrogram(G)
 
-G.es['id'] = [e.index for e in G.es]
+G.es['id'] = [e.id for e in G.es]
 
 print N
 
@@ -463,7 +463,7 @@ def chunks(l, n):
         yield l[i:i + n]
 
 def get_top_identifiers(G, field='size', n=200, batch_size=50):
-    ordered_list = [[v.index, v['size']] for v in G.vs]
+    ordered_list = [[v.id, v['size']] for v in G.vs]
     ordered_list = sorted(ordered_list, key=lambda x:float(x[1]), reverse=True)
     n = min(n, len(G.vs))
     i = 0
@@ -543,7 +543,7 @@ all_components_sorted = sorted(all_components, key=lambda graph: len(graph.vs), 
 list_of_v_ids = []
 for g in all_components_sorted[settings.num_components[0]:settings.num_components[1]]:
     print 'component identified ', len(g.vs) 
-    vs_index = [v.index for v in G.vs.select(name_in=g.vs['name'])]
+    vs_index = [v.id for v in G.vs.select(name_in=g.vs['name'])]
     for v in g.vs:
         list_of_v_ids += vs_index
     

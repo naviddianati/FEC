@@ -56,7 +56,7 @@ class FecRetriever:
                 r[field] = item[i]
             
             # I require that each row have a unique "id" column
-            r.index = r['id']
+            r.id = r['id']
             self.list_of_records.append(r) 
         
 #     

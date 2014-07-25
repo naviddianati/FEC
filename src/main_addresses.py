@@ -81,20 +81,20 @@ class FEC_analyst():
     def save_data(self, r=[], verbose=False):
         ''' This function does three things:
             1- saves a full description of the nodes with all attributes in json format to a file <batch_id>-list_of_nodes.json
-               This file, together with the <batch-id>-adjacency.txt file provides all the information about the graph and its
+               This file, together with the <batch-id>-index_adjacency.txt file provides all the information about the graph and its
                node attributes.
-            2- saves a formatted text representation of the adjacency matrix with identifier information
-            3- saves a formatted text representation of the adjacency matrix with auxilliary field information.
+            2- saves a formatted text representation of the index_adjacency matrix with identifier information
+            3- saves a formatted text representation of the index_adjacency matrix with auxilliary field information.
         '''
         
         filename1 = '../results/' + self.batch_id + '-adj_text_identifiers.json'
         filename2 = '../results/' + self.batch_id + '-adj_text_auxilliary.json'
         filename3 = '../results/' + self.batch_id + '-list_of_nodes.json'
-        if self.D and self.D.adjacency:
+        if self.D and self.D.index_adjacency:
 #             separator = '----------------------------------------------------------------------------------------------------------------------'
             separator = '______________________________________________________________________________________________________________________'
             pp = pprint.PrettyPrinter(indent=4)
-            pp.pprint(self.D.adjacency)
+            pp.pprint(self.D.index_adjacency)
 
             n = len(self.list_of_identifiers)
             if r:
@@ -118,7 +118,7 @@ class FEC_analyst():
                 s2 = "%d %s \n" % (i, self.list_of_auxilliary_records[i])
                 file1.write(separator+'\n'+s1)   
                 file2.write(separator+'\n'+s2)
-                for j in self.D.adjacency[i]:
+                for j in self.D.index_adjacency[i]:
                     tmp_tokens = [str(x) for x in self.__get_tokens(self.list_of_identifiers[j])]
                     tokens_str = [str(x) for x in tmp_tokens]
                     tokens = {x[0]:x[1] for x in tmp_tokens} 
@@ -382,28 +382,28 @@ class FEC_analyst():
         
 
     def save_graph_to_file_json(self, filename=None, list_of_nodes=[]):
-        if not filename: filename = '../results/' + self.batch_id + '-adjacency.json'
-        # save adjacency matrix to file
+        if not filename: filename = '../results/' + self.batch_id + '-index_adjacency.json'
+        # save index_adjacency matrix to file
         f = open(filename, 'w') 
-        if  not self.D.adjacency: return 
+        if  not self.D.index_adjacency: return 
         if not list_of_nodes: list_of_nodes = range(len(self.list_of_identifiers))
         nmin = list_of_nodes[0]
         list_of_links = []
         for node1 in list_of_nodes:
-            for node2 in self.D.adjacency[node1]:
+            for node2 in self.D.index_adjacency[node1]:
                 list_of_links.append((node1 - nmin,node2 - nmin))
         f.write(json.dumps(list_of_links))
         f.close()
 
     def save_graph_to_file(self, filename=None, list_of_nodes=[]):
-        if not filename: filename = '../results/' + self.batch_id + '-adjacency.txt'
-        # save adjacency matrix to file
+        if not filename: filename = '../results/' + self.batch_id + '-index_adjacency.txt'
+        # save index_adjacency matrix to file
         f = open(filename, 'w') 
-        if  not self.D.adjacency: return 
+        if  not self.D.index_adjacency: return 
         if not list_of_nodes: list_of_nodes = range(len(self.list_of_identifiers))
         nmin = list_of_nodes[0]
         for node1 in list_of_nodes:
-            for node2 in self.D.adjacency[node1]:
+            for node2 in self.D.index_adjacency[node1]:
                 f.write(str(node1 - nmin) + ' ' + str(node2 - nmin) + "\n")
         f.close()
 
@@ -424,7 +424,7 @@ class FEC_analyst():
         # Number of times the hashes are permutated and sorted
         no_of_permutations = 100
         
-        # Hamming distance threshold for adjacency 
+        # Hamming distance threshold for index_adjacency 
         # sigma = 0.2
         
         # Number of adjacent hashes to compare
@@ -489,7 +489,7 @@ def get_next_batch_id():
 
 
 pp = pprint.PrettyPrinter(indent=4)
-# pp.pprint(self.D.adjacency)
+# pp.pprint(self.D.index_adjacency)
 
 if len(sys.argv)>1:
     param_state = sys.argv[1]
@@ -560,7 +560,7 @@ t2 = time.time()
 print 'Done...'
 print t2 - t1
 
-print 'Saving adjacency matrix to file...'
+print 'Saving index_adjacency matrix to file...'
 analyst.save_graph_to_file(list_of_nodes=[])
 analyst.save_graph_to_file_json(list_of_nodes=[])
 
@@ -574,7 +574,7 @@ print 'Done...'
 
 
     
-print 'Printing list of identifiers and text of adjacency matrix to file...'
+print 'Printing list of identifiers and text of index_adjacency matrix to file...'
 analyst.save_data()
 print 'Done...'
 # pl.show()

@@ -19,7 +19,9 @@ import pprint
 import random
 import time
 
+from Affiliations import AffilliationAnalyzer
 from Person import Person
+from Tokenizer import TokenData, Tokenizer
 import editdist
 import numpy as np
 import pylab as pl
@@ -39,16 +41,16 @@ class Disambiguator():
         self.input_dimensions = vector_dimension
         self.LSH_hash = []
         
-        # Now, this is dictionary {index:set of indexes}. It will be augmented in place with each call to self.update_nearest_neighbors() 
-        self.adjacency = {}
+        # Now, this is dictionary {index:set of indexes}. It will be augmented in place with each call to self.update_nearest_neighbors()
+        # the indexes in the adjacency matrix are the locations of records in the self.list_of_records list.
+        # NOT the id of the records! 
+        self.index_adjacency = {}
         self.m = 1  # number of permutations of the hashes
         
         # Load the name variants file
         self.dict_name_variants = json.load(open('../data/name-variants.json'))
         
-        # dict  {tuple:1} of pris of indices of hash strings that have already been compared. Skip them if encountered.
-        # NOTE: This is incredibly memory intensive. I'm ditching it.
-        self.dict_already_compared_pairs = {}
+        
         self.debug = False
         self.verbose = True
         
@@ -61,20 +63,83 @@ class Disambiguator():
         self.adjacency_edgelist = []
        
         # A set() container for the identities (Person objects) 
-        self.set_of_persons = None
+        self.set_of_persons = set()
         
         # A set of new matched id pairs (tuples). This is a private field and can be reset after each call to self.update_nearest_neighbors()
         self.new_match_buffer = set()
+        
+        
+        self.tokenizer = None
 
+
+
+
+    @classmethod
+    def getCompoundDisambiguator(cls,list_of_Ds):
+        ''' Receive a list of Disambiguator objects and combine them into one fresh object'''
+        # TODO: Records of each D have a separate TokenData object. Those need to be combined
+        # TODO: Each record has a vector. Those need to be updated according to the new unified TokenData
+        # TODO: Each D has a separate G_employer and G_occupation. They need to be combined.
+        # TODO: update self.input_dimension 
+        # 
+        
+        D_new = Disambiguator([],0)
+        
+        
+        # Matching mode. Only set if they are all the same
+        set_tmp = {D.matching_mode for D in list_of_Ds}
+        if len(set_tmp) > 1:
+            raise Exception('To combine D objects, all must have the same matching mode')
+        else:
+            D_new.matching_mode = set_tmp.pop()
+        
+        
+        # Combine all set_of_persons objects
+        for D in list_of_Ds:
+            D_new.set_of_persons = D_new.set_of_persons.union(D.set_of_persons)
+        
+        # TokenData classmethod that returns a compound TokenData object
+        list_of_tokendata = [D.list_of_records[0].tokendata for D in list_of_Ds]
+        tokendata = TokenData.getCompoundTokenData(list_of_tokendata)
+        
+        D_new.tokenizer = Tokenizer()
+        D_new.tokenizer.tokens = tokendata 
+
+        
+        # combine affiliation graphs
+        list_G_employer = [G_employer for D in list_of_Ds for G_employer in D.list_of_records[0].list_G_employer ]
+        list_G_occupation = [G_occupation  for D in list_of_Ds for G_occupation  in D.list_of_records[0].list_G_occupation  ]
+
+        
+        for D in list_of_Ds:
+            for record in D.list_of_records:
+                
+                # instance method that translates the vector according to the new tokendata and then replaces the old tokendata
+                record.updateTokenData(tokendata)
+                
+                # Set the records' affiliation graph lists.
+                record.list_G_employer = list_G_employer
+                record.list_G_occupation = list_G_occupation
+                
+                # add record to the new D's list_of_records
+                D_new.list_of_records.append(record) 
+        
+        
+        return D_new
+        
+                
+            
+            
+        
 
     def imshow_adjacency_matrix(self, r=()):
         ''' public wrapper for __dict_imshow '''
-        self.__dict_imshow(self.adjacency, rng=r)
+        self.__dict_imshow(self.index_adjacency, rng=r)
         
     def __dict_imshow(self, dict1, rng):
         ''' This function draws a plot similar to imshow for a sparse matrix
             represented as a dictionary of x:y key-values.
-            Designed to be used with sparse adjacency matrices produced by
+            Designed to be used with sparse index_adjacency matrices produced by
             the method get_nearest_neighbors '''
         X, Y = [], []
         
@@ -105,7 +170,7 @@ class Disambiguator():
     def __update_dict(self, dict1, dict_add):
         ''' This function updates dict1 in place so that the corresponding values of dict_add are
             added to and merged with the values in dict1
-            NOT BEING USED ANYMORE. Now, self.adjacency is updated in-place.
+            NOT BEING USED ANYMORE. Now, self.index_adjacency is updated in-place.
             '''
         for s in dict1:
             dict1[s] = list(set(dict1[s] + dict_add[s]))
@@ -116,7 +181,7 @@ class Disambiguator():
             print record.vector
  
     
-    def update_nearest_neighbors(self, B, hashes=None, allow_repeats = False):
+    def update_nearest_neighbors(self, B, hashes=None, allow_repeats=False):
         ''' given a list of strings or hashes, this function computes the nearest
             neighbors of each string among the list.
 
@@ -143,11 +208,11 @@ class Disambiguator():
         # NOT USED length of each hash string
         # m = len(hashes[0])
         
-        # Now I'm directly updating self.adjacency. This won't be necessary
+        # Now I'm directly updating self.index_adjacency. This won't be necessary
         # dict_neighbors = {}
              
         for s, i in zip(list_of_hashes_sorted, range(n)):
-            # Now I'm directly updating self.adjacency. This won't be necessary
+            # Now I'm directly updating self.index_adjacency. This won't be necessary
             # dict_neighbors[sort_indices[i]] = []
             
             # for entry s, find the B nearest entries in the list
@@ -164,7 +229,7 @@ class Disambiguator():
                 # sort_indices[i]: the original index of the item residing at index i of the sorted list
                 
                 if  not allow_repeats:
-                    if sort_indices[j] in self.adjacency[sort_indices[i]]:
+                    if sort_indices[j] in self.index_adjacency[sort_indices[i]]:
                         continue
                 
                 # If the two records already have identities and they are the same, skip.
@@ -179,7 +244,7 @@ class Disambiguator():
                     
 #                     if self.verbose: print self.list_of_records[sort_indices[i]].toString(), "-------", self.list_of_records[sort_indices[j]].toString()
                     self.match_count += 1
-                    self.adjacency[sort_indices[i]].add(sort_indices[j])
+                    self.index_adjacency[sort_indices[i]].add(sort_indices[j])
                     self.new_match_buffer.add((sort_indices[i], sort_indices[j]))
                     
 #                 if (sort_indices[i], sort_indices[j]) not in self.dict_already_compared_pairs:
@@ -232,16 +297,16 @@ class Disambiguator():
         f.close()
         print "Lsh_hash save to file " + filename;
         
-    def initialize_adjacency(self):
-        ''' This function creates an empty self.adjacency dictionary and then populates it initially as follows:
+    def initialize_index_adjacency(self):
+        ''' This function creates an empty self.index_adjacency dictionary and then populates it initially as follows:
         it goes over the list of (sorted) hashes and among adjacent entries it finds maximal groups of identical
-        hashes, and creates complete subgraphs corresponding to them in self.adjacency.
+        hashes, and creates complete subgraphs corresponding to them in self.index_adjacency.
         This is necessary if the original list_of_vectors contains repeated entries, such as when we are dealing
         with multiple transactions per person. '''
-        self.adjacency = {} 
+        self.index_adjacency = {} 
         i = 0
         while i < len(self.list_of_records):
-            self.adjacency[i] = set()
+            self.index_adjacency[i] = set()
             j = i + 1
             
             current_group = [i]
@@ -250,11 +315,11 @@ class Disambiguator():
                     j += 1
             if self.debug: print current_group
             for index in current_group:
-                self.adjacency[index] = set(current_group)
-                self.adjacency[index].remove(index)
+                self.index_adjacency[index] = set(current_group) 
+                self.index_adjacency[index].remove(index)
                 if self.debug:
                     print '-->', index
-                    print '    ', index, self.adjacency[index]
+                    print '    ', index, self.index_adjacency[index]
             i = j
         
         # update nearest neighbors once with the initial ordering of the records (before hashes are calculated and sorted)
@@ -264,15 +329,15 @@ class Disambiguator():
                     # set neighbors of all items in current group and move on to the next item
                     
                     
-    # Convert self.adjacency to an edgelist
+    # Convert self.index_adjacency to an edgelist
     def compute_edgelist(self):
-        n = len(self.list_of_records)
+
         # place self-links 
-        self.adjacency_edgelist = [(i, i) for i in xrange(n)] 
+        self.index_adjacency_edgelist = [(i, i) for i in self.index_adjacency] 
         
-        for index in self.adjacency:
-            for neighbor in self.adjacency[index]:
-                self.adjacency_edgelist.append((index, neighbor))
+        for index in self.index_adjacency:
+            for neighbor in self.index_adjacency[index]:
+                self.index_adjacency_edgelist.append((index, neighbor))
     
     
     def compute_similarity(self, B1=30, m=100, sigma1=0.2):                
@@ -281,16 +346,16 @@ class Disambiguator():
         # sigma is the fraction of digits in hash that are equal between the two strings
         self.m = m
         print "B=", B1
-        print "Computing adjacency matrix"
+        print "Computing index_adjacency matrix"
         print "sigma = ", sigma1
-#         self.adjacency = self.get_nearest_neighbors(B, sigma)
+#         self.index_adjacency = self.get_nearest_neighbors(B, sigma)
         n = len(self.LSH_hash)
         
         
 
-        # Generate an adjacency dictionary and initially populate it with links between records that are identical
+        # Generate an index_adjacency dictionary and initially populate it with links between records that are identical
         print 'Initialize adjacency...'
-        self.initialize_adjacency()
+        self.initialize_index_adjacency()
         print 'Done...'
         
         for i in range(m):
@@ -308,47 +373,47 @@ class Disambiguator():
             if self.project:
                 self.project.log('Suffling hash list...', str(i))
 #         self.compute_edgelist()
-        print "Adjacency matrix computed!"
+        print "index_adjacency matrix computed!"
             
     
     
-    def print_adjacency(self):
-        ''' print the similarity matrix (adjacency) '''
+    def print_index_adjacency(self):
+        ''' print the similarity matrix (index_adjacency) '''
         pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(self.adjacency)
+        pp.pprint(self.index_adjacency)
 
 
-    def show_sample_adjacency(self):
+    def show_sample_index_adjacency(self):
         ''' Show a random sample of far-off-diagonal elements of the adjaceqncy matrix and
         the content of the corresponding vectors. ''' 
         counter = 0
-        if not self.adjacency: return
+        if not self.index_adjacency: return
         N = len(self.list_of_records)
         while counter < 20:
             x = random.randint(0, N - 1)
             
-            if len(self.adjacency[x]) == 0  :continue
-            j = random.randint(0, len(self.adjacency[x]) - 1) if len(self.adjacency[x]) > 1 else 0
-            y = list(self.adjacency[x])[j]
+            if len(self.index_adjacency[x]) == 0  :continue
+            j = random.randint(0, len(self.index_adjacency[x]) - 1) if len(self.index_adjacency[x]) > 1 else 0
+            y = list(self.index_adjacency[x])[j]
             if x == 0: continue
             if 1.0 * (x - y) / x < 0.1:
                 counter += 1
                 
                 print x, y, '-----', self.list_of_records[x].vector, self.list_of_records[y].vector
-                print self.adjacency[x]
+                print self.index_adjacency[x]
                 print self.LSH_hash[x], '\n', self.LSH_hash[y], "\n", Hamming_distance(self.LSH_hash[x], self.LSH_hash[y]) * 1.0 / self.hash_dim, "\n\n"
            
           
 
 
 
-    ''' Generate Person objects from the records and the adjacency matrix
+    ''' Generate Person objects from the records and the index_adjacency matrix
         The main product is self.set_of_persons
         TODO: Generate each person's set of possible neighbors'''
     def generate_identities(self):
         self.compute_edgelist()
     
-        G = igraph.Graph.TupleList(edges=self.adjacency_edgelist)
+        G = igraph.Graph.TupleList(edges=self.index_adjacency_edgelist)
         clustering = G.components()
 
         # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
@@ -449,7 +514,7 @@ class Disambiguator():
                         if neighbor.isCompatible(child):
                            
                             self.print_compatibility(neighbor, child)
-                            # TODO: update self.adjacency as well
+                            # TODO: update self.index_adjacency as well
                             
                             neighbor.merge(child)
 #                             print '----------merging'
@@ -557,8 +622,8 @@ class Disambiguator():
             print 'Shuffling list of hashes and computing nearest neighbors' + str(i)
             shuffle_list_of_str(self.LSH_hash)
             
-            # update adjacency AND get a set of new matches that belong to different persons
-            self.update_nearest_neighbors(B=20, allow_repeats = True)
+            # update index_adjacency AND get a set of new matches that belong to different persons
+            self.update_nearest_neighbors(B=20, allow_repeats=True)
             print "New matches found: " , self.match_count
             
             # process the newly found matches and if necessary merge their corresponding Persons
@@ -567,7 +632,7 @@ class Disambiguator():
             if self.project:
                 self.project.log('Suffling hash list...', str(i))
 #         self.compute_edgelist()
-        print "Adjacency matrix computed!"
+        print "index_adjacency matrix computed!"
             
         
     # TODO:
@@ -603,7 +668,7 @@ class Disambiguator():
                             
                            
                             self.print_compatibility(neighbor, child)
-                            # TODO: update self.adjacency as well
+                            # TODO: update self.index_adjacency as well
                            
                             
                             neighbor.merge(child)
@@ -799,7 +864,7 @@ if __name__ == '__main__':
     # Number of times the hashes are permutated and sorted
     no_of_permutations = 100
     
-    # Hamming distance threshold for adjacency 
+    # Hamming distance threshold for index_adjacency 
     sigma = 0.2
     
     # Number of adjacent hashes to compare
@@ -821,12 +886,12 @@ if __name__ == '__main__':
     
     
         
-    D.show_sample_adjacency()
+    D.show_sample_index_adjacency()
     
     
     
     pl.subplot(1, 1, 2)
-    D.imshow_adjacency_matrix()
+    D.imshow_index_adjacency_matrix()
     # pl.subplot(1, 2, 1)
     # pl.imshow(ADJ, interpolation='none', cmap='gray')
     pl.show()

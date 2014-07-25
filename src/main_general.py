@@ -115,7 +115,7 @@ def loadAffiliationNetwork(label, data_path, affiliation):
     The output of this method will be the data files which can be loaded by loadAffiliationNetwork().
     The comparison method used by Records here should be strict.
     '''
-def generateAffiliationData(state=None, affiliation = None):
+def generateAffiliationData(state=None, affiliation = None,record_limit = (0,5000000)):
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -152,8 +152,9 @@ def generateAffiliationData(state=None, affiliation = None):
     project.putData('param_state' , param_state)
 
     
-    record_start = 0
-    record_no = 5000000
+    record_start = record_limit[0]
+    record_no = record_limit[1]
+    
 
     project.putData('batch_id' , batch_id)
 
@@ -415,7 +416,7 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     G_employer = loadAffiliationNetwork(param_state, project['data_path'], 'employer')
     if G_employer:
         for record in list_of_records:
-            record.G_employer = G_employer
+            record.G_employer = [G_employer]
     else:
         print "WARNING: EMPLOYER network not found."
         project.log('WARNING', param_state + " EMPLOYER network not found.")
@@ -425,7 +426,7 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     G_occupation = loadAffiliationNetwork(param_state, project['data_path'], 'occupation')
     if G_occupation:  
         for record in list_of_records:
-            record.G_occupation = G_occupation
+            record.G_occupation = [G_occupation]
     else:
         print "WARNING: OCCUPATION network not found."
         project.log('WARNING', param_state + " OCCUPATION network not found.")
@@ -477,6 +478,8 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     D.generate_identities()
     D.refine_identities()
     
+    D.tokenizer = tokenizer
+    
 
 
 
@@ -502,6 +505,9 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     project.saveSettings()
     
     project.dump_full_adjacency()
+    
+    
+    return project
 
 
 
@@ -554,12 +560,12 @@ class Project(dict):
         f_json = open(filename_json, 'w') 
         f_edgelist = open(filename_edgelist, 'w') 
 
-        if  not self.D.adjacency: return 
+        if  not self.D.index_adjacency: return 
         if not list_of_nodes: list_of_nodes = range(len(self.list_of_records))
         nmin = list_of_nodes[0]
         list_of_links = []
         for node1 in list_of_nodes:
-            for node2 in self.D.adjacency[node1]:
+            for node2 in self.D.index_adjacency[node1]:
                 list_of_links.append((node1 - nmin, node2 - nmin))
                 f_edgelist.write(str(node1 - nmin) + ' ' + str(node2 - nmin) + "\n")
         f_json.write(json.dumps(list_of_links))
@@ -567,11 +573,11 @@ class Project(dict):
         f_edgelist.close()
 
 #     def save_graph_to_file(self, list_of_nodes=[]):
-#         if  not self.D.adjacency: return 
+#         if  not self.D.index_adjacency: return 
 #         if not list_of_nodes: list_of_nodes = range(len(self.list_of_records))
 #         nmin = list_of_nodes[0]
 #         for node1 in list_of_nodes:
-#             for node2 in self.D.adjacency[node1]:
+#             for node2 in self.D.index_adjacency[node1]:
     
     
     # Computes the full adjacency matrix from the D.set_of_persons and dumps it to a text file as edgelist
@@ -583,7 +589,7 @@ class Project(dict):
             for record1 in person.set_of_records:
                 for record2 in person.set_of_records:
                     if record1 is not record2:
-                        f.write(str(record1.index) + " " + str(record2.index) + "\n")
+                        f.write(str(record1.id) + " " + str(record2.id) + "\n")
         f.close()
                         
         pass  
@@ -618,19 +624,20 @@ class Project(dict):
                  + "</head>")
         
         list_tokens = []
-        for record in self.list_of_records:
-            list_tokens.append(self.tokenizer._get_tokens(record, self["list_tokenized_fields"]))
+        dict_tokens = {}
+        for record in self.D.list_of_records:
+            dict_tokens[record.id] = self.D.tokenizer._get_tokens(record, self["list_tokenized_fields"])
             
-        print len(list_tokens), len(self.list_of_records)
+        print len(dict_tokens), len(self.D.list_of_records)
 #         quit()
 
 
         # how many blocks at a time to dump to file
         page_size = 20;
         
-        if self.D and self.D.adjacency:
+        if self.D:
            
-            list_index = []
+            list_id = []
             dataframe_data = []
             
             # Old version, before D.set_of_persons was implemented
@@ -643,19 +650,19 @@ class Project(dict):
             time_index = self["list_tokenized_fields"].index('TRANSACTION_DT')
             
             person_counter = 0 
-            for person in sorted(list(self.D.set_of_persons), key=lambda person:min([r.index - 1 for r in person.set_of_records ])):
+            for person in sorted(list(self.D.set_of_persons), key=lambda person:min([r['NAME'] for r in person.set_of_records ])):
                 new_block = []
-                for r in sorted(list(person.set_of_records), key=lambda record : record.index):
+                for r in sorted(list(person.set_of_records), key=lambda record : record['NAME']):
                 
                 
                     
-                    index = r.index - 1
-                    list_index.append(r.index)
+#                     index = r.index
+                    list_id.append(r.id)
                     record_as_list_tokenized = [r[field] for field in self["list_tokenized_fields"]]
                     record_as_list_auxiliary = [r[field] for field in self["list_auxiliary_fields"]]
                     
 #                     print len(list_tokens), index
-                    tmp_tokens = list_tokens[index]
+                    tmp_tokens = dict_tokens[r.id]
                     tokens_str = [str(x) for x in tmp_tokens]
                     
                     # new_row = record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
@@ -667,33 +674,33 @@ class Project(dict):
                     # new_row = record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
                     
                     # without normalized names
-                    new_row = record_as_list_tokenized 
+                    new_row = record_as_list_tokenized + [r['N_address']]
                     
                     new_row = ["" if s is None else s.encode('utf-8', 'ignore')  for s in new_row ]
                     new_block.append(new_row)
 
                     
                     if with_tokens:
-                        s1 = "%d %s        %s\n" % (index, record_as_list_tokenized , '|'.join(tokens_str))
+                        s1 = "%d %s        %s\n" % (r.id, record_as_list_tokenized , '|'.join(tokens_str))
                     else:
-                        s1 = "%d %s\n" % (index, record_as_list_tokenized)
+                        s1 = "%d %s\n" % (r.id, record_as_list_tokenized)
 #                     f1.write(s1)
                 new_block = sorted(new_block, key=lambda row:row[time_index])
                 dataframe_data += new_block
-                list_index += ["" for i in range(3)]
+                list_id += ["" for i in range(3)]
                 dataframe_data += [["" for i in range(len(dataframe_data[0]) - 1)] + ["|"] for j in range(3)]
                 
                 person_counter += 1
                 
                 # Save a group of blocks to file
                 if person_counter % page_size == 0:
-                    df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"])
+                    df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"]+['N_address'])
                     f1.write(df.to_string(justify='left'))
                     f2.write(df.to_html())
                     f2.write("<br/><br/>")
                     
                     # Reset the output buffer
-                    list_index = []
+                    list_id = []
                     dataframe_data = []
                     
 
@@ -701,12 +708,12 @@ class Project(dict):
                 
 #                 f1.write('\n' + separator + '\n')   
 
-#             df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"]+['N_first_name', 'N_last_name', 'N_middle_name'])
-#             df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"] + ['tokens']+['N_first_name', 'N_last_name', 'N_middle_name'])
+#             df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"]+['N_first_name', 'N_last_name', 'N_middle_name'])
+#             df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"] + ['tokens']+['N_first_name', 'N_last_name', 'N_middle_name'])
             
             # if there's a fraction of a page left at the end, write that too. 
             if dataframe_data:
-                df = pd.DataFrame(dataframe_data, index=list_index, columns=self["list_tokenized_fields"])
+                df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"]+['N_address'])
                 f1.write(df.to_string(justify='left'))
     
                 f2.write(df.to_html())
@@ -737,11 +744,11 @@ class Project(dict):
             filename1 = self["data_path"] + self["batch_id"] + '-adj_text_identifiers.json'
             filename2 = self["data_path"] + self["batch_id"] + '-adj_text_auxiliary.json'
             filename3 = self["data_path"] + self["batch_id"] + '-list_of_nodes.json'
-            if self.D and self.D.adjacency:
+            if self.D and self.D.index_adjacency:
     #             separator = '----------------------------------------------------------------------------------------------------------------------'
                 separator = '______________________________________________________________________________________________________________________'
                 pp = pprint.PrettyPrinter(indent=4)
-#                 pp.pprint(self.D.adjacency)
+#                 pp.pprint(self.D.index_adjacency)
     
                 n = len(self.list_of_records)
                 if r:
@@ -781,7 +788,7 @@ class Project(dict):
                     s2 = "%d %s \n" % (i, record_as_list_auxiliary)
                     file1.write(separator + '\n' + s1)   
                     file2.write(separator + '\n' + s2)
-                    for j in sorted(self.D.adjacency[i], key=lambda k:self.list_of_records [k]['TRANSACTION_DT']):
+                    for j in sorted(self.D.index_adjacency[i], key=lambda k:self.list_of_records [k]['TRANSACTION_DT']):
 #                         record_as_list_tokenized__2 = [self.list_of_records[j][field] for field in sorted(self.list_of_records[j].keys())]
                         record_as_list_tokenized__2 = [self.list_of_records [j][field] for field in sorted(self["list_tokenized_fields"])]
                         record_as_list_auxiliary__2 = [self.list_of_records [j][field] for field in sorted(self["list_auxiliary_fields"])]
@@ -845,9 +852,9 @@ def worker(conn):
 
 if __name__ == "__main__":
     
-    #generateAffiliationData('california',affiliation = "employer")   
-    #disambiguate_main('alaska')
-    #quit()
+#     generateAffiliationData('alaska',affiliation = "employer",record_limit = (0,500000))   
+    disambiguate_main('alaska',record_limit = (10000,1000))
+    quit()
 
     list_states = []
 

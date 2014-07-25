@@ -574,6 +574,57 @@ class TokenData():
         except KeyError:
             frequency = 0
         return frequency
+
+    @classmethod
+    def getCompoundTokenData(cls, list_of_tokendata):
+        ''' Receive a list of TokenData objects, then combine them all and return new object. '''
+        T_new = TokenData()
+        
+        # combine token_to_index
+        T_new.no_of_tokens = 0
+        for T in list_of_tokendata:
+            for token in T.token_2_index:
+                
+                # If the token already exists in T_new's token_to_index, do nothing. Otherwise, add it and increment no_of_tokens
+                try:
+                    T_new.token_2_index[token] += 0
+                except KeyError:
+                    T_new.token_2_index[token] = T_new.no_of_tokens
+                    T_new.no_of_tokens += 1
+        
+        
+        # generate index_to_token
+        for token, index in T_new.token_2_index.iteritems():
+            T_new.index_2_token[index] = token
+                     
+        
+        # compute token_counts
+        for token in T_new.token_2_index:
+            count = 0
+            for T in list_of_tokendata:
+                try:
+                    count += T.token_counts[token]
+                except KeyError:
+                    pass
+                T_new.token_counts[token] = count
+                
+        # compute normalized_token_counts
+        for T in list_of_tokendata:
+            for normalized_token, count in T.normalized_token_counts.iteritems():
+                try:
+                    # if token already in dict, increment
+                    T_new.normalized_token_counts[normalized_token] += count
+                except KeyError:
+                    # else, initialize with first count
+                    T_new.normalized_token_counts[normalized_token] = count
+                    
+                    
+        return T_new            
+            
+            
+        
+    
+    
         
         
         
