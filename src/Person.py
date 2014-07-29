@@ -10,7 +10,7 @@ class Person(object):
     # Static compatibility threshold. Higher means more strict
     compatibility_threshold = 0.5
    
-    def __init__(self, records = []):
+    def __init__(self, records=[]):
         # TODO: decide on how to store a list of records belonging to person.
         
         # Store the hashable record objects.
@@ -22,8 +22,12 @@ class Person(object):
         # TODO:  List of timestamps of self's records. Not sorted internally
         self.timeline = []
         
+        # From now on, self.neighbors contains numeric ids of the neighbors not the person objects themselves
         self.neighbors = set()
         self.isDead = False
+        
+        # Town object that contains a dictionary mapping person ids to person objects
+        self.town = None
 
 
 
@@ -47,6 +51,7 @@ class Person(object):
         self.set_of_records.add(r)
         
         # Add to the Record a reference to the current Person
+       
         r.identity = self
         # TODO: update the timeline?
     
@@ -79,7 +84,7 @@ class Person(object):
             
             
     def toString(self):
-        s =''.join(["\t".join([r['NAME'], r['OCCUPATION'], r['EMPLOYER'], r['ZIP_CODE'],"\n"]) for r in self.set_of_records])
+        s = ''.join(["\t".join([r['NAME'], r['OCCUPATION'], r['EMPLOYER'], r['ZIP_CODE'], r['CITY'], r['STATE'], "\n"]) for r in self.set_of_records])
 #         s += '_'*50
         return s
             
@@ -92,18 +97,18 @@ class Person(object):
         score = 0.0 
         for r1 in person1.set_of_records:
             for r2 in person2.set_of_records:
-                score += r1.compare(r2,mode='thorough')
-        return float(score)/(n1*n2)
+                score += r1.compare(r2, mode='thorough')
+        return float(score) / (n1 * n2)
                 
             
         
     
     
     # Wrapper for lazy boolean access to self.compatibility()
-    def isCompatible(self,other):
+    def isCompatible(self, other):
         
         # Return True if compatibility between self and other is larger than threshold
-        return (self.compatibility(self,other) > Person.compatibility_threshold )
+        return (self.compatibility(self, other) > Person.compatibility_threshold)
     
     
             
@@ -165,22 +170,26 @@ class Person(object):
             dict_compatibilities = {}
             
             # Compute compatibilities between this record and the newly spawned children + the parent's neighbors
-            for new_person in set(dict_spawns.values()).union(self.neighbors):
-                dict_compatibilities[new_person] = self.compatibility(tmp_person,new_person)
+            for new_person in set(dict_spawns.values()).union(self.town.getPersonsById(self.neighbors)):
+                dict_compatibilities[new_person] = self.compatibility(tmp_person, new_person)
             
-            winner_person = sorted(dict_compatibilities.keys(), key = lambda person:dict_compatibilities[person] )[-1]
+            winner_person = sorted(dict_compatibilities.keys(), key=lambda person:dict_compatibilities[person])[-1]
             
             # If you add the record to the winner now, it'll bias the future comparisons. So don't do it!
             dict_winners[record] = winner_person
         
         # Now add the undecided records to their respective winner persons.
-        for record,winner in dict_winners.iteritems():
+        for record, winner in dict_winners.iteritems():
             winner.addRecord(record)
             
         
             
         # TODO: each child inherits parent's neighbors. Its siblings are also its neighbors
         for child in spawns:
+            
+            # add child to the town (the town will bind itself to the child)
+            self.town.addPerson(child)
+             
             child.neighbors = child.neighbors.union(self.neighbors)
             
             
@@ -189,7 +198,7 @@ class Person(object):
                 if sibling is not child:
                     child.neighbors = child.neighbors.union(sibling.neighbors)
                     try:
-                        child.neighbors.remove(child)
+                        child.neighbors.remove(id(child))
                     except KeyError:
                         pass
 
@@ -212,9 +221,32 @@ class Person(object):
         self.isDead = True
         
         # Remove person from the neighbor list of all its neighbors
-        for neighbor in self.neighbors:
+        for neighbor in self.town.getPersonsById(self.neighbors):
             if self is neighbor: continue
             try:
-                neighbor.neighbors.remove(self)
+                neighbor.neighbors.remove(id(self))
             except:
                 pass
+
+
+
+
+    # given a string attribute name, returns a list of all unique values of that attribute among the records
+    # belonging to the person. 
+    # For example, using this, we can get a list of all unique STATEs in the person's timeline
+    def get_distinct_attribute(self, attr):
+        list_attr = set()
+        for record in self.set_of_records:
+            try:
+                list_attr.add(record[attr])
+            except KeyError:
+                pass
+        if len(list_attr) == 0 : list_attr = None
+        return list_attr
+        
+        
+        
+        
+        
+        
+        

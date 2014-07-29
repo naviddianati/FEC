@@ -549,8 +549,13 @@ class TokenData():
         # frequency of each normalized token
         self.normalized_token_counts = {}
         # Load the name variants file
-        self.dict_name_variants = json.load(open('../data/name-variants.json'))
-        self.set_all_names = set(json.load(open('../data/all-names.json')))
+        f = open('../data/name-variants.json')
+        self.dict_name_variants = json.load(f)
+        f.close()
+        
+        f = open('../data/all-names.json')
+        self.set_all_names = set(json.load(f))
+        f.close()
         
         self.token_identifiers = {'NAME':[1, 2, 3],
                                    'LAST_NAME':[1],
@@ -562,8 +567,10 @@ class TokenData():
                                    'EMPLOYER': [7]}
     
     def save_to_file(self, filename):
-        pickler = pickle.Pickler(open(filename, 'w'))
+        f = open(filename, 'w')
+        pickler = pickle.Pickler(f)
         pickler.dump(self)
+        f.close()
     
     '''
     Return the frequency of the token (id,string) from self.token_counts

@@ -22,6 +22,7 @@ import time
 from Affiliations import AffilliationAnalyzer
 from Person import Person
 from Tokenizer import TokenData, Tokenizer
+from Town import Town
 import editdist
 import numpy as np
 import pylab as pl
@@ -29,6 +30,7 @@ import pylab as pl
 
 class Disambiguator():
     def __init__(self, list_of_records, vector_dimension, matching_mode="strict"):
+        
         
         
         # I Believe these are unnecessary. 
@@ -48,7 +50,9 @@ class Disambiguator():
         self.m = 1  # number of permutations of the hashes
         
         # Load the name variants file
-        self.dict_name_variants = json.load(open('../data/name-variants.json'))
+        f = open('../data/name-variants.json')
+        self.dict_name_variants = json.load(f)
+        f.close()
         
         
         self.debug = False
@@ -70,6 +74,10 @@ class Disambiguator():
         
         
         self.tokenizer = None
+        
+        # A Town object containing a {id(person) : person} dictionary and add/remove methods
+        # Persons will be added to the town when identities are extracted from the list of records
+        self.town = Town()
 
 
 
@@ -77,11 +85,11 @@ class Disambiguator():
     @classmethod
     def getCompoundDisambiguator(cls,list_of_Ds):
         ''' Receive a list of Disambiguator objects and combine them into one fresh object'''
-        # TODO: Records of each D have a separate TokenData object. Those need to be combined
-        # TODO: Each record has a vector. Those need to be updated according to the new unified TokenData
-        # TODO: Each D has a separate G_employer and G_occupation. They need to be combined.
-        # TODO: update self.input_dimension 
-        # 
+        # Records of each D have a separate TokenData object. Those need to be combined
+        # Each record has a vector. Those need to be updated according to the new unified TokenData
+        # Each D has a separate G_employer and G_occupation. They need to be combined.
+        # update self.input_dimension 
+        # TODO: Towns need to be combined too
         
         D_new = Disambiguator([],0)
         
@@ -104,7 +112,7 @@ class Disambiguator():
         
         D_new.tokenizer = Tokenizer()
         D_new.tokenizer.tokens = tokendata 
-
+        D_new.input_dimensions = D_new.tokenizer.tokens.no_of_tokens
         
         # combine affiliation graphs
         list_G_employer = [G_employer for D in list_of_Ds for G_employer in D.list_of_records[0].list_G_employer ]
@@ -424,15 +432,19 @@ class Disambiguator():
         # Temp list to preserve the ordering of the persons, so neihbors can be assigned
         list_of_persons = []
         
-        # Sort the subgraphs by the their smallest node "name"
+        # Sort the subgraphs by their smallest node "name"
         for g in sorted(persons_subgraphs, key=lambda g: min([int(v['name']) for v in g.vs])):
             person = Person()
+            
             
             for v in sorted(g.vs, key=lambda v:int(v['name'])):
                 index = int(v['name'])
                 r = self.list_of_records [index]
                 person.addRecord(r)
                 
+
+            # TODO: maybe consolidate these?
+            self.town.addPerson(person)
             self.set_of_persons.add(person)
             list_of_persons.append(person)
         
@@ -447,7 +459,7 @@ class Disambiguator():
             for j in range(i - 3, i + 4):
                 if i != j: 
                     try:
-                        person.neighbors.add(list_of_persons[j])
+                        person.neighbors.add(id(list_of_persons[j]))
                     except IndexError:
                         pass
                         
@@ -481,6 +493,16 @@ class Disambiguator():
         print ("="*70 + "\n") * 3
     
     
+    # Return a list of persons with multiple states in their timeline
+    def get_set_of_persons_multistate(self):
+        list_persons = []
+        for person in self.set_of_persons:
+            set_states =  person.get_distinct_attribute('STATE')
+            if len(set_states)>1:
+                list_persons.append(person)
+            
+        return list_persons
+            
     
     
     def refine_identities_on_MIDDLENAME(self):
@@ -496,7 +518,7 @@ class Disambiguator():
                 spawns = person.split_on_MIDDLENAME()
                 
                 self.print_set_of_persons(spawns, message="Spawns of the person")
-                self.print_set_of_persons(person.neighbors, message="Neighbors of the person")
+                self.print_set_of_persons(self.town.getPersonsById(person.neighbors), message="Neighbors of the person")
                 
                 
                 set_stillborn_spawns = set()
@@ -509,7 +531,7 @@ class Disambiguator():
                 for child in spawns:
 #                     print "-------spawn:"
 #                     print child.toString()
-                    for neighbor in person.neighbors:
+                    for neighbor in self.town.getPersonsById(person.neighbors):
                         if neighbor.isDead: continue
                         if neighbor.isCompatible(child):
                            
@@ -553,6 +575,7 @@ class Disambiguator():
                 print "DEAD" + "="*70
                 print person.toString()  
             self.set_of_persons.remove(person)
+            self.town.removePerson(person)
             person.destroy()
 
 
@@ -562,6 +585,7 @@ class Disambiguator():
                 print "BORN" + "="*70
                 print person.toString()
             self.set_of_persons.add(person)
+            self.town.addPerson(person)
             
             pass
         
@@ -603,14 +627,13 @@ class Disambiguator():
             
             
         
-    
-    '''
-    Run self.update_nearest_neighbors() a few more times; this time consider matches across different Persons
-    and if necessary merge the corresponding Persons.
-    Parameters:
-        m: how many times to shuffle the hashes and recompute
-    '''
     def refine_identities_merge_similars(self, m):
+        '''
+        Run self.update_nearest_neighbors() a few more times; this time consider matches across different Persons
+        and if necessary merge the corresponding Persons.
+        Parameters:
+            m: how many times to shuffle the hashes and recompute
+        '''
         if self.project:
             self.project.log('v', 'Looking for similar Persons to merge...')
         for i in range(m):
@@ -649,7 +672,7 @@ class Disambiguator():
                 # set of Persons to replace this one
                 spawns = person.split_on_MIDDLENAME()
                 self.print_set_of_persons(spawns, message="Spawns of the person")
-                self.print_set_of_persons(person.neighbors, message="Neighbors of the person")
+                self.print_set_of_persons(self.town.getPersonsById(person.neighbors), message="Neighbors of the person")
                 
                 
                 set_stillborn_spawns = set()
@@ -662,7 +685,7 @@ class Disambiguator():
                 for child in spawns:
 #                     print "-------spawn:"
 #                     print child.toString()
-                    for neighbor in person.neighbors:
+                    for neighbor in self.town.getPersonsById(person.neighbors):
                         if neighbor.isDead: continue
                         if neighbor.isCompatible(child):
                             
@@ -849,51 +872,4 @@ def generate_rand_list_of_vectors(N, dim):
             i += 1
     return list_of_vectors
 
-
-
-if __name__ == '__main__':    
-    # Number of random vectors to generate
-    N = 100
-    
-    # dimension of input vectors
-    dim = 400
-    
-    # desired dimension (length) of hashes
-    hash_dim = 100
-    
-    # Number of times the hashes are permutated and sorted
-    no_of_permutations = 100
-    
-    # Hamming distance threshold for index_adjacency 
-    sigma = 0.2
-    
-    # Number of adjacent hashes to compare
-    B = 30
-    
-#     list_of_vectors = generate_rand_list_of_vectors(N, dim)
-#     
-    # Won't work as is!
-    D = Disambiguator(None, None, None, dim, matching_mode="strict")
-    
-    # compute the hashes
-    print "Computing the hashes..."
-    D.compute_LSH_hash(hash_dim)
-    print "Hashes computed..."
-    
-    print 'Computing similarity matrix...'
-    D.compute_similarity(B1=30, m=no_of_permutations , sigma1=0.2)
-    print 'Done...'
-    
-    
-        
-    D.show_sample_index_adjacency()
-    
-    
-    
-    pl.subplot(1, 1, 2)
-    D.imshow_index_adjacency_matrix()
-    # pl.subplot(1, 2, 1)
-    # pl.imshow(ADJ, interpolation='none', cmap='gray')
-    pl.show()
-        
 

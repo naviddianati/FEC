@@ -260,10 +260,18 @@ class Record(dict):
                         # Accept if zipcodes are the same and at least one of the affiliations is clearly related and exact same name
                         (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
                                             self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
-                        
+
                         # Return Record.LARGE_NEGATIVE if middle names are different
                         if c_n < 0: return Record.LARGE_NEGATIVE
-                        return (c_e >= 2 or  c_o >= 2) and c_n and c_z                
+
+                        # What if zipcodes are different?
+                        if c_z:
+                            return (c_e >= 2 or  c_o >= 2) and c_n
+                        else:
+                            return (c_e >= 2 and  c_o >= 2) and c_n
+                            
+                        
+                                      
                 
                 
                 # if at least one doesn't have an address
@@ -391,6 +399,9 @@ class Record(dict):
             if editdist.distance(occupation1, occupation2) < max(len(occupation1), len(occupation2)) * Record.occupation_str_tolerance:
                 # Strings are close enough even though not linked on the affiliation graph
                 return 2
+            # Check if one's employer is mistakenly reported as its occupation
+            elif occupation1 == r2['EMPLOYER'] or occupation2 == r1['EMPLOYER']:
+                return 2
             else:
                 # String distances not close enough
                 if Record.debug: print "occupations are different and not adjacent"
@@ -402,13 +413,14 @@ class Record(dict):
         
     
     
-    '''
-    Returns a number:
-        0: they both exist but are unrelated
-        1: at least one doesn't have the field, or there is no affiliation graph that contains both
-        2: connected in the affiliations network
-        3: exactly the same'''
     def compare_employers(self, r1, r2):
+        '''
+        Returns a number:
+            0: they both exist but are unrelated
+            1: at least one doesn't have the field, or there is no affiliation graph that contains both
+            2: connected in the affiliations network or employer1/2 == occupation2/1
+            3: exactly the same
+        '''
         try:
             employer1 = r1['EMPLOYER']
         except KeyError:
@@ -461,7 +473,11 @@ class Record(dict):
             if editdist.distance(employer1, employer2) < max(len(employer1), len(employer2)) * Record.employer_str_tolerance:
                 # Strings are close enough even though not linked on the affiliation graph
                 return 2
-            else:
+            
+            # Check if one's employer is mistakenly reported as its occupation
+            elif employer1 == r2['OCCUPATION'] or employer2 == r1['OCCUPATION']:
+                return 2
+            else:                
                 # String distances not close enough
                 if Record.debug: print "employers are not adjacent"
                 return 0
@@ -563,10 +579,24 @@ class Record(dict):
                     identical = False
                     return identical
                 else:
-                    # if at least one seems to be misspelled, (doesn't exists in list of all names) check edit distances.
+                    # if at least one seems to be misspelled, (doesn't exists in list of all names)
+                    
+                    # If one of them is just the initial
+                    if len(firstname1) == 1 or len(firstname2) == 1:
+                        try:
+                            if firstname1[0] == firstname2[0]:
+                                identical = True
+                            else:
+                                identical = False
+                                return  identical
+                        except IndexError:
+                            # If one first name is empty
+                            identical = True    
+                        
+                    # check edit distances.
                     # If the two names are different by only one edit and at least one of them is too rare, then we 
                     # consider them to be the same, only misspelled.
-                    if editdist.distance(firstname1, firstname2) < 2:
+                    elif editdist.distance(firstname1, firstname2) < 2:
                         
                         # get the tokens' frequencies.
                         f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], firstname1))

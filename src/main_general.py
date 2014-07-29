@@ -446,6 +446,7 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     dim = tokenizer.tokens.no_of_tokens
 
     D = Disambiguator(list_of_records, dim, matching_mode='thorough')
+    D.tokenizer = tokenizer
     project.D = D
     D.project = project
     
@@ -478,7 +479,6 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     D.generate_identities()
     D.refine_identities()
     
-    D.tokenizer = tokenizer
     
 
 
@@ -522,6 +522,8 @@ class Project(dict):
         self["messages"] = []
         self["list_tokenized_fields"] = []
         self["list_auxiliary_fields"] = []
+    
+    
         
     def saveSettings(self):
         settings = {}
@@ -536,6 +538,9 @@ class Project(dict):
         f = open(self["data_path"] + self["batch_id"] + '-settings.json', 'w')
         f.write(json.dumps(settings, indent=4))
         f.close()
+        self["logfile"].close()
+        
+        
     def putData(self, key, value):
         self[key] = value
     
@@ -811,6 +816,7 @@ class Project(dict):
                 
                 file1.close()
                 file2.close()
+                file3.close()
                 
             
 
@@ -853,7 +859,7 @@ def worker(conn):
 if __name__ == "__main__":
     
 #     generateAffiliationData('alaska',affiliation = "employer",record_limit = (0,500000))   
-    disambiguate_main('alaska',record_limit = (10000,1000))
+    disambiguate_main('delaware',record_limit = (0,1000))
     quit()
 
     list_states = []
