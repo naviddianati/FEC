@@ -53,6 +53,7 @@ from states import *
 import multiprocessing 
 import random
 import datetime
+import glob
 
 from Affiliations import AffilliationAnalyzer
 from Disambiguator import Disambiguator
@@ -242,7 +243,7 @@ def generateAffiliationData(state=None, affiliation = None,record_limit = (0,500
     
     
     # Number of times the hashes are permutated and sorted
-    no_of_permutations = 20
+    no_of_permutations =1 
     project.putData('number_of_permutations' , str(no_of_permutations))
     
     print 'Analyze...'
@@ -268,33 +269,42 @@ def generateAffiliationData(state=None, affiliation = None,record_limit = (0,500
     time2 = time.time()
     print time2 - time1
 
+    project.log('MESSAGE', 'Computing affiliation networks...')
     project.saveSettings()
 
 
 
-    project.log('MESSAGE', 'Computing affiliation networks...')
 
     if affiliation is None or affiliation == 'occupation':
         try:
             analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
+            project.log('MESSAGE', 'AffiliationAnalyzer created...')
+            
             state = analyst.settings["param_state"]
             analyst.load_data()
             analyst.extract()
             analyst.compute_affiliation_links()
-            
+            project.log('MESSAGE', 'Affiliation links computed...')
+
             analyst.save_data(label=state)
+            project.log('MESSAGE', 'Affiliation data saved...')
         #     analyst.save_data_textual(label=state)
         except Exception as e:
             print e
 
     if affiliation is None or affiliation == 'employer':
         try:
-            analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="employer")
+            analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
+            project.log('MESSAGE', 'AffiliationAnalyzer created...')
+            
             state = analyst.settings["param_state"]
             analyst.load_data()
             analyst.extract()
             analyst.compute_affiliation_links()
+            project.log('MESSAGE', 'Affiliation links computed...')
+
             analyst.save_data(label=state)
+            project.log('MESSAGE', 'Affiliation data saved...')
         except Exception as e:
             print e
 
@@ -538,8 +548,9 @@ class Project(dict):
         f = open(self["data_path"] + self["batch_id"] + '-settings.json', 'w')
         f.write(json.dumps(settings, indent=4))
         f.close()
-        self["logfile"].close()
         
+        
+       
         
     def putData(self, key, value):
         self[key] = value
@@ -681,7 +692,7 @@ class Project(dict):
                     # without normalized names
                     new_row = record_as_list_tokenized + [r['N_address']]
                     
-                    new_row = ["" if s is None else s.encode('utf-8', 'ignore')  for s in new_row ]
+                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s,unicode) else s  for s in new_row ]
                     new_block.append(new_row)
 
                     
@@ -700,8 +711,8 @@ class Project(dict):
                 # Save a group of blocks to file
                 if person_counter % page_size == 0:
                     df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"]+['N_address'])
-                    f1.write(df.to_string(justify='left'))
-                    f2.write(df.to_html())
+                    f1.write(df.to_string(justify='left').encode('ascii','ignore'))
+                    f2.write(df.to_html().encode('ascii','ignore'))
                     f2.write("<br/><br/>")
                     
                     # Reset the output buffer
@@ -719,9 +730,9 @@ class Project(dict):
             # if there's a fraction of a page left at the end, write that too. 
             if dataframe_data:
                 df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"]+['N_address'])
-                f1.write(df.to_string(justify='left'))
+                f1.write(df.to_string(justify='left').encode('ascii','ignore'))
     
-                f2.write(df.to_html())
+                f2.write(df.to_html().encode('ascii','ignore'))
                 f2.write("<br/><br/>")
 
             f1.close()
@@ -857,6 +868,9 @@ def worker(conn):
 
 
 if __name__ == "__main__":
+
+
+
     
 #     generateAffiliationData('alaska',affiliation = "employer",record_limit = (0,500000))   
     disambiguate_main('delaware',record_limit = (0,1000))
@@ -910,9 +924,8 @@ if __name__ == "__main__":
         # set process as daemon. Let it run in the background
         # p.daemon = True
 
-        list_jobs.append(p)
+        #list_jobs.append(p)
         conn_parent.send(dict_states[id])
-        time.sleep(1)
         p.start()
     
 

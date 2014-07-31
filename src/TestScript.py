@@ -61,7 +61,7 @@ def worker(conn):
     list_results = []
     
     for state in data:
-        project = disambiguate_main(state, record_limit=(0, 4000))
+        project = disambiguate_main(state, record_limit=(0, 5000000))
 #         project = generateAffiliationData(state)  
 
         
@@ -95,6 +95,7 @@ if __name__ == "__main__":
     # Use custom list of states
     list_states = ['california', 'texas', 'marshallislands', 'palau', 'georgia', 'newjersey']
     list_states = ['delaware', 'maryland']
+    list_states = ['newyork', 'massachusetts']
 
     list_jobs = []
 

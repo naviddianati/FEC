@@ -216,7 +216,7 @@ class AffilliationAnalyzer(object):
         
         # Set the vertex labels
         for v in G_affiliations.vs:
-            v['label'] = self.dict_name_2_string[v['name']]
+            v['label'] = self.dict_name_2_string[v['name']].encode('utf-8')
         
         # Set vertex sizes
         for v in G_affiliations.vs:
@@ -334,7 +334,7 @@ class AffilliationAnalyzer(object):
                 s += '%0.2f     %0.2f  --->   %0.2f      %0.2f\n' % (combined_likelihood, 1 - p, 1 - new_p, self.dict_likelihoods[link])
                 s += '--------------------------------------------------------------------------------'
                 # print s
-                f.write(s)
+                f.write(s.encode('ascii','ignore'))
         f.close()
     
 
@@ -395,14 +395,14 @@ def bad_identifier(identifier, type='employer'):
     
     
 def main():
-    batch_id = 286
-    analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
+    batch_id = 1027
+    '''analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
     state = analyst.settings["param_state"]
     analyst.load_data()
     analyst.extract()
     analyst.compute_affiliation_links()
     analyst.save_data(label=state)
-
+    '''
     analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="employer")
     state = analyst.settings["param_state"]
     analyst.load_data()
@@ -419,7 +419,5 @@ def loadAffiliationNetwork(label, data_path, affiliation):
 if __name__ == "__main__":
     main()
     quit()
-    data_path = os.path.expanduser('~/data/FEC/')
-    G = loadAffiliationNetwork('alaska_addresses', data_path, 'employer')
     
     
