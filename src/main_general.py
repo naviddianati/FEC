@@ -57,7 +57,7 @@ import glob
 
 from Affiliations import AffilliationAnalyzer
 from Disambiguator import Disambiguator
-from Retriever import FecRetriever
+from Database import FecRetriever
 from Tokenizer import Tokenizer, TokenizerNgram
 
 import pandas as pd
@@ -148,7 +148,6 @@ def generateAffiliationData(state=None, affiliation = None,record_limit = (0,500
   
     # If this is for a multi-state table
     if param_state == "multi_state":
-
         table_name = "multi_state_combined"
     project.putData('param_state' , param_state)
 
@@ -223,8 +222,8 @@ def generateAffiliationData(state=None, affiliation = None,record_limit = (0,500
     ''' HERE WE DON'T LOAD AFFILIATION DATA BECAUSE THAT'S WHAT WE WANT TO PRODUCE! '''
 
     
-    
-    project.list_of_records = list_of_records
+    # Unnecessary
+#     project.list_of_records = list_of_records
     
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
@@ -243,7 +242,7 @@ def generateAffiliationData(state=None, affiliation = None,record_limit = (0,500
     
     
     # Number of times the hashes are permutated and sorted
-    no_of_permutations =1 
+    no_of_permutations = 20
     project.putData('number_of_permutations' , str(no_of_permutations))
     
     print 'Analyze...'
@@ -269,11 +268,11 @@ def generateAffiliationData(state=None, affiliation = None,record_limit = (0,500
     time2 = time.time()
     print time2 - time1
 
+
+
+
     project.log('MESSAGE', 'Computing affiliation networks...')
     project.saveSettings()
-
-
-
 
     if affiliation is None or affiliation == 'occupation':
         try:
@@ -294,7 +293,7 @@ def generateAffiliationData(state=None, affiliation = None,record_limit = (0,500
 
     if affiliation is None or affiliation == 'employer':
         try:
-            analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
+            analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="employer")
             project.log('MESSAGE', 'AffiliationAnalyzer created...')
             
             state = analyst.settings["param_state"]
@@ -489,6 +488,7 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     D.generate_identities()
     D.refine_identities()
     
+   
     
 
 
@@ -577,7 +577,7 @@ class Project(dict):
         f_edgelist = open(filename_edgelist, 'w') 
 
         if  not self.D.index_adjacency: return 
-        if not list_of_nodes: list_of_nodes = range(len(self.list_of_records))
+        if not list_of_nodes: list_of_nodes = range(len(self.D.list_of_records))
         nmin = list_of_nodes[0]
         list_of_links = []
         for node1 in list_of_nodes:
@@ -766,11 +766,11 @@ class Project(dict):
                 pp = pprint.PrettyPrinter(indent=4)
 #                 pp.pprint(self.D.index_adjacency)
     
-                n = len(self.list_of_records)
+                n = len(self.D.list_of_records)
                 if r:
                     save_range = range(max(0, r[0]), min(n, r[1]))
                 else: 
-                    save_range = range(len(self.list_of_records))
+                    save_range = range(len(self.D.list_of_records))
     
                 file1 = open(filename1, 'w')
                 file2 = open(filename2, 'w')
@@ -779,7 +779,7 @@ class Project(dict):
                 
                 list_tokens = []
                 for i in save_range:
-                    list_tokens.append(self.tokenizer._get_tokens(self.list_of_records [i], self["list_tokenized_fields"]))
+                    list_tokens.append(self.tokenizer._get_tokens(self.D.list_of_records [i], self["list_tokenized_fields"]))
                     
                 for i in save_range:
 
@@ -787,12 +787,12 @@ class Project(dict):
                     tokens_str = [str(x) for x in tmp_tokens]
                     tokens = {x[0]:x[1] for x in tmp_tokens} 
                     
-                    record_as_list_tokenized = [self.list_of_records [i][field] for field in sorted(self["list_tokenized_fields"])]
-                    record_as_list_auxiliary = [self.list_of_records [i][field] for field in sorted(self["list_auxiliary_fields"])]
+                    record_as_list_tokenized = [self.D.list_of_records [i][field] for field in sorted(self["list_tokenized_fields"])]
+                    record_as_list_auxiliary = [self.D.list_of_records [i][field] for field in sorted(self["list_auxiliary_fields"])]
 
 #                     dict_all3[i] = {'ident':record_as_list_tokenized, 'aux':record_as_list_auxiliary, 'ident_tokens':tokens}
                     # print self["all_fields"][0]
-                    dict_all3[i] = {'data':[self.list_of_records[i][field] for field in self["all_fields"]],
+                    dict_all3[i] = {'data':[self.D.list_of_records[i][field] for field in self["all_fields"]],
                                              'ident_tokens':tokens}
                     
 
@@ -804,10 +804,10 @@ class Project(dict):
                     s2 = "%d %s \n" % (i, record_as_list_auxiliary)
                     file1.write(separator + '\n' + s1)   
                     file2.write(separator + '\n' + s2)
-                    for j in sorted(self.D.index_adjacency[i], key=lambda k:self.list_of_records [k]['TRANSACTION_DT']):
+                    for j in sorted(self.D.index_adjacency[i], key=lambda k:self.D.list_of_records [k]['TRANSACTION_DT']):
 #                         record_as_list_tokenized__2 = [self.list_of_records[j][field] for field in sorted(self.list_of_records[j].keys())]
-                        record_as_list_tokenized__2 = [self.list_of_records [j][field] for field in sorted(self["list_tokenized_fields"])]
-                        record_as_list_auxiliary__2 = [self.list_of_records [j][field] for field in sorted(self["list_auxiliary_fields"])]
+                        record_as_list_tokenized__2 = [self.D.list_of_records [j][field] for field in sorted(self["list_tokenized_fields"])]
+                        record_as_list_auxiliary__2 = [self.D.list_of_records [j][field] for field in sorted(self["list_auxiliary_fields"])]
                         
                         tmp_tokens = [str(x) for x in list_tokens[j]]
 

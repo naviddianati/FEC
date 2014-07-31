@@ -20,6 +20,7 @@ import random
 import time
 
 from Affiliations import AffilliationAnalyzer
+from Database import DatabaseManager
 from Person import Person
 from Tokenizer import TokenData, Tokenizer
 from Town import Town
@@ -78,6 +79,9 @@ class Disambiguator():
         # A Town object containing a {id(person) : person} dictionary and add/remove methods
         # Persons will be added to the town when identities are extracted from the list of records
         self.town = Town()
+        
+        # Wether or not to log statistics of record pair comparisons
+        self.do_stats = False
 
 
 
@@ -189,6 +193,12 @@ class Disambiguator():
             print record.vector
  
     
+    def logstats(self, record1, record2, result):
+        ''' Log statistics for the two compared records.'''
+        
+        pass
+    
+    
     def update_nearest_neighbors(self, B, hashes=None, allow_repeats=False):
         ''' given a list of strings or hashes, this function computes the nearest
             neighbors of each string among the list.
@@ -236,24 +246,28 @@ class Disambiguator():
                 # i,j: current index in the sorted has list
                 # sort_indices[i]: the original index of the item residing at index i of the sorted list
                 
+                record1,record2 = self.list_of_records[sort_indices[i]], self.list_of_records[sort_indices[j]]
                 if  not allow_repeats:
                     if sort_indices[j] in self.index_adjacency[sort_indices[i]]:
                         continue
                 
                 # If the two records already have identities and they are the same, skip.
-                if None != self.list_of_records[sort_indices[j]].identity == self.list_of_records[sort_indices[i]].identity != None:
+                if None != record2.identity == record1.identity != None:
                     continue
                     
                     
                     
                 # New implementation: comparison is done via instance function of the Record class
                 # Comparison (matching) mode is passed to the Record's compare method.
-                if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]], mode=self.matching_mode) > 0:
-                    
-#                     if self.verbose: print self.list_of_records[sort_indices[i]].toString(), "-------", self.list_of_records[sort_indices[j]].toString()
+                result = record1.compare(record2, mode=self.matching_mode)
+                if result > 0:
                     self.match_count += 1
                     self.index_adjacency[sort_indices[i]].add(sort_indices[j])
                     self.new_match_buffer.add((sort_indices[i], sort_indices[j]))
+                
+                # compute some statistics about the records
+                if self.do_stats:
+                    self.logstats(record1,record2,result)
                     
 #                 if (sort_indices[i], sort_indices[j]) not in self.dict_already_compared_pairs:
 #                     if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]], mode=self.matching_mode):
@@ -758,6 +772,28 @@ class Disambiguator():
         
                 
         
+    def generator_identity_list(self):
+        ''' generate tuples: [(record_id, Person_id)]. 
+        person id is an integer that's unique among the persons in this D.'''
+        for i,person in enumerate(self.set_of_persons):
+            for record in person.set_of_records:
+                yield (record.id,i)
+                
+    
+    def save_identities_to_db(self):
+        '''Export the calculated identities of the records to a database table called "identities".'''
+        db_manager = DatabaseManager()    
+
+        db_manager.runQuery('DROP TABLE IF EXISTS identities;')
+        db_manager.runQuery('CREATE TABLE identities ( id INT PRIMARY KEY, identity INT);')
+        
+        for id_pair in self.generator_identity_list():
+            print id_pair
+            result = db_manager.runQuery('INSERT INTO identities (id,identity)  VALUES (%d,%d);' % id_pair)
+            print result
+        db_manager.connection.commit()
+        db_manager.connection.close()
+                
 
 
 

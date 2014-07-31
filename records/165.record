@@ -1,5 +1,0 @@
-param_state : newyork_addresses
-Batch ID : 165
-All Fields : NAME,CONTRIBUTOR_ZIP,CONTRIBUTOR_STREET_1,TRANSACTION_DT,EMPLOYER,TRANSACTION_AMT,CITY,CMTE_ID,ENTITY_TP,OCCUPATION
-Hash dim : 20
-Number of permutations : 10
