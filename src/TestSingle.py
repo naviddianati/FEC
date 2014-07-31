@@ -12,19 +12,18 @@ Created on Jul 25, 2014
 from copy import copy
 import pickle
 
+from Database import DatabaseManager
 from main_general import *
 
 
-def two_state_test():
+def run_test():
     project1 = disambiguate_main('maryland', record_limit=(0, 400))
     
     project1.D.tokenizer.tokenize_functions = None
     project1.D.tokenizer.normalize_functions = None
     project1.D.project = None
         
-    pickle.dumps(project1.D)
-    quit()
-    
+ 
     return project1
 
 
@@ -60,5 +59,23 @@ def two_state_test():
 
 if __name__ == "__main__":
     
-    two_state_test()
+    project = run_test()
+    D = project.D
+    
+    db_manager = DatabaseManager()    
+
+    db_manager.runQuery('DROP TABLE IF EXISTS identities;')
+    db_manager.runQuery('CREATE TABLE identities ( id INT PRIMARY KEY, identity INT);')
+    
+    
+    # Generator! of tuples: (record_id, Person_id). person id is an integer that's unique among the persons in this D.
+    
+    for id_pair in D.generator_identity_list():
+        print id_pair
+        result = db_manager.runQuery('INSERT INTO identities (id,identity)  VALUES (%d,%d);' % id_pair)
+        print result
+    db_manager.connection.commit()
+    db_manager.connection.close()
+    
+    
  

@@ -29,7 +29,7 @@ def db_connect():
     if con == None: print("Error connecting to MySql server")
     return con  
 
-def MySQL_query(query):
+def runQuery(query):
     con = db_connect()
     cur = con.cursor()
     # cur.execute("select NAME,ZIP_CODE,EMPLOYER,TRANSACTION_DT from newyork order by NAME limit 1000 ;")
@@ -519,10 +519,10 @@ index_auxilliary_fields = [query_fields.index(s) for s in auxilliary_fields]
 
 
 # Get string list from MySQL query and set it as analyst's list_of_identifiers
-# query_result = MySQL_query("select " + ','.join(identifier_fields) + " from newyork_addresses where NAME <> '' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
+# query_result = runQuery("select " + ','.join(identifier_fields) + " from newyork_addresses where NAME <> '' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
 query = "select " + ','.join(query_fields) + " from "+param_state+"_addresses order by NAME,TRANSACTION_DT,ZIP_CODE,CMTE_ID limit " + str(record_start) + "," + str(record_no) + ";"
 
-query_result = MySQL_query(query)
+query_result = runQuery(query)
 tmp_list = []
 # for i in range(len(query_result)):
 #    tmp_list.append(query_result[i])
