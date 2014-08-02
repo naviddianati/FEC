@@ -61,21 +61,11 @@ if __name__ == "__main__":
     
     project = run_test()
     D = project.D
+    D.save_identities_to_db()
     
-    db_manager = DatabaseManager()    
+    for person in D.set_of_persons:
+        print person.neighbors
 
-    db_manager.runQuery('DROP TABLE IF EXISTS identities;')
-    db_manager.runQuery('CREATE TABLE identities ( id INT PRIMARY KEY, identity INT);')
-    
-    
-    # Generator! of tuples: (record_id, Person_id). person id is an integer that's unique among the persons in this D.
-    
-    for id_pair in D.generator_identity_list():
-        print id_pair
-        result = db_manager.runQuery('INSERT INTO identities (id,identity)  VALUES (%d,%d);' % id_pair)
-        print result
-    db_manager.connection.commit()
-    db_manager.connection.close()
     
     
  

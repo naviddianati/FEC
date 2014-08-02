@@ -97,7 +97,8 @@ class Person(object):
         score = 0.0 
         for r1 in person1.set_of_records:
             for r2 in person2.set_of_records:
-                score += r1.compare(r2, mode='thorough')
+                verdict, result = r1.compare(r2, mode='thorough')
+                score += verdict 
         return float(score) / (n1 * n2)
                 
             

@@ -130,9 +130,13 @@ class Record(dict):
         
     
     def compare_STRICT(self, r1, r2):
-        ''' This function returns True or False indicating whether two name vectors are close enough to be considered identical or not '''
-        ''' If one has no address, then comparison should be much more strict.
-            If both have addresses, then addresses should be idenetical, and other fields must be close enough.'''
+        ''' This function returns two values: the verdict, and the detailed result of the  comparisons performed.
+        TODO: return the result (details) too. Right now, None is returned for the detailed result.
+
+        This function returns True or False indicating whether two name vectors are close enough to be considered identical or not.
+        If one has no address, then comparison should be much more strict.
+        If both have addresses, then addresses should be idenetical, and other fields must be close enough.'''
+        
         
         if r1.list_G_employer and r2.list_G_employer:
             # TODO: use employer field in comparison
@@ -152,14 +156,14 @@ class Record(dict):
                         and (r1['N_first_name'] == r2['N_first_name']) \
                         and ((r1['N_middle_name'] == r2['N_middle_name']) \
                             if (r1['N_middle_name'] and r2['N_middle_name']) else True)
-            return identical
+            return identical, None
         
         # IF BOTH HAVE ADDRESSES:
                        
         # If street addresses aren't identical, then fail
         if r1['N_address'] != r2['N_address'] : 
             identical = False;
-            return identical
+            return identical, None
               
         
         # if both have middlenames, they should be the same
@@ -186,7 +190,7 @@ class Record(dict):
             else:
                 identical = False
         
-        return identical
+        return identical, None
                    
                    
     
@@ -203,14 +207,17 @@ class Record(dict):
 
 
                    
-    '''
-    Returns either an integer. One can use this function directly to get additional information about
-    the nature of the relationship. For instance, this function can return negative numbers to
-    indicate irreconcilable difference.
-    '''
 
     
     def compare_THOROUGH(self, r1, r2):
+        '''
+        Returns an integer and a dictionary. One can use this function directly to get additional information about
+        the nature of the relationship. For instance, this function can return negative numbers to
+        indicate irreconcilable difference.
+
+        The "result" dictionary returns the details of the sub-comparisons, namely, the return values of the
+        name, occupation and employer comparison functions used to reach the verdict.
+        '''
 #         Record.debug = True if   r1['N_first_name'] == r2['N_first_name'] == "MARKUS" and r1['N_last_name'] == r2['N_last_name'] == "AAKKO" else False
 #         Record.debug = True  if r1['N_first_name'] != r2['N_first_name']  else False;  
         if Record.debug:
@@ -219,7 +226,13 @@ class Record(dict):
             print r2
             # If states are the same,
         
-        
+        result = {'o':None,  # occupation
+                  'e':None,  # employer
+                  'n':None,  # name
+                  'a':None,  # address
+                  's':None,  # state
+                  'c':None  # city
+                  }
         
         
 #         print self.pvalue(r1,r2)
@@ -241,9 +254,11 @@ class Record(dict):
     
         
         if r1['STATE'] == r2['STATE']:
+            result['s'] = 1
             
             # If cities are the same
             if r1['CITY'] == r2['CITY']:
+                result['c'] = 1
             
                 # If both have addresses
                 if r1['N_address'] and r2['N_address']:
@@ -251,8 +266,11 @@ class Record(dict):
                     # If addresses are the same
                     # TODO: need finer comparison of addresses
                     if r1['N_address'] == r2['N_address']:
+                        result['a'] = 1
+                        c_n = self.compare_names(r1, r2)
+                        result['n'] = c_n
                         # TODO: if states are the same and addresses are the same
-                        return self.compare_names(r1, r2)
+                        return c_n, result
                     
                     # If addresses aren't the same
                     else:
@@ -260,15 +278,16 @@ class Record(dict):
                         # Accept if zipcodes are the same and at least one of the affiliations is clearly related and exact same name
                         (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
                                             self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
+                        result['e'], result['o'], result['n'] = c_e, c_o, c_n
 
                         # Return Record.LARGE_NEGATIVE if middle names are different
-                        if c_n < 0: return Record.LARGE_NEGATIVE
+                        if c_n < 0: return Record.LARGE_NEGATIVE, result
 
                         # What if zipcodes are different?
                         if c_z:
-                            return (c_e >= 2 or  c_o >= 2) and c_n
+                            return ((c_e >= 2 or  c_o >= 2) and c_n), result
                         else:
-                            return (c_e >= 2 and  c_o >= 2) and c_n
+                            return ((c_e >= 2 and  c_o >= 2) and c_n), result
                             
                         
                                       
@@ -279,29 +298,31 @@ class Record(dict):
                 else:
                     (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
                                             self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
-                    
+                    result['e'], result['o'], result['n'] = c_e, c_o, c_n
                     # Return Record.LARGE_NEGATIVE if middle names are different
-                    if c_n < 0: return Record.LARGE_NEGATIVE
+                    if c_n < 0: return Record.LARGE_NEGATIVE, result
                     
                     # if zip codes are the same, then relax the affiliation condition a bit
                     if c_z == 2:
-                        return (c_e >= 1 or  c_o >= 1) and c_n
+                        return ((c_e >= 1 or  c_o >= 1) and c_n), result
                     else:
                         # If at least one doesn't have an address and zipcodes are different
                         # Accept if both the affiliations are clearly related and exact same name
-                        return (c_e >= 2 and  c_o >= 2) and c_n
+                        return ((c_e >= 2 and  c_o >= 2) and c_n), result
 
             # If states are the same but cities are different
             else:
                 # TODO: if cities are different
                 # Accept if affiliations are clearly connected and names are exactly the same
                 # TODO: check for timeline consistency
+                result['c'], result['a'] = 0, 0
                 (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
                                             self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
                 
+                result['e'], result['o'], result['n'] = c_e, c_o, c_n
                 # Return LARGE_NEGATIVE if middle names are different
-                if c_n < 0: return Record.LARGE_NEGATIVE
-                return ((c_e >= 2 and  c_o >= 2) and c_n)
+                if c_n < 0: return Record.LARGE_NEGATIVE, result
+                return ((c_e >= 2 and  c_o >= 2) and c_n), result
                 
 
             
@@ -313,15 +334,18 @@ class Record(dict):
             # 3- Employers should be close
             # 4- Name token frequency should be taken into account. 
             # 5- Check for timeline consistency: Requires the Person objects
+            
+            result['s'], result['c'], result['a'] = 0, 0, 0
             (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
                                     self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
+            result['e'], result['o'], result['n'] = c_e, c_o, c_n
             
             # Return LARGE_NEGATIVE if middle names are different
-            if c_n < 0: return Record.LARGE_NEGATIVE
+            if c_n < 0: return Record.LARGE_NEGATIVE, result
             
             # Actually, we will relax the conditions at this point. Cross-state consistency will be resolved on the Person level.
-            return (c_e >= 2 or  c_o >= 2)  and c_n
-        return False
+            return ((c_e >= 2 or  c_o >= 2)  and c_n), result
+        return False, result
     
     
     
@@ -344,7 +368,7 @@ class Record(dict):
         0: they both exist but are unrelated
         1: at least one doesn't have the field
         2: connected in the affiliations network
-        3: exactly the same'''
+        3: exactly the same. '''
     
     def compare_occupations(self, r1, r2):
         try:
@@ -489,12 +513,20 @@ class Record(dict):
             
     
     def compare_names(self, r1, r2):
+        '''
+        TODO: Returns a boolean, or a number:
+        LARGENEGATIVE: middle names are different
+        0: names are not related
+        1: uncertain: at least one last name doesn't exist
+
+        3: names are identical
+        '''
         identical = True
         # if both have middlenames, they should be the same
         if r1['N_middle_name'] and r2['N_middle_name']:
             if r1['N_middle_name'] != r2['N_middle_name']: 
                 if Record.debug: print "middle names are different"
-                identical = -10
+                identical = Record.LARGE_NEGATIVE
                 return identical
         
 #         # if 1 doesn't have a middle name but 2 does, then 2 is not the "parent" of 1
@@ -503,7 +535,7 @@ class Record(dict):
 #             return identical
         
           
-        # if last names aren't close enough, fail.
+        # if one of the last names doesn't exist, 
         if not r1['N_last_name'] or not r2['N_last_name']: 
             if Record.debug:
                 print "one of the last names doesn't exist"

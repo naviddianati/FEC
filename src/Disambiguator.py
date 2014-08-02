@@ -14,6 +14,7 @@
 
 import igraph
 import json
+from numpy import math
 import os
 import pprint
 import random
@@ -80,14 +81,24 @@ class Disambiguator():
         # Persons will be added to the town when identities are extracted from the list of records
         self.town = Town()
         
-        # Wether or not to log statistics of record pair comparisons
-        self.do_stats = False
+        # Whether or not to log statistics of record pair comparisons
+        self.do_stats = True
+        
+        # open output buffer (of size 100kb) for the statistics 
+        if self.do_stats:
+            self.logstats_file = open('stats.txt', 'w', 100000)
+        self.logstats_count = 0
+        self.logstats_header = []
+
+            
+            
+            
 
 
 
 
     @classmethod
-    def getCompoundDisambiguator(cls,list_of_Ds):
+    def getCompoundDisambiguator(cls, list_of_Ds):
         ''' Receive a list of Disambiguator objects and combine them into one fresh object'''
         # Records of each D have a separate TokenData object. Those need to be combined
         # Each record has a vector. Those need to be updated according to the new unified TokenData
@@ -95,7 +106,7 @@ class Disambiguator():
         # update self.input_dimension 
         # TODO: Towns need to be combined too
         
-        D_new = Disambiguator([],0)
+        D_new = Disambiguator([], 0)
         
         
         # Matching mode. Only set if they are all the same
@@ -192,11 +203,44 @@ class Disambiguator():
         for record in  self.list_of_records:
             print record.vector
  
+ 
     
-    def logstats(self, record1, record2, result):
-        ''' Log statistics for the two compared records.'''
+    def get_name_pvalue(self, record):
+        '''Return the p-value of the firstname-lastname combination given the
+        null hypothesis that first names and last names are selected randomly
+        in such a way that the token frequencies are what we observe.'''
+        try:
+            f2 = record.tokendata.get_token_frequency((2, record['N_first_name']))
+            f1 = record.tokendata.get_token_frequency((1, record['N_last_name']))
+            total = record.tokendata.no_of_tokens
+            return 1.0 * f1 * f2 / total / total
+        except Exception as e:
+            print e
+            return None
+            
         
-        pass
+    
+    
+    def logstats(self, record1, record2, verdict, result):
+        ''' Log statistics for the two compared records.'''
+        if self.logstats_count == 0:
+            self.logstats_header = sorted(result.keys())
+            line = ' '.join(['id1', 'id2', 'verdict', 'p-value'] + self.logstats_header) + "\n"
+        else:
+            try:
+                pvalue = self.get_name_pvalue(record1) * self.get_name_pvalue(record2)
+                pvalue = math.log(pvalue)
+            except TypeError:
+                # one of the pvalues is None
+                pvalue = 'NONE'
+            except ValueError:
+                pvalue = 'NONE'
+            line = ' '.join([str(record1.id), str(record2.id), str(int(verdict)), str(pvalue)] + [str(int(result[field])) if result[field] is not None else 'NONE' for field in self.logstats_header]) + "\n"
+
+        
+
+        self.logstats_file.write(line)
+        self.logstats_count += 1
     
     
     def update_nearest_neighbors(self, B, hashes=None, allow_repeats=False):
@@ -246,7 +290,7 @@ class Disambiguator():
                 # i,j: current index in the sorted has list
                 # sort_indices[i]: the original index of the item residing at index i of the sorted list
                 
-                record1,record2 = self.list_of_records[sort_indices[i]], self.list_of_records[sort_indices[j]]
+                record1, record2 = self.list_of_records[sort_indices[i]], self.list_of_records[sort_indices[j]]
                 if  not allow_repeats:
                     if sort_indices[j] in self.index_adjacency[sort_indices[i]]:
                         continue
@@ -259,15 +303,15 @@ class Disambiguator():
                     
                 # New implementation: comparison is done via instance function of the Record class
                 # Comparison (matching) mode is passed to the Record's compare method.
-                result = record1.compare(record2, mode=self.matching_mode)
-                if result > 0:
+                verdict, result = record1.compare(record2, mode=self.matching_mode)
+                if verdict > 0:
                     self.match_count += 1
                     self.index_adjacency[sort_indices[i]].add(sort_indices[j])
                     self.new_match_buffer.add((sort_indices[i], sort_indices[j]))
                 
                 # compute some statistics about the records
                 if self.do_stats:
-                    self.logstats(record1,record2,result)
+                    self.logstats(record1, record2, verdict, result)
                     
 #                 if (sort_indices[i], sort_indices[j]) not in self.dict_already_compared_pairs:
 #                     if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]], mode=self.matching_mode):
@@ -511,8 +555,8 @@ class Disambiguator():
     def get_set_of_persons_multistate(self):
         list_persons = []
         for person in self.set_of_persons:
-            set_states =  person.get_distinct_attribute('STATE')
-            if len(set_states)>1:
+            set_states = person.get_distinct_attribute('STATE')
+            if len(set_states) > 1:
                 list_persons.append(person)
             
         return list_persons
@@ -773,11 +817,11 @@ class Disambiguator():
                 
         
     def generator_identity_list(self):
-        ''' generate tuples: [(record_id, Person_id)]. 
+        ''' generate tuples: [(record_id, Person_id)].
         person id is an integer that's unique among the persons in this D.'''
-        for i,person in enumerate(self.set_of_persons):
+        for i, person in enumerate(self.set_of_persons):
             for record in person.set_of_records:
-                yield (record.id,i)
+                yield (record.id, i)
                 
     
     def save_identities_to_db(self):
