@@ -4,3 +4,4 @@
 *.gml
 ./src/*.pdf
 *.pyc
+*.record

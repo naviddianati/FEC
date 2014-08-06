@@ -873,7 +873,7 @@ if __name__ == "__main__":
 
     
 #     generateAffiliationData('alaska',affiliation = "employer",record_limit = (0,500000))   
-    disambiguate_main('delaware',record_limit = (0,300000))
+    disambiguate_main('delaware',record_limit = (0,3000))
     quit()
 
     list_states = []

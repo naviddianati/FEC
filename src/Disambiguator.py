@@ -58,7 +58,7 @@ class Disambiguator():
         
         
         self.debug = False
-        self.verbose = True
+        self.verbose = False
         
         self.project = None
         self.matching_mode = matching_mode
@@ -82,7 +82,7 @@ class Disambiguator():
         self.town = Town()
         
         # Whether or not to log statistics of record pair comparisons
-        self.do_stats = True
+        self.do_stats = False
         
         # open output buffer (of size 100kb) for the statistics 
         if self.do_stats:
@@ -574,9 +574,10 @@ class Disambiguator():
 
                 # set of Persons to replace this one
                 spawns = person.split_on_MIDDLENAME()
-                
-                self.print_set_of_persons(spawns, message="Spawns of the person")
-                self.print_set_of_persons(self.town.getPersonsById(person.neighbors), message="Neighbors of the person")
+        
+                if self.verbose:        
+                    self.print_set_of_persons(spawns, message="Spawns of the person")
+                    self.print_set_of_persons(self.town.getPersonsById(person.neighbors), message="Neighbors of the person")
                 
                 
                 set_stillborn_spawns = set()
@@ -674,12 +675,14 @@ class Disambiguator():
             
             # Otherwise compare persons and if compatible, merge
             if p1.isCompatible(p2):
-                print "MERGING two persons" + "="*70
-                print p1.toString()       
-                print "-"*50       
-                print p2.toString()
-                print "="*70
+                if self.verbose:
+                    print "MERGING two persons" + "="*70
+                    print p1.toString()       
+                    print "-"*50       
+                    print p2.toString()
+                    print "="*70
                 p1.merge(p2)
+                self.set_of_persons.remove(p2)
         pass
             
             
@@ -713,7 +716,8 @@ class Disambiguator():
             if self.project:
                 self.project.log('Suffling hash list...', str(i))
 #         self.compute_edgelist()
-        print "index_adjacency matrix computed!"
+        if self.project:
+            self.project.log("index_adjacency matrix computed!",'m')
             
         
     # TODO:
@@ -729,8 +733,9 @@ class Disambiguator():
 
                 # set of Persons to replace this one
                 spawns = person.split_on_MIDDLENAME()
-                self.print_set_of_persons(spawns, message="Spawns of the person")
-                self.print_set_of_persons(self.town.getPersonsById(person.neighbors), message="Neighbors of the person")
+                if self.verbose:
+                    self.print_set_of_persons(spawns, message="Spawns of the person")
+                    self.print_set_of_persons(self.town.getPersonsById(person.neighbors), message="Neighbors of the person")
                 
                 
                 set_stillborn_spawns = set()

@@ -61,20 +61,24 @@ def worker(conn):
     list_results = []
     
     for state in data:
-        project = disambiguate_main(state, record_limit=(0, 5000000))
+        try:
+            project = disambiguate_main(state, record_limit=(0, 5000000))
 #         project = generateAffiliationData(state)  
 
-        
-        # WOW! The following attributes contain pointers to instance methods, and they can't be pickled! So I just unset them!
-        project.D.tokenizer.tokenize_functions = None
-        project.D.tokenizer.normalize_functions = None
-        project.D.project = None
+            
+            # WOW! The following attributes contain pointers to instance methods, and they can't be pickled! So I just unset them!
+            project.D.tokenizer.tokenize_functions = None
+            project.D.tokenizer.normalize_functions = None
+            project.D.project = None
 
-        
-        
-        list_results.append(project) 
-        print "="*70, "\n" + state + " done." + str(datetime.datetime.now()) + "\n" + "="*70 
-        time.sleep(random.randint(1,10))
+            
+            
+            list_results.append(project) 
+            print "="*70, "\n" + state + " done." + str(datetime.datetime.now()) + "\n" + "="*70 
+            time.sleep(random.randint(1,10))
+
+        except Exception as e:
+            print "Could not disambiguate state ", state, ":   ",e
 #     for i,project in enumerate(list_results):
 #         print i
 #         s = pickle.dumps(project.D)
@@ -90,12 +94,15 @@ def worker(conn):
 
 if __name__ == "__main__":
     
-    list_states = []
 
     # Use custom list of states
     list_states = ['california', 'texas', 'marshallislands', 'palau', 'georgia', 'newjersey']
     list_states = ['delaware', 'maryland']
-    list_states = ['newyork', 'massachusetts']
+#    list_states = ['newyork', 'massachusetts']
+
+
+    # Do the entire country
+    list_states = []
 
     list_jobs = []
 
@@ -141,9 +148,10 @@ if __name__ == "__main__":
         # p.daemon = True
 
         list_jobs.append(p)
-        conn_parent.send(dict_states[id])
         time.sleep(1)
         p.start()
+        conn_parent.send(dict_states[id])
+
     
     # list containing the project objects returned by the processes
     list_results = []
@@ -155,12 +163,18 @@ if __name__ == "__main__":
         result = conn_parent.recv()
         list_results += result
         
+    for p in list_jobs:
+        p.join()
+
     list_of_Ds = [project.D for project in list_results]
 #     list_of_Ds = [D for D in list_results]
 
     print "Disambiguating the compound data..."
         
-    D = Disambiguator.getCompoundDisambiguator(list_of_Ds)
+    try:
+        D = Disambiguator.getCompoundDisambiguator(list_of_Ds)
+    except Exception as e:
+        print "ERROR: could not get compouns Disambiguator... ", e
     
     num_D_before = [len(D.set_of_persons), len(D.list_of_records)]
     
@@ -180,7 +194,14 @@ if __name__ == "__main__":
 
     project.D = D
 #     
-    project.save_data_textual(file_label="compound")
+
+    project.save_data_textual(file_label="country")
+
+
+    try:
+        D.save_identities_to_db()
+    except Exception as e:
+        print "ERROR: ", e
     
     print num_D_before
     print num_D_after
