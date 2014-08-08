@@ -79,11 +79,14 @@ def worker(conn):
 
         except Exception as e:
             print "Could not disambiguate state ", state, ":   ",e
+    f = open('tmp-'+proc_name,'w')
+    pickle.dump(list_results,f)
+    f.close()
 #     for i,project in enumerate(list_results):
 #         print i
 #         s = pickle.dumps(project.D)
 #     quit()
-    conn.send(list_results)    
+#    conn.send(list_results)    
 
 
 
@@ -157,14 +160,19 @@ if __name__ == "__main__":
     list_results = []
     
     
-    # Process the outputs
-    for id in dict_states:
-        (conn_parent, conn_child) = dict_conns[id] 
-        result = conn_parent.recv()
-        list_results += result
-        
+           
     for p in list_jobs:
         p.join()
+    
+    # Process the outputs
+    for id in dict_states:
+        #(conn_parent, conn_child) = dict_conns[id] 
+        #result = conn_parent.recv()
+        f = open("tmp-"+str(id))
+        result =  pickle.load(f)
+        list_results += result
+        f.close()
+
 
     list_of_Ds = [project.D for project in list_results]
 #     list_of_Ds = [D for D in list_results]
