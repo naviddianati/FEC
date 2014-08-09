@@ -81,19 +81,41 @@ class Disambiguator():
         # Persons will be added to the town when identities are extracted from the list of records
         self.town = Town()
         
-        # Whether or not to log statistics of record pair comparisons
-        self.do_stats = False
+        # Whether or not to log statistics of record pair comparisons. Use self.set_logstats() to initialize these.
+        self.do_stats = True
         
-        # open output buffer (of size 100kb) for the statistics 
-        if self.do_stats:
-            self.logstats_file = open('stats.txt', 'w', 100000)
+        self.logstats_file = None
         self.logstats_count = 0
         self.logstats_header = []
+        # set of record.id pairs already logged
+        self.logstats_set_pairs = set()
+        
+        if self.do_stats:
+            self.set_logstats(True)
 
             
             
+                
+    def set_logstats(self, is_on=True):
+        ''' initialize instance attributes needed to log record link statistics'''
+        self.do_stats = is_on
+        
+        if self.do_stats:
+            # open output buffer (of size 100kb) for the statistics 
+            self.logstats_file = open('stats.txt', 'w', 100000)
+            self.logstats_count = 0
+            self.logstats_header = []
+        
+            # set of record.id pairs already logged
+            self.logstats_set_pairs = set()
+        else:
+            try:
+                self.logstats_file.close()
+            except:
+                pass
+        
             
-
+        
 
 
 
@@ -205,15 +227,21 @@ class Disambiguator():
  
  
     
-    def get_name_pvalue(self, record):
+    def get_name_pvalue(self, record, which='firstname'):
         '''Return the p-value of the firstname-lastname combination given the
         null hypothesis that first names and last names are selected randomly
         in such a way that the token frequencies are what we observe.'''
         try:
-            f2 = record.tokendata.get_token_frequency((2, record['N_first_name']))
-            f1 = record.tokendata.get_token_frequency((1, record['N_last_name']))
-            total = record.tokendata.no_of_tokens
-            return 1.0 * f1 * f2 / total / total
+            if which == 'firstname':
+                f2 = record.tokendata.get_token_frequency((2, record['N_first_name']))
+                total = record.tokendata.no_of_tokens
+                return 1.0 * f2 / total 
+            
+            if which == 'lastname':
+                f1 = record.tokendata.get_token_frequency((1, record['N_last_name']))
+                total = record.tokendata.no_of_tokens
+                return 1.0 * f1 / total 
+
         except Exception as e:
             print e
             return None
@@ -225,18 +253,43 @@ class Disambiguator():
         ''' Log statistics for the two compared records.'''
         if self.logstats_count == 0:
             self.logstats_header = sorted(result.keys())
-            line = ' '.join(['id1', 'id2', 'verdict', 'p-value'] + self.logstats_header) + "\n"
+            line = ' '.join(['id1', 'id2', 'verdict', 'p-value-firstname','p-value-lastname'] + self.logstats_header) + "\n"
         else:
-            try:
-                pvalue = self.get_name_pvalue(record1) * self.get_name_pvalue(record2)
-                pvalue = math.log(pvalue)
-            except TypeError:
-                # one of the pvalues is None
-                pvalue = 'NONE'
-            except ValueError:
-                pvalue = 'NONE'
-            line = ' '.join([str(record1.id), str(record2.id), str(int(verdict)), str(pvalue)] + [str(int(result[field])) if result[field] is not None else 'NONE' for field in self.logstats_header]) + "\n"
-
+            
+            # Skip if already logged
+            if (record1.id, record2.id) in self.logstats_set_pairs or (record2.id, record1.id) in self.logstats_set_pairs: return
+            
+            pvalue_lastname = None
+            pvalue_firstname = None
+            
+            # If last names identical, compute last name pvalue
+            if record1['N_last_name'] == record2['N_last_name']:  
+                try:
+                    pvalue_lastname = self.get_name_pvalue(record1,which='lastname') 
+                    pvalue_lastname = math.log(pvalue_lastname)
+                except TypeError:
+                    # one of the pvalues is None
+                    pvalue_lastname = 'NONE'
+                except ValueError:
+                    pvalue_lastname = 'NONE'
+            
+            # If first names identical, compute first name pvalue
+            if record1['N_first_name'] == record2['N_first_name']:  
+                try:
+                    pvalue_firstname = self.get_name_pvalue(record1,which='firstname') 
+                    pvalue_firstname = math.log(pvalue_firstname)
+                except TypeError:
+                    # one of the pvalues is None
+                    pvalue_firstname = 'NONE'
+                except ValueError:
+                    pvalue_firstname = 'NONE'
+            
+            if pvalue_firstname is None and pvalue_lastname is None: return
+                    
+            
+            line = ' '.join([str(record1.id), str(record2.id), str(int(verdict)), str(pvalue_firstname), str(pvalue_lastname)] + [str(int(result[field])) if result[field] is not None else 'None' for field in self.logstats_header]) + "\n"
+            
+            self.logstats_set_pairs.add((record1.id, record2.id)) 
         
 
         self.logstats_file.write(line)
@@ -717,7 +770,7 @@ class Disambiguator():
                 self.project.log('Suffling hash list...', str(i))
 #         self.compute_edgelist()
         if self.project:
-            self.project.log("index_adjacency matrix computed!",'m')
+            self.project.log("index_adjacency matrix computed!", 'm')
             
         
     # TODO:
