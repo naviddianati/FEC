@@ -5,4 +5,5 @@
 ./src/*.pdf
 *.pyc
 *.record
+tmp*
 config/batches.list

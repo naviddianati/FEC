@@ -75,7 +75,7 @@ if __name__ == "__main__":
     N = len(list_trial_ids)
 
     # No more than 10 processes
-    number_of_processes = min(N, 3)
+    number_of_processes = min(N, 10)
 
     
     
