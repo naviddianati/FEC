@@ -253,7 +253,7 @@ class Disambiguator():
         ''' Log statistics for the two compared records.'''
         if self.logstats_count == 0:
             self.logstats_header = sorted(result.keys())
-            line = ' '.join(['id1', 'id2', 'verdict', 'p-value-firstname','p-value-lastname'] + self.logstats_header) + "\n"
+            line = ' '.join(['id1', 'id2', 'verdict', 'p-value-firstname', 'p-value-lastname'] + self.logstats_header) + "\n"
         else:
             
             # Skip if already logged
@@ -265,7 +265,7 @@ class Disambiguator():
             # If last names identical, compute last name pvalue
             if record1['N_last_name'] == record2['N_last_name']:  
                 try:
-                    pvalue_lastname = self.get_name_pvalue(record1,which='lastname') 
+                    pvalue_lastname = self.get_name_pvalue(record1, which='lastname') 
                     pvalue_lastname = math.log(pvalue_lastname)
                 except TypeError:
                     # one of the pvalues is None
@@ -276,7 +276,7 @@ class Disambiguator():
             # If first names identical, compute first name pvalue
             if record1['N_first_name'] == record2['N_first_name']:  
                 try:
-                    pvalue_firstname = self.get_name_pvalue(record1,which='firstname') 
+                    pvalue_firstname = self.get_name_pvalue(record1, which='firstname') 
                     pvalue_firstname = math.log(pvalue_firstname)
                 except TypeError:
                     # one of the pvalues is None
@@ -877,7 +877,7 @@ class Disambiguator():
     def generator_identity_list(self):
         ''' generate tuples: [(record_id, Person_id)].
         person id is an integer that's unique among the persons in this D.'''
-        for i, person in enumerate(self.set_of_persons):
+        for i, person in enumerate(sorted(self.set_of_persons, key=lambda person: min([record['N_last_name'] for record in person.set_of_records]))):
             for record in person.set_of_records:
                 yield (record.id, i)
                 

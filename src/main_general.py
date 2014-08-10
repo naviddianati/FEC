@@ -528,7 +528,7 @@ class Project(dict):
         self["batch_id"] = batch_id
         self["data_path"] = os.path.expanduser('~/data/FEC/')
         self["logfilename"] = '../records/' + str(self["batch_id"]) + '.record'
-        self["logfile"] = open(self["logfilename"], 'w', 0)
+        #self["logfile"] = open(self["logfilename"], 'w', 0)
         self["messages"] = []
         self["list_tokenized_fields"] = []
         self["list_auxiliary_fields"] = []
@@ -557,7 +557,9 @@ class Project(dict):
     
     def log(self, key, value):
 #         self.messages.append((key, value))
-        self["logfile"].write("%s : %s\n" % (key, value))  # write without buffering
+        logfile = open(self["logfilename"], 'a', 0)
+        logfile.write("%s : %s\n" % (key, value))  # write without buffering
+        logfile.close()
 #         self.logfile.close()
 #         self.logfile = open(self.logfilename, 'w')
     

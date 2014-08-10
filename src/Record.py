@@ -106,15 +106,51 @@ class Record(dict):
     Negative numbers can be used to indicate strict irreconcilability.
     '''
     def compare(self, otherRecord, mode="strict"):
+        
+        
         if mode == "strict":
             return self.compare_STRICT(self, otherRecord) 
         
-        if mode == "thorough":
+        elif mode == "thorough":
             decision = (self.compare_THOROUGH(self, otherRecord))
             if Record.debug: 
                 print decision
             return decision
-        raise ValueError("Specify comparison mode") 
+        
+        
+        elif mode == "1":
+            decision = (self.compare_1(self, otherRecord))
+            return decision
+        elif mode == "2":
+            decision = (self.compare_2(self, otherRecord))
+            return decision 
+        elif mode == "3":
+            decision = (self.compare_3(self, otherRecord))
+            return decision
+        elif mode == "4":
+            decision = (self.compare_4(self, otherRecord))
+            return decision
+        elif mode == "5":
+            decision = (self.compare_5(self, otherRecord))
+            return decision
+        elif mode == "6":
+            decision = (self.compare_6(self, otherRecord))
+            return decision
+        elif mode == "7":
+            decision = (self.compare_7(self, otherRecord))
+            return decision
+        elif mode == "8":
+            decision = (self.compare_8(self, otherRecord))
+            return decision
+        elif mode == "9":
+            decision = (self.compare_9(self, otherRecord))
+            return decision
+        elif mode == "10":
+            decision = (self.compare_10(self, otherRecord))
+            return decision
+        
+        else:
+            raise ValueError("Specify comparison mode") 
     
     
     
