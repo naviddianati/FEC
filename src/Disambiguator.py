@@ -103,6 +103,7 @@ class Disambiguator():
         if self.do_stats:
             # open output buffer (of size 100kb) for the statistics 
             self.logstats_file = open('stats.txt', 'w', 100000)
+            self.logstats_file.write('#\n'*5)
             self.logstats_count = 0
             self.logstats_header = []
         
@@ -251,6 +252,7 @@ class Disambiguator():
     
     def logstats(self, record1, record2, verdict, result):
         ''' Log statistics for the two compared records.'''
+        if not self.do_stats: return
         if self.logstats_count == 0:
             self.logstats_header = sorted(result.keys())
             line = ' '.join(['id1', 'id2', 'verdict', 'p-value-firstname', 'p-value-lastname'] + self.logstats_header) + "\n"

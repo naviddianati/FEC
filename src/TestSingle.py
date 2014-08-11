@@ -17,7 +17,7 @@ from main_general import *
 
 
 def run_test():
-    project1 = disambiguate_main('maryland', record_limit=(0, 50000))
+    project1 = disambiguate_main('maryland', record_limit=(0, 5000000))
     
     project1.D.tokenizer.tokenize_functions = None
     project1.D.tokenizer.normalize_functions = None
@@ -61,10 +61,12 @@ if __name__ == "__main__":
     
     project = run_test()
     D = project.D
-    D.save_identities_to_db()
     
-    for person in D.set_of_persons:
-        print person.neighbors
+    
+#     D.save_identities_to_db()
+    
+#     for person in D.set_of_persons:
+#         print person.neighbors
 
     
     
