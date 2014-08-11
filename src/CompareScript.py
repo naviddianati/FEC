@@ -27,7 +27,7 @@ def worker(conn):
     for id in data:
         try:
             print "processing task with id = ", id
-            project = disambiguate_main(state, record_limit=(0, 5000))
+            project = disambiguate_main(state, record_limit=(0, 5000000))
             D = project.D
 
             # To be returned to parent process. Dictionary {record_id: identity}
@@ -70,6 +70,9 @@ if __name__ == "__main__":
     #set_states = set(list_states)
 
     list_trial_ids = ["1","2","3","4","5","6","7","8","9","10"]
+
+    list_trial_ids = [str(i) for i in range(20)]
+
     set_trial_ids = set(list_trial_ids)
     
     N = len(list_trial_ids)

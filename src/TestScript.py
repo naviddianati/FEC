@@ -98,6 +98,9 @@ def worker(conn):
 if __name__ == "__main__":
     
 
+    # Whether to run new state batches or read from existing output files.
+    run_fresh_batches = False
+
     # Use custom list of states
     list_states = ['california', 'texas', 'marshallislands', 'palau', 'georgia', 'newjersey']
     list_states = ['delaware', 'maryland']
@@ -138,32 +141,34 @@ if __name__ == "__main__":
     for id in dict_states:
         print id, dict_states[id]
 
+
+    # Run fresh state-wide disambiguation batches. Alternatively, we can skip this and read from pickled files from previous runs. 
+    if run_fresh_batches:        
+        for id in dict_states:
+            # queue = multiprocessing.Queue()
+            conn_parent, conn_child = multiprocessing.Pipe()
+            dict_conns[id] = (conn_parent, conn_child)        
+
+
+            p = multiprocessing.Process(target=worker, name=str(id), args=(conn_child,))
+
+            # set process as daemon. Let it run in the background
+            # p.daemon = True
+
+            list_jobs.append(p)
+            time.sleep(1)
+            p.start()
+            conn_parent.send(dict_states[id])
+
+               
+        for p in list_jobs:
+            p.join()
         
-    for id in dict_states:
-        # queue = multiprocessing.Queue()
-        conn_parent, conn_child = multiprocessing.Pipe()
-        dict_conns[id] = (conn_parent, conn_child)        
-
-
-        p = multiprocessing.Process(target=worker, name=str(id), args=(conn_child,))
-
-        # set process as daemon. Let it run in the background
-        # p.daemon = True
-
-        list_jobs.append(p)
-        time.sleep(1)
-        p.start()
-        conn_parent.send(dict_states[id])
-
     
     # list containing the project objects returned by the processes
     list_results = []
     
-    
-           
-    for p in list_jobs:
-        p.join()
-    
+
     # Process the outputs
     for id in dict_states:
         #(conn_parent, conn_child) = dict_conns[id] 
