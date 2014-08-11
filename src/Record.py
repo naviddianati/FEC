@@ -119,35 +119,30 @@ class Record(dict):
         
         
         elif mode == "1":
-            decision = (self.compare_1(self, otherRecord))
+            decision = (self.compare_THOROUGH(self, otherRecord, method_id=1))
             return decision
         elif mode == "2":
-            decision = (self.compare_2(self, otherRecord))
+            decision = (self.compare_THOROUGH(self, otherRecord, method_id=2))
             return decision 
         elif mode == "3":
-            decision = (self.compare_3(self, otherRecord))
+            decision = (self.compare_THOROUGH(self, otherRecord, method_id=3))
             return decision
         elif mode == "4":
-            decision = (self.compare_4(self, otherRecord))
+            decision = (self.compare_THOROUGH(self, otherRecord, method_id=4))
             return decision
         elif mode == "5":
-            decision = (self.compare_5(self, otherRecord))
+            decision = (self.compare_THOROUGH(self, otherRecord, method_id=5))
             return decision
         elif mode == "6":
-            decision = (self.compare_6(self, otherRecord))
+            decision = (self.compare_THOROUGH(self, otherRecord, method_id=6))
             return decision
         elif mode == "7":
-            decision = (self.compare_7(self, otherRecord))
+            decision = (self.compare_THOROUGH(self, otherRecord, method_id=7))
             return decision
         elif mode == "8":
-            decision = (self.compare_8(self, otherRecord))
+            decision = (self.compare_THOROUGH(self, otherRecord, method_id=8))
             return decision
-        elif mode == "9":
-            decision = (self.compare_9(self, otherRecord))
-            return decision
-        elif mode == "10":
-            decision = (self.compare_10(self, otherRecord))
-            return decision
+        
         
         else:
             raise ValueError("Specify comparison mode") 
@@ -245,7 +240,162 @@ class Record(dict):
                    
 
     
-    def compare_THOROUGH(self, r1, r2):
+
+    def _verdict_addressN_zipY(self, c_n, c_e, c_o, method_id=None):
+        ''' If addresses are different and zipcodes are the same'''
+        if method_id is None:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        
+        # strict
+        elif method_id == 1:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 2:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 3:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 4:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        
+        
+        elif method_id == 5:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 6:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 7:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 8:
+            return (c_e >= 2 or c_o >= 2) and c_n
+       
+
+
+    def _verdict_addressN_zipN(self, c_n, c_e, c_o, method_id=None):
+        ''' If addresses are different and zipcodes are different'''
+        if method_id is None:
+            return (c_e >= 2 and c_o >= 2) and c_n
+
+        elif method_id == 1:
+            return (c_e >= 3 and c_o >= 3) and c_n
+        elif method_id == 2:
+            return (c_e >= 3 and c_o >= 3) and c_n
+        
+        elif method_id == 3:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 4:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        
+        elif method_id == 5:
+            return (c_e >= 3 and c_o >= 3) and c_n
+        elif method_id == 6:
+            return (c_e >= 3 and c_o >= 3) and c_n
+        
+        elif method_id == 7:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 8:
+            return (c_e >= 2 and c_o >= 2) and c_n
+       
+        
+
+
+    def _verdict_addressNA_zipY(self, c_n, c_e, c_o, method_id=None):        
+        ''' If at least one address is None  and zipcodes are the same'''
+        if method_id is None:
+            return (c_e >= 1 or c_o >= 1) and c_n
+       
+        elif method_id == 1:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 2:
+            return (c_e >= 1 or c_o >= 1) and c_n
+        
+        elif method_id == 3:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 4:
+            return (c_e >= 1 or c_o >= 1) and c_n
+        
+        elif method_id == 5:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 6:
+            return (c_e >= 1 or c_o >= 1) and c_n
+        
+        elif method_id == 7:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 8:
+            return (c_e >= 1 or c_o >= 1) and c_n
+        
+
+
+    def _verdict_addressNA_zipN(self, c_n, c_e, c_o, method_id=None):
+        ''' If at least one address is None  and zipcodes are different'''
+        # All are the same
+        if method_id is None:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 1:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 2:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 3:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 4:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 5:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 6:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 7:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 8:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        
+
+
+    def _verdict_cityN(self, c_n, c_e, c_o, method_id=None):
+        ''' If cities are different '''        
+        # All are the same
+        if method_id is None:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 1:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 2:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 3:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 4:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 5:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 6:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 7:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        elif method_id == 8:
+            return (c_e >= 2 and c_o >= 2) and c_n
+        
+
+
+    def _verdict_stateN(self, c_n, c_e, c_o, method_id=None):
+        ''' If states are different '''
+        # All are the same
+        if method_id is None:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 1:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 2:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 3:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 4:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 5:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 6:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 7:
+            return (c_e >= 2 or c_o >= 2) and c_n
+        elif method_id == 8:
+            return (c_e >= 2 or c_o >= 2) and c_n
+       
+
+
+    def compare_THOROUGH(self, r1, r2, method_id=None):
         '''
         Returns an integer and a dictionary. One can use this function directly to get additional information about
         the nature of the relationship. For instance, this function can return negative numbers to
@@ -321,9 +471,9 @@ class Record(dict):
 
                         # What if zipcodes are different?
                         if c_z:
-                            return ((c_e >= 2 or  c_o >= 2) and c_n), result
+                            return self._verdict_addressN_zipY(c_n, c_e, c_o, method_id=method_id), result
                         else:
-                            return ((c_e >= 2 and  c_o >= 2) and c_n), result
+                            return self._verdict_addressN_zipN(c_n, c_e, c_o, method_id=method_id), result
                             
                         
                                       
@@ -340,11 +490,11 @@ class Record(dict):
                     
                     # if zip codes are the same, then relax the affiliation condition a bit
                     if c_z == 2:
-                        return ((c_e >= 1 or  c_o >= 1) and c_n), result
+                        return self._verdict_addressNA_zipY(c_n, c_e, c_o, method_id=method_id), result
                     else:
                         # If at least one doesn't have an address and zipcodes are different
                         # Accept if both the affiliations are clearly related and exact same name
-                        return ((c_e >= 2 and  c_o >= 2) and c_n), result
+                        return self._verdict_addressNA_zipN(c_n, c_e, c_o, method_id=method_id), result
 
             # If states are the same but cities are different
             else:
@@ -358,7 +508,7 @@ class Record(dict):
                 result['e'], result['o'], result['n'] = c_e, c_o, c_n
                 # Return LARGE_NEGATIVE if middle names are different
                 if c_n < 0: return Record.LARGE_NEGATIVE, result
-                return ((c_e >= 2 and  c_o >= 2) and c_n), result
+                return self._verdict_cityN(c_n, c_e, c_o, method_id=method_id), result
                 
 
             
@@ -380,7 +530,7 @@ class Record(dict):
             if c_n < 0: return Record.LARGE_NEGATIVE, result
             
             # Actually, we will relax the conditions at this point. Cross-state consistency will be resolved on the Person level.
-            return ((c_e >= 2 or  c_o >= 2)  and c_n), result
+            return self._verdict_stateN(c_n, c_e, c_o, method_id=method_id), result
         return False, result
     
     

@@ -309,7 +309,7 @@ def generateAffiliationData(state=None, affiliation = None,record_limit = (0,500
 
 
 
-def disambiguate_main(state, record_limit=(0, 5000000)):  
+def disambiguate_main(state, record_limit=(0, 5000000), method_id = "thorough"):  
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -454,7 +454,7 @@ def disambiguate_main(state, record_limit=(0, 5000000)):
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator(list_of_records, dim, matching_mode='thorough')
+    D = Disambiguator(list_of_records, dim, matching_mode= method_id)
     D.tokenizer = tokenizer
     project.D = D
     D.project = project
