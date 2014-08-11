@@ -14,6 +14,8 @@ from main_general import *
 
 
 def worker(conn):
+    
+    # data is a subset of list_trial_ids
     data = conn.recv()
     proc_name = multiprocessing.current_process().name
     print proc_name, data
@@ -27,7 +29,7 @@ def worker(conn):
     for id in data:
         try:
             print "processing task with id = ", id
-            project = disambiguate_main(state, record_limit=(0, 5000))
+            project = disambiguate_main(state, record_limit=(0, 5000),method_id = id)
             D = project.D
 
             # To be returned to parent process. Dictionary {record_id: identity}
@@ -69,13 +71,13 @@ if __name__ == "__main__":
 
     #set_states = set(list_states)
 
-    list_trial_ids = ["1","2","3","4","5","6","7","8","9","10"]
+    list_trial_ids = ["1","2","3","4","5","6","7","8"]
     set_trial_ids = set(list_trial_ids)
     
     N = len(list_trial_ids)
 
     # No more than 10 processes
-    number_of_processes = min(N, 10)
+    number_of_processes = min(N, 3)
 
     
     
@@ -83,7 +85,7 @@ if __name__ == "__main__":
     dict_conns = {}
 
 
-    proc_id = 0
+    proc_id = 1
     while set_trial_ids:
         if proc_id not in dict_trials: dict_trials[proc_id] = set()
         dict_trials[proc_id].add(set_trial_ids.pop())
