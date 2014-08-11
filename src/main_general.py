@@ -116,7 +116,7 @@ def loadAffiliationNetwork(label, data_path, affiliation):
     The output of this method will be the data files which can be loaded by loadAffiliationNetwork().
     The comparison method used by Records here should be strict.
     '''
-def generateAffiliationData(state=None, affiliation = None,record_limit = (0,5000000)):
+def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 5000000)):
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -165,7 +165,7 @@ def generateAffiliationData(state=None, affiliation = None,record_limit = (0,500
     list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
     project.putData("list_tokenized_fields", list_tokenized_fields)
     
-    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP','id']
+    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
     project.putData("list_auxiliary_fields", list_auxiliary_fields)
     
     all_fields = list_tokenized_fields + list_auxiliary_fields 
@@ -309,7 +309,7 @@ def generateAffiliationData(state=None, affiliation = None,record_limit = (0,500
 
 
 
-def disambiguate_main(state, record_limit=(0, 5000000), method_id = "thorough"):  
+def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", logstats=False):  
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -454,10 +454,14 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id = "thorough"):
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator(list_of_records, dim, matching_mode= method_id)
+    D = Disambiguator(list_of_records, dim, matching_mode=method_id)
     D.tokenizer = tokenizer
     project.D = D
     D.project = project
+    
+    # Set D's logstats on or off
+    D.set_logstats(is_on=logstats)
+        
     
     
     # desired dimension (length) of hashes
@@ -488,9 +492,14 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id = "thorough"):
     D.generate_identities()
     D.refine_identities()
     
-   
+    # If logstats was on, rename stats.txt to include param_state
+    if logstats:
+        try:
+            os.rename('stats.txt', 'stats-' + param_state + ".txt")
+        except Exception as e:
+            print e
+        D.set_logstats(is_on=False)
     
-
 
 
 #     print json.dumps(D.dict_already_compared_pairs.keys(),indent=2)
@@ -517,6 +526,8 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id = "thorough"):
     project.dump_full_adjacency()
     
     
+    
+    
     return project
 
 
@@ -528,7 +539,7 @@ class Project(dict):
         self["batch_id"] = batch_id
         self["data_path"] = os.path.expanduser('~/data/FEC/')
         self["logfilename"] = '../records/' + str(self["batch_id"]) + '.record'
-        #self["logfile"] = open(self["logfilename"], 'w', 0)
+        # self["logfile"] = open(self["logfilename"], 'w', 0)
         self["messages"] = []
         self["list_tokenized_fields"] = []
         self["list_auxiliary_fields"] = []
@@ -694,7 +705,7 @@ class Project(dict):
                     # without normalized names
                     new_row = record_as_list_tokenized + [r['N_address']]
                     
-                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s,unicode) else s  for s in new_row ]
+                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s, unicode) else s  for s in new_row ]
                     new_block.append(new_row)
 
                     
@@ -712,9 +723,9 @@ class Project(dict):
                 
                 # Save a group of blocks to file
                 if person_counter % page_size == 0:
-                    df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"]+['N_address'])
-                    f1.write(df.to_string(justify='left').encode('ascii','ignore'))
-                    f2.write(df.to_html().encode('ascii','ignore'))
+                    df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"] + ['N_address'])
+                    f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
+                    f2.write(df.to_html().encode('ascii', 'ignore'))
                     f2.write("<br/><br/>")
                     
                     # Reset the output buffer
@@ -731,10 +742,10 @@ class Project(dict):
             
             # if there's a fraction of a page left at the end, write that too. 
             if dataframe_data:
-                df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"]+['N_address'])
-                f1.write(df.to_string(justify='left').encode('ascii','ignore'))
+                df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"] + ['N_address'])
+                f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
     
-                f2.write(df.to_html().encode('ascii','ignore'))
+                f2.write(df.to_html().encode('ascii', 'ignore'))
                 f2.write("<br/><br/>")
 
             f1.close()
@@ -840,8 +851,8 @@ def worker(conn):
     print proc_name, data
     
     for state in data:
-        #print state
-        #disambiguate_main(state,record_limit = (0,1000))
+        # print state
+        # disambiguate_main(state,record_limit = (0,1000))
         generateAffiliationData(state)   
         print "="*70, "\n" + state + " done." + str(datetime.datetime.now()) + "\n" + "="*70 
     # time.sleep(random.randint(1,10))
@@ -872,70 +883,8 @@ def worker(conn):
 if __name__ == "__main__":
 
 
-
-    
-#     generateAffiliationData('alaska',affiliation = "employer",record_limit = (0,500000))   
-    disambiguate_main('delaware',record_limit = (0,3000))
+ 
+    disambiguate_main('ohio', record_limit=(0, 500), logstats=True)
     quit()
-
-    list_states = []
-
-    # Use custom list of states
-    list_states = ['california','texas','marshallislands','palau','georgia','newjersey']
-
-    list_jobs = []
-
-    # if not specified,  load all states
-    if not list_states:
-        list_states = sorted(dict_state.values())
-
-
-    set_states = set(list_states)
-
-    N =  len(list_states)
-
-    # No more than 10 processes
-    number_of_processes = min(N,10)
-
-    
-    
-    dict_states = {}
-    
-    dict_conns = {}
-
-
-    proc_id = 0
-    while set_states:
-        if proc_id not in dict_states: dict_states[proc_id] = set()
-        dict_states[proc_id].add(set_states.pop())
-        proc_id +=1
-        proc_id = proc_id %number_of_processes
-
-    for id in dict_states:
-        print id, dict_states[id]
-
-        
-    for id in dict_states:
-        # queue = multiprocessing.Queue()
-        conn_parent, conn_child = multiprocessing.Pipe()
-        dict_conns[id] = (conn_parent, conn_child)        
-
-
-        p = multiprocessing.Process(target=worker, name=str(id), args=(conn_child,))
-
-        # set process as daemon. Let it run in the background
-        # p.daemon = True
-
-        #list_jobs.append(p)
-        conn_parent.send(dict_states[id])
-        p.start()
-    
-
-    
-    # for id in dict_states:
-    #    (conn_parent,conn_child) = dict_conns[id] 
-    #    print conn_parent.recv()
-        
-        
 
  
