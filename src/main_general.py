@@ -426,7 +426,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     G_employer = loadAffiliationNetwork(param_state, project['data_path'], 'employer')
     if G_employer:
         for record in list_of_records:
-            record.G_employer = [G_employer]
+            record.list_G_employer = [G_employer]
     else:
         print "WARNING: EMPLOYER network not found."
         project.log('WARNING', param_state + " EMPLOYER network not found.")
@@ -436,7 +436,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     G_occupation = loadAffiliationNetwork(param_state, project['data_path'], 'occupation')
     if G_occupation:  
         for record in list_of_records:
-            record.G_occupation = [G_occupation]
+            record.list_G_occupation = [G_occupation]
     else:
         print "WARNING: OCCUPATION network not found."
         project.log('WARNING', param_state + " OCCUPATION network not found.")
@@ -667,7 +667,8 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     G_employer = loadAffiliationNetwork(param_state, project['data_path'], 'employer')
     if G_employer:
         for record in list_of_records:
-            record.G_employer = [G_employer]
+            record.list_G_employer = [G_employer]
+        print "G_employer loaded"
     else:
         print "WARNING: EMPLOYER network not found."
         project.log('WARNING', param_state + " EMPLOYER network not found.")
@@ -677,7 +678,8 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     G_occupation = loadAffiliationNetwork(param_state, project['data_path'], 'occupation')
     if G_occupation:  
         for record in list_of_records:
-            record.G_occupation = [G_occupation]
+            record.list_G_occupation = [G_occupation]
+        print "G_occupation loaded"
     else:
         print "WARNING: OCCUPATION network not found."
         project.log('WARNING', param_state + " OCCUPATION network not found.")
@@ -710,19 +712,28 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
         
         
         
-        data1 = [ r1['NAME'], r1['CITY'], r1['ZIP_CODE'], r1['EMPLOYER'], r1['OCCUPATION'],r1['N_middle_name']]
-        data2 = [ r2['NAME'], r2['CITY'], r2['ZIP_CODE'], r2['EMPLOYER'], r2['OCCUPATION'],r2['N_middle_name']]
+        data1 = [ r1['NAME'], r1['CITY'], r1['ZIP_CODE'], r1['EMPLOYER'], r1['OCCUPATION'], r1['N_middle_name']]
+        data2 = [ r2['NAME'], r2['CITY'], r2['ZIP_CODE'], r2['EMPLOYER'], r2['OCCUPATION'], r2['N_middle_name']]
         
-        output =  pd.DataFrame([data1, data2]).to_string() 
-        print output
-        file_handcode_log.write(output+"\n")
-        
+        # We're only accepting records with the same first names and the same last names.
+        pvalue = np.log(r1.get_name_pvalue(which="firstname") * r1.get_name_pvalue(which="lastname")) 
+        output = pd.DataFrame([data1, data2]).to_string() 
         result = r1.compare(r2, mode="thorough")
         verdict = result[0]
-        me = raw_input()
+        
+#         if result[1]['e'] != 2: continue
+#         if verdict: continue;
+
+        print output
+        print pvalue
+        file_handcode_log.write(output + "\n")
+        
+        
+        
         print verdict, result[1]
+        me = raw_input()
         print "_"*80
-        file_handcode_log.write(me+"\n"+str(verdict) + "   "+str(result[1])+"\n"+"_"*80+"\n")
+        file_handcode_log.write(me + "\n" + str(verdict) + "   " + str(result[1]) + "\n" + "_"*80 + "\n")
 
         
         if not verdict:
@@ -1180,7 +1191,7 @@ def worker(conn):
 
 if __name__ == "__main__":
 
-    hand_code('ohio', record_limit=(10000, 10000), sample_size=4000, logstats=True)
+    hand_code('ohio', record_limit=(50000, 10000), sample_size=10000, logstats=True)
     quit()
     
     

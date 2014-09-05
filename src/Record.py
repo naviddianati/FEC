@@ -7,6 +7,32 @@ Created on Jun 25, 2014
 Hashable class.
 '''
 
+
+'''
+When can we use name frequency in record comparison?
+
+1- city and zipcode are the same, some affiliation is missing:
+    ________________________________________________________________________________
+                        0       1      2     3                      4  5
+    0    BEAZLEY, MICHAEL  TOLEDO  43606  SELF             CONSULTANT
+    1  BEAZLEY, MICHAEL J  TOLEDO  43606        INFORMATION REQUESTED  J
+
+
+
+1- city and zipcode are different, no meaningful affiliation info, bu name VERY rare
+    ________________________________________________________________________________
+                          0            1      2                    3        4  5
+    0    CANCELLIERE, LAURA  BAY VILLAGE  44140              RETIRED  RETIRED   
+    1  CANCELLIERE, LAURA N     WESTLAKE  44145  COMMUNITY VOLUNTEER           N
+
+
+1- CITY1 == CITY2:
+
+
+
+
+'''
+
 import json
 
 from Affiliations import bad_identifier
@@ -224,17 +250,36 @@ class Record(dict):
         return identical, None
                    
                    
+#     
+#     def pvalue(self, r1, r2):
+#         
+#         f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r1['N_last_name']))
+#         f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r2['N_last_name']))
+#         
+#         g1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], r1['N_first_name']))
+#         g2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], r2['N_first_name']))
+#         
+#         
     
-    def pvalue(self, r1, r2):
-        
-        f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r1['N_last_name']))
-        f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r2['N_last_name']))
-        
-        g1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], r1['N_first_name']))
-        g2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], r2['N_first_name']))
-        
-        
-        
+    def get_name_pvalue(self, which='firstname'):
+        '''Return the p-value of the firstname-lastname combination given the
+        null hypothesis that first names and last names are selected randomly
+        in such a way that the token frequencies are what we observe.'''
+        record = self
+        try:
+            if which == 'firstname':
+                f2 = record.tokendata.get_token_frequency((2, record['N_first_name']))
+                total = record.tokendata.no_of_tokens
+                return 1.0 * f2 / total 
+            
+            if which == 'lastname':
+                f1 = record.tokendata.get_token_frequency((1, record['N_last_name']))
+                total = record.tokendata.no_of_tokens
+                return 1.0 * f1 / total 
+
+        except Exception as e:
+            print e
+            return None   
 
 
                    
@@ -351,7 +396,7 @@ class Record(dict):
         ''' If cities are different '''        
         # All are the same
         if method_id is None:
-            return (c_e >= 2 and c_o >= 2) and c_n
+            return ((c_e >= 2 and c_o >= 2) or (c_o == 3) or (c_e == 3)) and c_n
         elif method_id == 1:
             return (c_e >= 2 and c_o >= 2) and c_n
         elif method_id == 2:
@@ -411,6 +456,7 @@ class Record(dict):
         3- When city and zipcode are slightly different but affiliations are the same, should accept.
             When affiliaiton score is 1, dig deeper!
         4- In general, employer string distance should also be taken into account.
+        4- if cities are different but employers are identical, then accept
 
         '''
 #         Record.debug = True if   r1['N_first_name'] == r2['N_first_name'] == "MARKUS" and r1['N_last_name'] == r2['N_last_name'] == "AAKKO" else False
@@ -590,7 +636,7 @@ class Record(dict):
             return 3
         else:
             found_both = False
-            for G_occupation in self.list_G_employer:
+            for G_occupation in self.list_G_occupation:
                 try:
                     ind1 = G_occupation.dict_string_2_ind[occupation1]
                     ind2 = G_occupation.dict_string_2_ind[occupation2]
@@ -601,7 +647,7 @@ class Record(dict):
                 
                 
                 # Check if the occupation identifiers are adjacent in the affiliations graph
-                if self.G_occupation.get_eid(ind1, ind2, directed=False, error=False) != -1:
+                if G_occupation.get_eid(ind1, ind2, directed=False, error=False) != -1:
                     if Record.debug: print "-------------", occupation1, occupation2
                     return 2
               
@@ -653,11 +699,17 @@ class Record(dict):
             if Record.debug: print "no employer field found"
             return 1
         
+        
 #         print employer1,employer2
         
 #         if bad_identifier(employer1, type="employer") or bad_identifier(employer2, type="employer"):
 #             pass
 #             return False
+
+
+
+        if Record.debug: print "Both have employer field"
+        
         
         if employer1 == employer2:
             if Record.debug: print "employers are the same"
@@ -669,6 +721,7 @@ class Record(dict):
                 try:
                     ind1 = G_employer.dict_string_2_ind[employer1]
                     ind2 = G_employer.dict_string_2_ind[employer2]
+                    if Record.debug: print "found both"
                     found_both = True
                 except KeyError:
                     if Record.debug: print "one of the employers not found"
@@ -679,6 +732,7 @@ class Record(dict):
                     
                     # They are adjacent in at least one affiliation graph
                     if Record.debug: print "-------------", employer1, employer2
+                    if Record.debug: print "ADJACENT"
                     return 2
                     
                
