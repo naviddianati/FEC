@@ -167,7 +167,7 @@ def set_vertexColor(G, palette, field='size', cluster=False):
             tmp = palette._get(color)
             for v in vs:
                 v['color'] = rgba_to_color_name((tmp[0], tmp[1], tmp[2], alpha))
-                v['frame_color'] = rgba_to_color_name((tmp[0], tmp[1], tmp[2], alpha / 2))  
+                v['frame_color'] = rgba_to_color_name((tmp[0]/4.0, tmp[1]/4.0, tmp[2]/4.0, alpha / 3))  
 #                 print v['color']
                 
         return
@@ -181,7 +181,7 @@ def set_vertexColor(G, palette, field='size', cluster=False):
         tmp = palette._get(color)
         alpha = 0.1 + 0.9 * skew(color * 1.0 / numcolor)
         v['color'] = "rgba(" + ",".join([str(int(255 * tmp[0])), str(int(255 * tmp[1])), str(int(255 * tmp[2])), str(alpha)]) + ")"
-        v['frame_color'] = rgba_to_color_name((tmp[0], tmp[1], tmp[2], 1.0))  
+        v['frame_color'] = rgba_to_color_name((tmp[0]/2.0, tmp[1]/2.0, tmp[2]/2.0, 1.0))  
 
         
 
@@ -402,11 +402,11 @@ settings = Settings(batch_id=94,
 #     quit()
 
 # settings.batch_id = 88; settings.state_id = 'NY'    # New York 
-settings.batch_id = 89; settings.state_id = 'OH'  # Ohio
+# settings.batch_id = 89; settings.state_id = 'OH'  # Ohio
 # settings.batch_id = 90; settings.state_id = 'DE'  # Delaware
 # settings.batch_id = 91; settings.state_id = 'MO'   # Missouri
 # settings.batch_id = 83; settings.state_id = 'AK'   # Alaska
-# settings.batch_id = 92; settings.state_id = 'MA'  # Massachussetes
+settings.batch_id = 92; settings.state_id = 'MA'  # Massachussetes
 # settings.batch_id = 93; settings.state_id = 'NV'  # Nevada
 # settings.batch_id = 94; settings.state_id = 'VT'  # Vermont
 
@@ -421,12 +421,12 @@ dict_combine_attrs = {'size':lambda sizes:np.sqrt(np.sum([np.sqrt(x) for x in si
                       'name':lambda mylist: ''.join([x + '\n' for x in mylist]),
                       'id': np.min
                       }
-# G = igraph.Graph.Load(f=settings.data_path + str(settings.batch_id) + '-' + settings.affiliation + '_graph_giant_component.gml', format='gml')
+G = igraph.Graph.Load(f=settings.data_path + str(settings.batch_id) + '-' + settings.affiliation + '_graph_giant_component.gml', format='gml')
 
 # print [v['label'] for v in G.vs[1].neighbors()]
 # quit()
 
-G = igraph.Graph.Load(f=settings.data_path + str(settings.batch_id) + '-' + settings.affiliation + '_graph_component-1.gml', format='gml')
+# G = igraph.Graph.Load(f=settings.data_path + str(settings.batch_id) + '-' + settings.affiliation + '_graph_component-1.gml', format='gml')
 # G = igraph.Graph.Load(f=settings.data_path + str(settings.batch_id) + '-' + settings.affiliation + '_graph.gml', format='gml')
 
 
@@ -447,13 +447,17 @@ def get_neighborhood(index,n):
     
         
 # Optionally select a neighborhood of a given vertex
-target_label = 'OHIO STATE UNIVERSITY'
+target_label = 'MIT'
 v = G.vs.select(label=target_label)[0]
 print v
     
-list_indexes =  get_neighborhood(v.index,0)
+list_indexes =  get_neighborhood(v.index,1)
 print len(list_indexes)
 G = G.induced_subgraph(list_indexes)
+
+
+
+G.write_gml(settings.data_path+target_label+'.gml')
 
 
 
@@ -546,7 +550,7 @@ print len(G.vs)
 set_vertexSize(G, s_max=180, s_min=50)
 set_edgeWidth(G, w_max=50, w_min=5, threshold=None, percent=None)
 # print G.es['color']
-set_labelSize(G, s_max=100, s_min=35, percent=None)
+set_labelSize(G, s_max=100, s_min=35, percent=70)
 
 
 
@@ -734,13 +738,13 @@ p = igraph.plot(G,
 #     vertex_label_color='#000000',
     vertex_label_dist=1.2,
     
-    vertex_frame_width=[max(2, x / 7) for x in G.vs['size']],
+    vertex_frame_width=[max(5, x/7) for x in G.vs['size']],
     vertex_frame_color=G.vs['frame_color'],
     palette=pal,
     vertex_color=G.vs['color'],
     mark_groups=G['group-markers'] if G['group-markers'] and settings.draw_groups else None,
 #     vertex_label_color = colors,
-#     vertex_order_by = ("order","asc"),
+    vertex_order_by = ("size","asc"),
     margin=(300, 300, 300, 300),
 #     opacity=0.3,
 #     background=None,  # This is only possible after my changes to igraph.__init__.py

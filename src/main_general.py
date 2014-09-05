@@ -42,25 +42,26 @@ Strategy:
 # establish and return a connection to the MySql database server
 
 from collections import OrderedDict
-import igraph
-import json
-import os
-import pprint
-import re
-import sys
-import time
-from states import *
-import multiprocessing 
-import random
 import datetime
 import glob
+import igraph
+import json
+import multiprocessing 
+import os
+import pprint
+import random
+import re
+from states import *
+import sys
+import time
 
 from Affiliations import AffilliationAnalyzer
-from Disambiguator import Disambiguator
 from Database import FecRetriever
+from Disambiguator import Disambiguator
 from Tokenizer import Tokenizer, TokenizerNgram
-
+import numpy as np
 import pandas as pd
+
 
 def find_all_in_list(regex, str_list):
     ''' Given a list of strings, str_list and a regular expression, regex, return a dictionary with the
@@ -534,6 +535,303 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 
 
 
+
+def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="thorough", logstats=False):  
+    '''
+    1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
+        This produces a list of Record objects.
+    2- Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the
+        updated list of records. These records now have a reference to the Tokenizers TokenData object, and contain
+        an attribute called record.vector.
+    3- Instantiate a Disambiguator object and pass to it the list of records. This Disambiguator will use the vector
+        attributes of the records to find a set of approximate nearest neighbors for each one. The result is an adjacency
+        matrix.
+    4- Instantiate a Project object, and set various parameters to it as instance variables. For example, the Disambiguator
+        object defined above is bound to the Project as an instance variable.
+        This Project object will then do the book keeping: saves a settings file, saves the adjacency matrix to a file,
+        saves a json version of all records to a file, etc.
+    5- The json files saved by Project, namely the adjacency matrix and the list of records, will be used by the code
+        defined in the Affiliations module to extract
+    '''  
+    batch_id = get_next_batch_id()
+    project = Project(batch_id=batch_id)
+    
+    if state:
+        param_state = state
+    else:
+        # TODO: this is the table name. Which table should be used for the final disambiguation?
+        # Answer: for the state level, <state>_combined. For the whole country, probably the union
+        # of all state tables.
+        
+        param_state = 'newyork_combined'
+    print "Analyzing data for state: ", param_state 
+    
+    table_name = param_state + "_combined"
+    
+    project.putData('param_state' , param_state)
+
+    
+    
+    
+    record_start = record_limit[0]
+    record_no = record_limit[1]
+
+    project.putData('batch_id' , batch_id)
+
+    
+    time1 = time.time()
+    
+#    list_tokenized_fields = ['NAME','FIRST_NAME', 'LAST_NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1']
+    list_tokenized_fields = ['NAME', 'TRANSACTION_DT', 'ZIP_CODE' , 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+    project.putData("list_tokenized_fields", list_tokenized_fields)
+    
+    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
+    project.putData("list_auxiliary_fields", list_auxiliary_fields)
+    
+    all_fields = list_tokenized_fields + list_auxiliary_fields 
+    project.putData('all_fields' , all_fields)
+
+
+    # I BELIEVE THESE ARE UNNECCESSARY
+    # Where in the final query_fields is the given identifier field?
+    index_list_tokenized_fields = [all_fields.index(s) for s in list_tokenized_fields]
+    
+    # Where in the final query_fields is the given auxiliary field?
+    index_auxiliary_fields = [all_fields.index(s) for s in list_auxiliary_fields]    
+    
+    
+    # dictionaries indicating the index numbers associated with all fields
+    index_2_field = { all_fields.index(s):s for s in all_fields}
+    project.putData("index_2_field", index_2_field)
+    
+    field_2_index = { s:all_fields.index(s) for s in all_fields}
+    project.putData("field_2_index", field_2_index)
+    
+    
+    
+    
+    retriever = FecRetriever(table_name=table_name,
+                      query_fields=all_fields,
+                      limit=(record_start, record_no),
+                      list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
+#                       where_clause=" WHERE ENTITY_TP='IND' ")
+                      where_clause=" ")
+    retriever.retrieve()
+    project.putData("query", retriever.getQuery())
+    
+    list_of_records = retriever.getRecords()
+    list_of_records.sort(cmp=lambda x, y: np.random.randint(-1, 2))
+    
+    set_records = set(list_of_records)
+    
+    list_of_records = []
+    
+    counter = 0
+    while set_records and counter < sample_size:
+        record = set_records.pop()
+        list_of_records.append(record)
+        counter += 1
+    
+    
+    # Pick a random sample of the retrieved records
+    
+    
+#     # A list(1) of lists(2)  where each list(2) corresponds to one of the records returned by MySQL
+#     # and it contains only the "identifier" fields of that record. This is the main piece of data processed by this program.
+#     list_of_records_identifier = [[record[index] for index in index_list_tokenized_fields] for record in tmp_list]
+#     
+#     # Same as above, except each list(2) consists of the auxiliary columns of the record returned by MySQL.
+#     list_of_records_auxiliary = [[record[index] for index in index_auxiliary_fields] for record in tmp_list]  
+    
+    
+    tokenizer = TokenizerNgram()
+    project.tokenizer = tokenizer
+    tokenizer.setRecords(list_of_records)
+    tokenizer.setTokenizedFields(list_tokenized_fields)
+    tokenizer.tokenize()
+    
+    tokenizer.tokens.save_to_file(project["data_path"] + batch_id + "-tokendata.pickle")
+    list_of_records = tokenizer.getRecords()
+    
+
+    
+    ''' Load affiliation graph data.
+        These graph objects also contain a dictionary G.dict_string_2_ind
+        for faster vertex access based on affiliation string.
+
+        For affiliation data to exist, one must have previously executed
+      When used via self.compare(), a positive value is
+    interpreted as True.   Affiliations on the <state>_addresses data.
+    '''
+    
+    G_employer = loadAffiliationNetwork(param_state, project['data_path'], 'employer')
+    if G_employer:
+        for record in list_of_records:
+            record.G_employer = [G_employer]
+    else:
+        print "WARNING: EMPLOYER network not found."
+        project.log('WARNING', param_state + " EMPLOYER network not found.")
+
+    
+    
+    G_occupation = loadAffiliationNetwork(param_state, project['data_path'], 'occupation')
+    if G_occupation:  
+        for record in list_of_records:
+            record.G_occupation = [G_occupation]
+    else:
+        print "WARNING: OCCUPATION network not found."
+        project.log('WARNING', param_state + " OCCUPATION network not found.")
+
+    
+    
+    
+    
+    
+    
+    n = len(list_of_records)
+    counter = 0
+    
+    file_handcode = open("handcode.txt",'w',0)
+    while counter < 10:
+        i1 = np.random.randint(0, n);
+        i2 = np.random.randint(0, n);
+        
+        r1 = list_of_records[i1]
+        r2 = list_of_records[i2]
+      
+        if i1 == i2 : continue
+        
+        if r1['N_last_name'] != r2['N_last_name'] : continue
+        if r1['N_first_name'] != r2['N_first_name'] : continue
+        
+        
+        
+        
+        
+        data1 = [ r1['NAME'], r1['CITY'], r1['ZIP_CODE'], r1['EMPLOYER'], r1['OCCUPATION']]
+        data2 = [ r2['NAME'], r2['CITY'], r2['ZIP_CODE'], r2['EMPLOYER'], r2['OCCUPATION']]
+        
+        print pd.DataFrame([data1,data2]).to_string() 
+        
+        result = r1.compare(r2, mode="thorough")[0]
+        me = raw_input()
+        
+        if not result:
+            result = 0
+        
+        if me == 'a':
+            me = 1
+        elif me == '':
+            me = 'NaN'
+        else:
+            me = 0
+        
+        file_handcode.write("%s %s\n" % (str(int(result)),str(me)))
+        
+        
+        
+    file_handcode.close()
+        
+        
+        
+        
+        
+    
+    
+    
+    
+    
+    quit()
+    
+    
+    
+    print len(tokenizer.tokens.token_2_index.keys())
+    
+    
+    project.list_of_records = list_of_records
+    
+    # dimension of input vectors
+    dim = tokenizer.tokens.no_of_tokens
+
+    D = Disambiguator(list_of_records, dim, matching_mode=method_id)
+    D.tokenizer = tokenizer
+    project.D = D
+    D.project = project
+    
+    # Set D's logstats on or off
+    D.set_logstats(is_on=logstats)
+        
+    
+    
+    # desired dimension (length) of hashes
+    hash_dim = 20
+    project.putData('hash_dim' , str(hash_dim))
+
+    # In D, how many neighbors to examine?
+    B = 20
+    
+    
+    # Number of times the hashes are permutated and sorted
+    no_of_permutations = 20
+    project.putData('number_of_permutations' , str(no_of_permutations))
+
+    
+#     self.D = Disambiguator(self.list_of_vectors, self.tokens.index_2_token, self.tokens.token_2_index, dim, self.batch_id)
+    
+    
+    print 'Analyze...'
+    t1 = time.time()
+    # compute the hashes
+    D.compute_LSH_hash(hash_dim)
+    D.save_LSH_hash(batch_id=batch_id)
+    D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
+    
+#     project.save_data_textual(with_tokens=False, file_label="before")
+
+    D.generate_identities()
+    D.refine_identities()
+    
+    # If logstats was on, rename stats.txt to include param_state
+    if logstats:
+        try:
+            os.rename('stats.txt', 'stats-' + param_state + ".txt")
+        except Exception as e:
+            print e
+        D.set_logstats(is_on=False)
+    
+
+
+#     print json.dumps(D.dict_already_compared_pairs.keys(),indent=2)
+#     quit()
+    # D.show_sample_adjacency()
+
+    t2 = time.time()
+    print 'Done...'
+    print t2 - t1
+
+    # project.D.imshow_adjacency_matrix(r=(0, record_no(
+        
+    print 'Saving adjacency matrix to file...'
+    print 'Printing list of identifiers and text of adjacency matrix to file...'
+#     project.save_data(with_tokens=False)
+    project.save_data_textual(with_tokens=False, file_label=param_state)
+    print 'Done...'
+    
+    time2 = time.time()
+    print time2 - time1
+
+    project.saveSettings()
+    
+    project.dump_full_adjacency()
+    
+    
+    
+    
+    return project
+
+
+
+
 class Project(dict):
     def __init__(self, batch_id):
         self["batch_id"] = batch_id
@@ -882,8 +1180,10 @@ def worker(conn):
 
 if __name__ == "__main__":
 
-
- 
+    hand_code('ohio', record_limit=(100000, 50000), sample_size=40000, logstats=True)
+    quit()
+    
+    
     disambiguate_main('ohio', record_limit=(0, 500), logstats=True)
     quit()
 
