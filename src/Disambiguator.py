@@ -82,9 +82,10 @@ class Disambiguator():
         self.town = Town()
         
         # Whether or not to log statistics of record pair comparisons. Use self.set_logstats() to initialize these.
-        self.do_stats = True
+        self.do_stats = False
         
         self.logstats_file = None
+        self.logstats_filename = ''
         self.logstats_count = 0
         self.logstats_header = []
         # set of record.id pairs already logged
@@ -102,7 +103,8 @@ class Disambiguator():
         
         if self.do_stats:
             # open output buffer (of size 100kb) for the statistics 
-            self.logstats_file = open('stats.txt', 'w', 100000)
+            self.logstats_filename = 'stats-'+str(time.time())+".txt"
+            self.logstats_file = open(self.logstats_filename, 'w', 100000)
             self.logstats_file.write('#\n'*5)
             self.logstats_count = 0
             self.logstats_header = []

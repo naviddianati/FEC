@@ -496,7 +496,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     # If logstats was on, rename stats.txt to include param_state
     if logstats:
         try:
-            os.rename('stats.txt', 'stats-' + param_state + ".txt")
+            os.rename(D.logstats_filename, 'stats-' + param_state + ".txt")
         except Exception as e:
             print e
         D.set_logstats(is_on=False)
@@ -691,7 +691,8 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     n = len(list_of_records)
     counter = 0
     
-    file_handcode = open("handcode.txt",'w',0)
+    file_handcode_data = open("handcode-data.txt", 'a', 0)
+    file_handcode_log = open("handcode-log.txt", 'a', 0)
     while counter < 10:
         i1 = np.random.randint(0, n);
         i2 = np.random.randint(0, n);
@@ -702,22 +703,30 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
         if i1 == i2 : continue
         
         if r1['N_last_name'] != r2['N_last_name'] : continue
-        if r1['N_first_name'] != r2['N_first_name'] : continue
+        if r1['N_first_name'] != r2['N_first_name'] : continue        
+
         
         
         
         
         
-        data1 = [ r1['NAME'], r1['CITY'], r1['ZIP_CODE'], r1['EMPLOYER'], r1['OCCUPATION']]
-        data2 = [ r2['NAME'], r2['CITY'], r2['ZIP_CODE'], r2['EMPLOYER'], r2['OCCUPATION']]
+        data1 = [ r1['NAME'], r1['CITY'], r1['ZIP_CODE'], r1['EMPLOYER'], r1['OCCUPATION'],r1['N_middle_name']]
+        data2 = [ r2['NAME'], r2['CITY'], r2['ZIP_CODE'], r2['EMPLOYER'], r2['OCCUPATION'],r2['N_middle_name']]
         
-        print pd.DataFrame([data1,data2]).to_string() 
+        output =  pd.DataFrame([data1, data2]).to_string() 
+        print output
+        file_handcode_log.write(output+"\n")
         
-        result = r1.compare(r2, mode="thorough")[0]
+        result = r1.compare(r2, mode="thorough")
+        verdict = result[0]
         me = raw_input()
+        print verdict, result[1]
+        print "_"*80
+        file_handcode_log.write(me+"\n"+str(verdict) + "   "+str(result[1])+"\n"+"_"*80+"\n")
+
         
-        if not result:
-            result = 0
+        if not verdict:
+            verdict = 0
         
         if me == 'a':
             me = 1
@@ -726,21 +735,12 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
         else:
             me = 0
         
-        file_handcode.write("%s %s\n" % (str(int(result)),str(me)))
+        file_handcode_data.write("%s %s\n" % (str(int(verdict)), str(me)))
         
         
         
-    file_handcode.close()
+    file_handcode_data.close()
         
-        
-        
-        
-        
-    
-    
-    
-    
-    
     quit()
     
     
@@ -1180,7 +1180,7 @@ def worker(conn):
 
 if __name__ == "__main__":
 
-    hand_code('ohio', record_limit=(100000, 50000), sample_size=40000, logstats=True)
+    hand_code('ohio', record_limit=(10000, 10000), sample_size=4000, logstats=True)
     quit()
     
     

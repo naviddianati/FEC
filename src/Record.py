@@ -403,6 +403,15 @@ class Record(dict):
 
         The "result" dictionary returns the details of the sub-comparisons, namely, the return values of the
         name, occupation and employer comparison functions used to reach the verdict.
+
+        TODO:
+        1- (DONE) full middlenames and middlename initials aren't matched correctly
+        2- (DONE) CITY misspellings aren't detected. Pay attention to zipcode in this case. Maybe if zipcodes are the same,
+            treat as if cities are the same.
+        3- When city and zipcode are slightly different but affiliations are the same, should accept.
+            When affiliaiton score is 1, dig deeper!
+        4- In general, employer string distance should also be taken into account.
+
         '''
 #         Record.debug = True if   r1['N_first_name'] == r2['N_first_name'] == "MARKUS" and r1['N_last_name'] == r2['N_last_name'] == "AAKKO" else False
 #         Record.debug = True  if r1['N_first_name'] != r2['N_first_name']  else False;  
@@ -442,8 +451,9 @@ class Record(dict):
         if r1['STATE'] == r2['STATE']:
             result['s'] = 1
             
-            # If cities are the same
-            if r1['CITY'] == r2['CITY']:
+            # If cities are the same or if zipcodes are the same
+            # if zipcodes are the same, then treat as if cities are the same
+            if r1['CITY'] == r2['CITY'] or self.compare_zipcodes(r1, r2) == 2:
                 result['c'] = 1
             
                 # If both have addresses
@@ -498,7 +508,7 @@ class Record(dict):
 
             # If states are the same but cities are different
             else:
-                # TODO: if cities are different
+                # if cities are different
                 # Accept if affiliations are clearly connected and names are exactly the same
                 # TODO: check for timeline consistency
                 result['c'], result['a'] = 0, 0
@@ -710,7 +720,7 @@ class Record(dict):
         identical = True
         # if both have middlenames, they should be the same
         if r1['N_middle_name'] and r2['N_middle_name']:
-            if r1['N_middle_name'] != r2['N_middle_name']: 
+            if r1['N_middle_name'][0] != r2['N_middle_name'][0]: 
                 if Record.debug: print "middle names are different"
                 identical = Record.LARGE_NEGATIVE
                 return identical
