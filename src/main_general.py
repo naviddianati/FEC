@@ -495,7 +495,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     # If logstats was on, rename stats.txt to include param_state
     if logstats:
         try:
-            os.rename('stats.txt', 'stats-' + param_state + ".txt")
+            os.rename(D.logstats_filename, 'stats-' + param_state + ".txt")
         except Exception as e:
             print e
         D.set_logstats(is_on=False)

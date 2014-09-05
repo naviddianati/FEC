@@ -99,16 +99,17 @@ if __name__ == "__main__":
     
 
     # Whether to run new state batches or read from existing output files.
-    run_fresh_batches = False
+    run_fresh_batches = True
 
     # Use custom list of states
     list_states = ['california', 'texas', 'marshallislands', 'palau', 'georgia', 'newjersey']
     list_states = ['delaware', 'maryland']
+    list_states = ['virginia', 'maryland']
 #    list_states = ['newyork', 'massachusetts']
 
 
     # Do the entire country
-    list_states = []
+    # list_states = []
 
     list_jobs = []
 

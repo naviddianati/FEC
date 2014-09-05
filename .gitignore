@@ -6,4 +6,5 @@
 *.pyc
 *.record
 tmp*
-config/batches.list
+*.list
+*.log
