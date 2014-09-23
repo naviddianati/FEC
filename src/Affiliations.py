@@ -5,15 +5,17 @@ Created on Jun 30, 2014
 '''
 import igraph
 import json
+from math import log
 import os
 import pprint
 import re
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import binom
 
 
-class AffilliationAnalyzer(object):
+class AffiliationAnalyzer(object):
     
 
     def __init__(self, batch_id=89, affiliation="employer"):
@@ -106,6 +108,8 @@ class AffilliationAnalyzer(object):
         for counter, g in enumerate(self.contributors_subgraphs):
             if self.debug: 
                 if counter > 10 : break
+                
+            
             list_affiliations = []
             
             # Loop through the nodes in each subgraph
@@ -153,22 +157,22 @@ class AffilliationAnalyzer(object):
                     for x in list_affiliations: print x[1]
                     print '======================================'
         
-            # Populate the affiliation adjacency matrix
-            for ind1, name1 in list_affiliations:
-                if ind1 not in self.affiliation_score: self.affiliation_score[ind1] = 0
-                self.affiliation_score[ind1] += 1  # 0.1
-        #         for ind2, name2 in list_affiliations:
+            
+            # Iterate through the set of *unique* affiliations in this subgraph
+            for ind1, name1 in set(list_affiliations):
                 for ind2, name2 in set(list_affiliations):
-        #             name2 = list_affiliations[ind2]
                     if ind1 == ind2:
                         continue
-                        
                     link = (ind1, ind2)
                     if link not in self.affiliation_adjacency:
-                        self.affiliation_adjacency[link] = 1
-                    else: 
-                        # This part can change depending on the likelihood function I ultimately decide to use
-                        self.affiliation_adjacency[link] += 1
+                        # for the directed edge (ind1,ind2), set the weight to be the number of name1 strings that appeared in a timeline that also includes name2
+                        self.affiliation_adjacency[link] = list_affiliations.count((ind1, name1))
+                    else:
+                        self.affiliation_adjacency[link] += list_affiliations.count((ind1, name1))
+                    
+            
+            
+           
         
         ''' The dictionary affiliation_adjacency assigns to each (source,target) tuple an integer weight.
             It is the sparse adjacency matrix of the inter-affiliation network.
@@ -199,8 +203,11 @@ class AffilliationAnalyzer(object):
     def save_data(self, label=""):
         if label == "":
             label = self.batch_id
+        
+        
         # Generate the graph of linked affiliation names
-        tmp_adj = [(link[0], link[1], self.affiliation_adjacency[link], self.dict_likelihoods[link]) for link in self.affiliation_adjacency] 
+        tmp_adj = [(link[0], link[1], self.affiliation_adjacency[link], -self.dict_likelihoods[link]) for link in self.affiliation_adjacency if link[0]!=link[1]]
+        print "number of links to save ", len(tmp_adj) 
         
         # Apparently, when a graph is generated from an edge list like this where each edge is an tuple (ind1,ind2), 
         # the resulting graph will assign ind1 and ind2 to the 'name' attribute of the generated vertices. Their index on the
@@ -243,18 +250,15 @@ class AffilliationAnalyzer(object):
         ''' affiliation_score is a dict {name:frequency} where '''
         
         dict_data = {
-                     "affiliation_score" :self.affiliation_score, 
+                     "affiliation_score" :self.affiliation_score,
                       "batch_id": self.batch_id}
         f.write(json.dumps(dict_data))
         f.close()
 
 
+    
 
 
-
-    '''
-    This function
-    '''
 
     def compute_affiliation_links(self):
      
@@ -272,6 +276,8 @@ class AffilliationAnalyzer(object):
             
             ind0, ind1 = link[0], link[1]
             weight0, weight1 = self.affiliation_adjacency[(ind0, ind1)], self.affiliation_adjacency[(ind1, ind0)]
+            
+            # This ratio now tells us what percentage of the occurrences of affiliation1 were in a timeline that also included affiliation2
             ratio0 = weight0 / float(self.affiliation_score[ind0])
             ratio1 = weight1 / float(self.affiliation_score[ind1])
            
@@ -312,15 +318,15 @@ class AffilliationAnalyzer(object):
                 list_likelihoods.append(get_likelihood(timeline_collapsed))
         
             ''' combined_likelihood gives the likelihood'''
-            combined_likelihood, signal, signal_string = indicator(list_likelihoods)  
+            combined_likelihood = get_combined_likelihood(list_likelihoods)  
+            print combined_likelihood
         #     print signal
-            if signal > -1000:
+            if combined_likelihood > -1000:
                 s = self.dict_name_2_string[i0] + ' | ' + self.dict_name_2_string[i1] + "\n"
                 for timeline_collapsed in list_timelines_collapsed:
                     s += str(timeline_collapsed) + "\n" 
         #         print (i0, i1)
         #         s+=  'List of likelihoods: '+ str(list_likelihoods)+ '  \n                                              Signal: %s' %  signal_string +"\n"
-                s += '                                                                Signal: %s' % signal_string + "\n"
                 
                 ''' Here, p is the probability that the two are different: \pi(0) '''
                 p = 1 - self.dict_priors[link]
@@ -331,16 +337,21 @@ class AffilliationAnalyzer(object):
                 self.dict_posteriors[link] = 1 - new_p
                 self.dict_likelihoods[link] = 1 / (1 + combined_likelihood)
         #         dict_posteriors[link] = combined_likelihood
-                s += '%0.2f     %0.2f  --->   %0.2f      %0.2f\n' % (combined_likelihood, 1 - p, 1 - new_p, self.dict_likelihoods[link])
+        
+                signal_string = get_posterior_indicator(self.dict_posteriors[link])
+                s += '                                                                Signal: %s' % signal_string + "\n"
+#                 s += '%0.2f     %0.2f  --->   %0.2f      %0.2f\n' % (combined_likelihood, 1 - p, 1 - new_p, self.dict_likelihoods[link])
+                s += '%0.2f     %0.2f  --->   %0.2f      %0.2f\n' % (combined_likelihood, 1 - p, 1 - new_p, self.dict_posteriors[link])
                 s += '--------------------------------------------------------------------------------'
                 # print s
-                f.write(s.encode('ascii','ignore'))
+                f.write(s.encode('ascii', 'ignore'))
         f.close()
     
 
 
 
-def get_likelihood(h):
+def _likelihood_1(h):
+    ''' The likelihood based on sizes of 000 or 111 chunks'''
     ''' Input: a list of 0s and 1s '''
     N = float(len(h))
     h = ''.join([str(x) for x in h])
@@ -352,15 +363,37 @@ def get_likelihood(h):
     likelihood = score / score_top;
     return likelihood
 
-def indicator(list_likelihoods):
-    ''' returns a string of "+" characters whose length indicates the strength of the signal'''
+
+def _likelihood_2(h):
+    ''' TODO: The likelihood based on the number of switches'''
+    ''' Input: a list of 0s and 1s '''
+    N = float(len(h))
+    
+    h = ''.join([str(x) for x in h])
+    groups = re.findall(r'1+|0+', h)
+    score = np.prod([len(g) / N for g in groups])
+    
+    score_top = 0.25
+    score_allones = 1.0 / N * (N - 1) / N
+    likelihood = score / score_top;
+    return likelihood
+
+
+def get_likelihood(h):
+#     return _likelihood_1(h)
+    return _likelihood_2(h)
+
+def get_combined_likelihood(list_likelihoods):
     combined_likelihood = np.prod(list_likelihoods)
     combined_likelihood = 1e-6 if combined_likelihood < 1e-6 else combined_likelihood 
-    n = int(1. / combined_likelihood)
-    n = -int(np.log(combined_likelihood) * 5) + 1
-    if n > 40: n = 40
+    return combined_likelihood
+
+    
+def get_posterior_indicator(posterior):
+    ''' returns a string of "+" characters whose length indicates the strength of the signal'''
+    n = int(posterior * 40)
     s = ''.join(["+" for i in range(n)])
-    return combined_likelihood, n, s
+    return  s
 
 
 def link_pvalue(k1, k2, wab):
@@ -394,17 +427,489 @@ def bad_identifier(identifier, type='employer'):
     
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+class AffiliationAnalyzerDirected(AffiliationAnalyzer):
+    
+
+
+    def pvalue(self,m,ku,kv,q):
+        '''The pvalue according to a random undirected weighted graph null model'''      
+        f = binom(q,ku*kv*1.0/q/q)
+        return 1-f.cdf(m-1),f
+    
+    
+        
+        
+        
+    def compute_affiliation_links(self):
+        '''Overrides the original'''
+     
+        
+        self.dict_likelihoods = {}
+        total_degree = sum(self.affiliation_score.values())    
+        T0 = 0.2
+        print "Number of links",len(self.affiliation_adjacency)
+        count = 0
+        for link in self.affiliation_adjacency:
+            print "count: ",count
+            count += 1        
+            ind0, ind1 = link[0], link[1]
+            if ind0 == ind1:
+                print "SELF!"
+                continue
+            # weights between nodes
+            uv = self.affiliation_adjacency[(ind0, ind1)]
+            
+            # The reverse edge may not exist
+            try:
+                vu = self.affiliation_adjacency[(ind1, ind0)]
+            except KeyError:
+                vu = 0
+            
+            # Self-edge weights
+            uu, vv = self.affiliation_adjacency[(ind0, ind0)], self.affiliation_adjacency[(ind1, ind1)]
+            
+            ku, kv = self.affiliation_score[ind0], self.affiliation_score[ind1]
+                       
+            # Incomplete directed edge likelihood
+            loglikelihood = self.loglikelihood(uu, vv, uv, vu, ku, kv, T0, total_degree)
+            
+            # simple undirected edge pvalue
+            loglikelihood = self.logpvalue(uv+vu, ku, kv, total_degree/2.0)
+            
+            
+            
+            self.dict_likelihoods[link] = loglikelihood
+
+            if self.debug:            
+                print link, "%d/%d   %d/%d" % (uv , ku, vu , kv) , '    ', '%0.2f' % (loglikelihood)
+                print '          %s | %s' % (self.dict_name_2_string[ind0], self.dict_name_2_string[ind1])
+                print "______________________________________________________________________________________________"
+        
+        
+        
+    def extract(self):         
+        '''Override
+        Computes the adjacency matrix between affiliation identifiers.
+        The main product is self.affiliation_adjacency which is a dictionary {link:weight} where
+        link is a tuple (ind1,ind2).
+        The affiliation node indices are stored in two dictionaries self.dict_string_2_name  and
+        self.dict_name_2_string.
+        '''
+        clustering = self.G.components()
+
+        # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
+        self.contributors_subgraphs = clustering.subgraphs()
+        
+        # The graph of the components: each component is contracted to one node
+        Gbar = clustering.cluster_graph()
+        print "number of subgraphs:", len(Gbar.vs)
+        
+        # show_histories_distribution(contributors_subgraphs); quit()
+        
+        # Loop through the subgraphs, i.e., resolved individual identities.
+        for counter, g in enumerate(self.contributors_subgraphs):
+            if self.debug: 
+                pass
+#                 if counter > 10 : break
+                
+            
+            list_affiliations = []
+            
+            # Loop through the nodes in each subgraph
+            timeline = []
+            dict_temp_affiliations = {}
+            for counter_v,v in enumerate(g.vs):
+                affiliation_index = self.settings['field_2_index'][self.affiliation.upper()]
+#                 affiliation_index = 1 if self.affiliation == 'employer' else (6 if self.affiliation == 'occupation' else None)
+                affiliation_identifier = self.dict_record_nodes[str(v['name'])]['data'][affiliation_index]
+                if bad_identifier(affiliation_identifier, type=self.affiliation): 
+                    if self.debug: print affiliation_identifier
+                    continue   
+                date_index = self.settings['field_2_index']['TRANSACTION_DT']
+                date = self.dict_record_nodes[str(v['name'])]['data'][date_index]
+                if affiliation_identifier not in self.dict_string_2_name : 
+                    self.dict_string_2_name[affiliation_identifier] = str(self.affiliation_name_counter)
+                    self.affiliation_name_counter += 1
+                    self.dict_name_2_string[self.dict_string_2_name[affiliation_identifier]] = affiliation_identifier
+        
+                affiliation_id = self.dict_string_2_name[affiliation_identifier]
+                
+                ''' every unique affiliation occurring in this timeline should be associated with the timeline's id '''
+                if affiliation_identifier not in dict_temp_affiliations:
+                    dict_temp_affiliations[affiliation_identifier] = 1
+                    try:
+                        self.dict_affiliation_to_timelines[affiliation_id].append(self.counter_timelines)
+                    except KeyError:
+                        self.dict_affiliation_to_timelines[affiliation_id] = []
+                        self.dict_affiliation_to_timelines[affiliation_id].append(self.counter_timelines)
+                    
+                list_affiliations.append((affiliation_id, affiliation_identifier))
+                
+                timeline.append((date, affiliation_id))
+            ''' Save this individual's timeline '''
+            if timeline:
+                timeline = sorted(timeline, key=lambda record: record[0])
+        #         list_timelines.append(sorted(timeline, key=lambda record: record[0]))
+                self.dict_timelines[self.counter_timelines] = timeline
+                self.counter_timelines += 1
+            else:
+                continue
+            
+            # Do some verbose logging       
+            if self.debug: print "Number of unique affiliation strings: %d" % len(list_affiliations)
+            if   len(list_affiliations) > 10:
+                self.list_sample_affiliation_groups.append([x[1] for x in list_affiliations])
+                if self.debug:
+                    for x in list_affiliations: print x[1]
+                    print '======================================'
+        
+                    
+            
+                    
+            # With the new definition of adjacency, I need the time-ordered timeline for computin edge weights. 
+            # So, I must use the sorted timeline instead of list_affiliations
+            for i in range(len(timeline) - 1):
+                
+                # ids of affiliations located in timeline[i] and timeline[i+1]
+                id0, id1 = timeline[i][1], timeline[i + 1][1]
+                link = (id0, id1)
+                try:
+                    self.affiliation_score[id0]+= 1
+                except KeyError:
+                    self.affiliation_score[id0]= 1
+                
+                try:
+                    self.affiliation_adjacency[link] += 1 
+                except KeyError:
+                    self.affiliation_adjacency[link] = 1
+                
+                # Self-edge
+                link = (id0,id0)
+                try:
+                    self.affiliation_adjacency[link] += 1 
+                except KeyError:
+                    self.affiliation_adjacency[link] = 1
+                    
+            
+        
+        
+           
+            # For the last item, create a self-edge
+            id_last = timeline[-1][1]
+            link = (id_last, id_last)
+            try:
+                self.affiliation_score[id_last]+= 1
+            except KeyError:
+                self.affiliation_score[id_last]= 1
+            try:
+                self.affiliation_adjacency[link] += 1 
+            except KeyError:
+                self.affiliation_adjacency[link] = 1
+        
+            # Self-edge
+            link = (id_last,id_last)
+            try:
+                self.affiliation_adjacency[link] += 1 
+            except KeyError:
+                self.affiliation_adjacency[link] = 1
+       
+        
+        ''' The dictionary affiliation_adjacency assigns to each (source,target) tuple an integer weight.
+            It is the sparse adjacency matrix of the inter-affiliation network.
+        '''
+        
+        
+        ''' The dictionary dict_timelines contains all the timelines with keys being integers.
+            The dictionary dict_affiliation_to_timelines assigns to each affiliation id a list of id's of all timelines containing it
+        '''
+                 
+        
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+class AffiliationAnalyzerUnDirected(AffiliationAnalyzer):
+    
+
+
+    def pvalue(self,m,ku,kv,q):
+        '''The pvalue according to a random undirected weighted graph null model'''      
+        f = binom(q,ku*kv*1.0/q/q)
+        
+        n0 = m
+        N = q
+
+        pn0 = f.pmf(n0)
+        if f.pmf(n0+1) > pn0:
+            n = n0 + 1
+            while (f.pmf(n) > pn0) and (n < N):
+                n += 1
+            # if moving right and up, we hit N
+            right_half = 0 if n == N else (1-f.cdf(n-1)) 
+            print n,n0
+            return f.cdf(n0) + right_half 
+    
+        elif f.pmf(n0-1) > pn0:
+            n = n0 - 1
+            while (f.pmf(n) > pn0) and (n > 0):
+                n -= 1
+            # If moving left and up, we hit zero
+            left_half = 0 if n == 0 else f.cdf(n)
+            print n,n0
+            return left_half + (1-f.cdf(n0-1)) 
+
+        else:
+            # n0 has the maximum pmf
+            return 1.0
+        
+       
+    
+    
+    def logpvalue(self,m,ku,kv,q):
+        pv = self.pvalue(m,ku,kv,q)
+        return np.log(pv)
+    
+        
+        
+        
+    def compute_affiliation_links(self):
+        '''Overrides the original'''
+     
+        
+        self.dict_likelihoods = {}
+        total_degree = sum(self.affiliation_score.values())    
+        T0 = 0.2
+        print "Number of links",len(self.affiliation_adjacency)
+        count = 0
+        for link in self.affiliation_adjacency:
+            print "count: ",count
+            count += 1        
+            ind0, ind1 = link[0], link[1]
+            if ind0 == ind1:
+                print "SELF!"
+                continue
+            # weights between nodes
+            uv = self.affiliation_adjacency[(ind0, ind1)]
+            
+            # The reverse edge may not exist
+            try:
+                vu = self.affiliation_adjacency[(ind1, ind0)]
+            except KeyError:
+                vu = 0
+            
+            # Self-edge weights
+            uu, vv = self.affiliation_adjacency[(ind0, ind0)], self.affiliation_adjacency[(ind1, ind1)]
+            
+            ku, kv = self.affiliation_score[ind0], self.affiliation_score[ind1]
+                       
+            # Incomplete directed edge likelihood
+
+            
+            # simple undirected edge pvalue
+            loglikelihood = self.logpvalue(uv+vu, ku, kv, total_degree/2.0)
+            
+            
+            
+            self.dict_likelihoods[link] = loglikelihood
+
+            if self.debug:            
+                print link, "%d/%d   %d/%d" % (uv , ku, vu , kv) , '    ', '%0.2f' % (loglikelihood)
+                print '          %s | %s' % (self.dict_name_2_string[ind0], self.dict_name_2_string[ind1])
+                print "______________________________________________________________________________________________"
+        
+        
+        
+    def extract(self):         
+        '''Override
+        Computes the adjacency matrix between affiliation identifiers.
+        The main product is self.affiliation_adjacency which is a dictionary {link:weight} where
+        link is a tuple (ind1,ind2).
+        The affiliation node indices are stored in two dictionaries self.dict_string_2_name  and
+        self.dict_name_2_string.
+        '''
+        clustering = self.G.components()
+
+        # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
+        self.contributors_subgraphs = clustering.subgraphs()
+        
+        # The graph of the components: each component is contracted to one node
+        Gbar = clustering.cluster_graph()
+        print "number of subgraphs:", len(Gbar.vs)
+        
+        # show_histories_distribution(contributors_subgraphs); quit()
+        
+        # Loop through the subgraphs, i.e., resolved individual identities.
+        for counter, g in enumerate(self.contributors_subgraphs):
+            if self.debug: 
+                pass
+#                 if counter > 10 : break
+                
+            
+            list_affiliations = []
+            
+            # Loop through the nodes in each subgraph
+            timeline = []
+            dict_temp_affiliations = {}
+            for counter_v,v in enumerate(g.vs):
+                affiliation_index = self.settings['field_2_index'][self.affiliation.upper()]
+#                 affiliation_index = 1 if self.affiliation == 'employer' else (6 if self.affiliation == 'occupation' else None)
+                affiliation_identifier = self.dict_record_nodes[str(v['name'])]['data'][affiliation_index]
+                if bad_identifier(affiliation_identifier, type=self.affiliation): 
+                    if self.debug: print affiliation_identifier
+                    continue   
+                date_index = self.settings['field_2_index']['TRANSACTION_DT']
+                date = self.dict_record_nodes[str(v['name'])]['data'][date_index]
+                if affiliation_identifier not in self.dict_string_2_name : 
+                    self.dict_string_2_name[affiliation_identifier] = str(self.affiliation_name_counter)
+                    self.affiliation_name_counter += 1
+                    self.dict_name_2_string[self.dict_string_2_name[affiliation_identifier]] = affiliation_identifier
+        
+                affiliation_id = self.dict_string_2_name[affiliation_identifier]
+                
+                ''' every unique affiliation occurring in this timeline should be associated with the timeline's id '''
+                if affiliation_identifier not in dict_temp_affiliations:
+                    dict_temp_affiliations[affiliation_identifier] = 1
+                    try:
+                        self.dict_affiliation_to_timelines[affiliation_id].append(self.counter_timelines)
+                    except KeyError:
+                        self.dict_affiliation_to_timelines[affiliation_id] = []
+                        self.dict_affiliation_to_timelines[affiliation_id].append(self.counter_timelines)
+                    
+                list_affiliations.append((affiliation_id, affiliation_identifier))
+                
+                timeline.append((date, affiliation_id))
+            ''' Save this individual's timeline '''
+            if timeline:
+                timeline = sorted(timeline, key=lambda record: record[0])
+        #         list_timelines.append(sorted(timeline, key=lambda record: record[0]))
+                self.dict_timelines[self.counter_timelines] = timeline
+                self.counter_timelines += 1
+            else:
+                continue
+            
+            # Do some verbose logging       
+            if self.debug: print "Number of unique affiliation strings: %d" % len(list_affiliations)
+            if   len(list_affiliations) > 10:
+                self.list_sample_affiliation_groups.append([x[1] for x in list_affiliations])
+                if self.debug:
+                    for x in list_affiliations: print x[1]
+                    print '======================================'
+        
+                    
+            
+                    
+            # With the new definition of adjacency, I need the time-ordered timeline for computin edge weights. 
+            # So, I must use the sorted timeline instead of list_affiliations
+            for i in range(len(timeline) - 1):
+                
+                # ids of affiliations located in timeline[i] and timeline[i+1]
+                id0, id1 = timeline[i][1], timeline[i + 1][1]
+                try:
+                    self.affiliation_score[id0]+= 1
+                except KeyError:
+                    self.affiliation_score[id0]= 1
+        
+                
+                for link in[(id0, id1), (id1,id0)]:
+                    try:
+                        self.affiliation_adjacency[link] += 1 
+                    except KeyError:
+                        self.affiliation_adjacency[link] = 1
+                    
+                # Self-edge (WHY?!?!?!)
+                link = (id0,id0)
+                try:
+                    self.affiliation_adjacency[link] += 0 
+                except KeyError:
+                    self.affiliation_adjacency[link] = 1
+                     
+            
+        
+        
+           
+            # For the last item, create a self-edge
+            id_last = timeline[-1][1]
+            link = (id_last, id_last)
+            try:
+                self.affiliation_score[id_last]+= 1
+            except KeyError:
+                self.affiliation_score[id_last]= 1
+          
+            try:
+                self.affiliation_adjacency[link] += 1 
+            except KeyError:
+                self.affiliation_adjacency[link] = 1
+        
+#             # Self-edge (need *some* value because dict will be queried for it later
+#             link = (id0,id0)
+#             try:
+#                 self.affiliation_adjacency[link] += 0 
+#             except KeyError:
+#                 self.affiliation_adjacency[link] = 1
+#     
+        ''' The dictionary affiliation_adjacency assigns to each (source,target) tuple an integer weight.
+            It is the sparse adjacency matrix of the inter-affiliation network.
+        '''
+        
+        
+        ''' The dictionary dict_timelines contains all the timelines with keys being integers.
+            The dictionary dict_affiliation_to_timelines assigns to each affiliation id a list of id's of all timelines containing it
+        '''
+                 
+    
+    
 def main():
-    batch_id = 1027
-    '''analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
+    batch_id = 1897
+    '''analyst = AffiliationAnalyzer(batch_id=batch_id, affiliation="occupation")
     state = analyst.settings["param_state"]
     analyst.load_data()
     analyst.extract()
     analyst.compute_affiliation_links()
     analyst.save_data(label=state)
     '''
-    analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="employer")
+    analyst = AffiliationAnalyzerUnDirected(batch_id=batch_id, affiliation="employer")
     state = analyst.settings["param_state"]
+    print state
     analyst.load_data()
     analyst.extract()
     analyst.compute_affiliation_links()
@@ -418,6 +923,5 @@ def loadAffiliationNetwork(label, data_path, affiliation):
 
 if __name__ == "__main__":
     main()
-    quit()
     
     

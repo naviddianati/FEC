@@ -20,7 +20,7 @@ import pprint
 import random
 import time
 
-from Affiliations import AffilliationAnalyzer
+from Affiliations import AffiliationAnalyzer
 from Database import DatabaseManager
 from Person import Person
 from Tokenizer import TokenData, Tokenizer
@@ -58,7 +58,7 @@ class Disambiguator():
         
         
         self.debug = False
-        self.verbose = False
+        self.verbose = True
         
         self.project = None
         self.matching_mode = matching_mode
@@ -716,7 +716,8 @@ class Disambiguator():
     ''' 
     def merge_identities(self):
         
-        for pair in self.new_match_buffer:
+        for count,pair in enumerate(self.new_match_buffer):
+            print "comparing pair no. %d"% count
             i, j = pair
             r1 = self.list_of_records[i]
             r2 = self.list_of_records[j]
@@ -724,6 +725,8 @@ class Disambiguator():
             
             
             p1 , p2 = r1.identity, r2.identity
+            print "identities:", len(p1.set_of_records), len(p2.set_of_records)
+            
             
                         
             # If both records belong to the same person continue
@@ -740,6 +743,8 @@ class Disambiguator():
                     print "="*70
                 p1.merge(p2)
                 self.set_of_persons.remove(p2)
+            else:
+                print "pair rejected"
         pass
             
             

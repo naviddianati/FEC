@@ -1,25 +1,22 @@
 
 
-from igraph import color_name_to_rgba
 import igraph
-import json
-import os
-import random
-import re
-from states import *
-from mypalettes import gnuplotPalette1, mplPalette
+from igraph import color_name_to_rgba
 import numpy as np
+from mypalettes import gnuplotPalette1, mplPalette
+import random
+import json
+import re
+import os
 import matplotlib.pyplot as plt
 
-
 class Settings:
-    def __init__(self, draw_groups=False, state_id='VT',
+    def __init__(self, draw_groups=False, batch_id=94, state_id='VT',
                  affiliation='occupation', data_path = os.path.expanduser('~/data/FEC/'),
                  output_dim=(3200, 3200), num_components=(0, 80), verbose=False):
         self.draw_groups = draw_groups
-#         self.batch_id = batch_id
+        self.batch_id = batch_id
         self.state_id = state_id
-        self.state = dict_state[self.state_id]
         self.affiliation = affiliation
         self.data_path = data_path
         self.output_dim = output_dim
@@ -61,6 +58,7 @@ def set_edgeWidth(G, w_max, w_min, field='weight', threshold=None, percent=100):
             threshold = sorted_sizes[int(n * percent / 100.0)]
         else: 
             threshold = 0
+    
     print "edgeWidth threshold: ", threshold
     values = G.es[field]
     tmp_max, tmp_min = max(values), min(values)
@@ -72,6 +70,7 @@ def set_edgeWidth(G, w_max, w_min, field='weight', threshold=None, percent=100):
 #         tmp = int(w_min+(w_max-w_min)*(w-tmp_min)/(tmp_max-tmp_min))
         if w < threshold:
             death_row.append(e.index)
+            continue
         else:
             tmp = w_min + (w_max - w_min) * (w - tmp_min) / (tmp_max - tmp_min) 
             e['width'] = tmp
@@ -388,33 +387,39 @@ def normalize_labels(G):
     
 
 
+def print_sorted_significance(n = 100):
+    # print edges with top significnce values
+    sig_edges = sorted(G.es, key=lambda e:e['confidence'], reverse=False)
+    for e in sig_edges[:n]:
+        n0,n1 = e.source,e.target
+        print G.vs[n0]['label'], "-"*10, G.vs[n1]['label'], e['confidence']
+#         print G.vs[n0], G.vs[n1], e['confidence']
 
-
-      
-
-#     print G.vs['labelSize']
-#     quit()
-
-# NEw format: state affiliation graph file names start with the state name, not batch id
-state_id = 'NY'    # New York 
-# state_id = 'OH'  # Ohio
-# state_id = 'DE'  # Delaware
-# state_id = 'MO'   # Missouri
-# state_id = 'AK'   # Alaska
-# state_id = 'MA'  # Massachussetes
-# state_id = 'NV'  # Nevada
-# state_id = 'VT'  # Vermont
-
-
-settings = Settings(
-                    state_id=state_id,
-                    affiliation='occupation',
-#                     affiliation='employer',
+settings = Settings(batch_id=94,
+                    state_id='VT',
+                    affiliation='employer',
+#                     affiliation='occupation',
                     data_path = os.path.expanduser('~/data/FEC/'),
                     output_dim=(3200, 3200),
                     num_components=(0, 1),
                     verbose=False
                      )
+      
+
+#     print G.vs['labelSize']
+#     quit()
+
+# settings.state='delaware'; settings.state_id = 'DE'  
+settings.state='newyork'; settings.state_id = 'NY'  
+# settings.batch_id = 90; settings.state_id = 'DE'  # Delaware
+# settings.batch_id = 91; settings.state_id = 'MO'   # Missouri
+# settings.batch_id = 83; settings.state_id = 'AK'   # Alaska
+# settings.batch_id = 92; settings.state_id = 'MA'  # Massachussetes
+# settings.batch_id = 93; settings.state_id = 'NV'  # Nevada
+# settings.batch_id = 94; settings.state_id = 'VT'  # Vermont
+
+
+
 
 
 ''' This dictionary defines how the new vertex attribute is to be computed when some vertices are contracted'''
@@ -424,17 +429,25 @@ dict_combine_attrs = {'size':lambda sizes:np.sqrt(np.sum([np.sqrt(x) for x in si
                       'name':lambda mylist: ''.join([x + '\n' for x in mylist]),
                       'id': np.min
                       }
-G = igraph.Graph.Load(f=settings.data_path + str(settings.state) + '-' + settings.affiliation + '_graph_giant_component.gml', format='gml')
+# G = igraph.Graph.Load(f=settings.data_path + str(settings.state) + '-' + settings.affiliation + '_graph_giant_component.gml', format='gml')
 
 # print [v['label'] for v in G.vs[1].neighbors()]
 # quit()
 
-# G = igraph.Graph.Load(f=settings.data_path + str(settings.state) + '-' + settings.affiliation + '_graph_component-1.gml', format='gml')
-# G = igraph.Graph.Load(f=settings.data_path + str(settings.state) + '-' + settings.affiliation + '_graph.gml', format='gml')
+# G = igraph.Graph.Load(f=settings.data_path + settings.state + '-' + settings.affiliation + '_graph_component-1.gml', format='gml')
+G = igraph.Graph.Load(f=settings.data_path + str(settings.state) + '-' + settings.affiliation + '_graph.gml', format='gml')
 
 
 
+a = [float(x) for x in G.es['confidence']]
 
+
+print_sorted_significance()
+# quit()
+print sorted(a)
+# plt.plot(sorted(a), '.')
+# plt.show()
+# quit()
 
 def get_neighborhood(index,n):
     if n == -1: return None
@@ -449,40 +462,14 @@ def get_neighborhood(index,n):
     return list(set(list_ids))    
     
         
-
-print len(G.es)
-
-tmp_edges = []
-# filter out some edges
-for e in G.es:
-    if e['confidence'] < 0.99:
-#         print "deleting edge"
-        tmp_edges.append(e.index)
-
-G.delete_edges(tmp_edges)
-print len(G.es)
-# quit()
-
 # Optionally select a neighborhood of a given vertex
-target_label = 'ATTORNEY'
+target_label = 'UNIVERSITY OF DELAWARE'
 v = G.vs.select(label=target_label)[0]
 print v
-     
 list_indexes =  get_neighborhood(v.index,0)
 print len(list_indexes)
 G = G.induced_subgraph(list_indexes)
 
-
-plt.hist(G.es['confidence'],bins = 40)
-plt.show()
-
-
-
-print G.es['confidence']
-
-# plt.plot(G.es['confidence'],G.es['weight'],'.')
-# plt.show()
-# quit()
 
 
 G.vs['membership_vector'] = None
@@ -503,7 +490,7 @@ N = len(G.vs)
 numcolors = 100
 
 print G.es.attribute_names()
-# print G.es['weight']
+print G.es['weight']
 # quit()
 # make_dendrogram(G)
 
@@ -571,10 +558,10 @@ print len(G.vs)
 
 
 # Set vertex and edge properties
-set_vertexSize(G, s_max=100, s_min=10)
-set_edgeWidth(G, w_max=60, w_min=2, threshold=None, percent=None, field='weight')
+set_vertexSize(G, s_max=80, s_min=10)
+set_edgeWidth(G, w_max=20, w_min=1, field = 'confidence', threshold=None, percent=50)
 # print G.es['color']
-set_labelSize(G, s_max=70, s_min=40, percent=None)
+set_labelSize(G, s_max=80, s_min=20, percent=None)
 
 
 
@@ -626,7 +613,12 @@ for v, i in zip(G.vs, range(len(G.vs))):
     
 vs = sorted(G.vs, key=lambda v:v['evcent'], reverse=False)
 
-G.es['betweenness'] = [np.power(x, 3) for x in G.edge_betweenness(weights=G.es['confidence'])]
+print G.es['confidence']
+
+
+print "Hello"
+# G.es['betweenness'] = [np.power(x, 3) for x in G.edge_betweenness(weights=G.es['confidence'])]
+print "Hello"
 
 
 print "______________"
@@ -665,7 +657,7 @@ mylayout = G.layout('drl', weights=G.es['layout-weight'])
 coords = mylayout.coords
 
 # mylayout = G.layout('fr', seed=coords, maxiter=100, maxdelta=1,weights=np.sqrt(G.es['layout-weight']),repulserad=0)
-mylayout = G.layout('fr', seed=coords, maxiter=100, maxdelta=10)
+mylayout = G.layout('fr', seed=coords, maxiter=1000, maxdelta=10)
 print "Layout computed..."
 
 
@@ -753,7 +745,7 @@ leaves_seq.delete()
 
 # Plot graph with edges
 p = igraph.plot(G,
-    settings.data_path + str(settings.state) + "-" + settings.affiliation + "s.pdf",
+    settings.data_path + str(settings.batch_id) + "-" + settings.affiliation + "s.pdf",
     bbox=settings.output_dim,
     # layout = "large",
     layout=mylayout,

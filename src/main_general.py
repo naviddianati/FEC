@@ -55,7 +55,7 @@ from states import *
 import sys
 import time
 
-from Affiliations import AffilliationAnalyzer
+from Affiliations import AffiliationAnalyzer
 from Database import FecRetriever
 from Disambiguator import Disambiguator
 from Tokenizer import Tokenizer, TokenizerNgram
@@ -277,7 +277,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
 
     if affiliation is None or affiliation == 'occupation':
         try:
-            analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="occupation")
+            analyst = AffiliationAnalyzer(batch_id=batch_id, affiliation="occupation")
             project.log('MESSAGE', 'AffiliationAnalyzer created...')
             
             state = analyst.settings["param_state"]
@@ -294,7 +294,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
 
     if affiliation is None or affiliation == 'employer':
         try:
-            analyst = AffilliationAnalyzer(batch_id=batch_id, affiliation="employer")
+            analyst = AffiliationAnalyzer(batch_id=batch_id, affiliation="employer")
             project.log('MESSAGE', 'AffiliationAnalyzer created...')
             
             state = analyst.settings["param_state"]
@@ -388,8 +388,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
                       query_fields=all_fields,
                       limit=(record_start, record_no),
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
-#                       where_clause=" WHERE ENTITY_TP='IND' ")
-                      where_clause=" ")
+                      where_clause=" WHERE NAME LIKE '%COHEN, ROBERT%'")
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
     
@@ -614,8 +613,8 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
                       query_fields=all_fields,
                       limit=(record_start, record_no),
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
-#                       where_clause=" WHERE ENTITY_TP='IND' ")
-                      where_clause=" ")
+                      where_clause=" WHERE NAME LIKE '%COHEN, ROBERT%'"   )
+#                       where_clause=" ")
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
     
@@ -721,7 +720,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
         result = r1.compare(r2, mode="thorough")
         verdict = result[0]
         
-#         if result[1]['e'] != 2: continue
+        if result[1]['o'] != 1: continue
 #         if verdict: continue;
 
         print output
@@ -1191,11 +1190,14 @@ def worker(conn):
 
 if __name__ == "__main__":
 
-    hand_code('ohio', record_limit=(50000, 10000), sample_size=10000, logstats=True)
+    generateAffiliationData('delaware',affiliation='occupation', record_limit=(0, 50000))
+    quit()
+    
+    hand_code('newyork', record_limit=(0, 10000), sample_size=10000, logstats=True)
     quit()
     
     
-    disambiguate_main('ohio', record_limit=(0, 500), logstats=True)
+    disambiguate_main('newyork', record_limit=(0, 15000), logstats=True)
     quit()
 
  
