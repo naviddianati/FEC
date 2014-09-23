@@ -55,7 +55,7 @@ from states import *
 import sys
 import time
 
-from Affiliations import AffiliationAnalyzer
+from Affiliations import AffiliationAnalyzerUndirected
 from Database import FecRetriever
 from Disambiguator import Disambiguator
 from Tokenizer import Tokenizer, TokenizerNgram
@@ -97,7 +97,9 @@ def get_next_batch_id():
 '''
 def loadAffiliationNetwork(label, data_path, affiliation):
     try:
-        G = igraph.Graph.Read_GML(f=data_path + label + '-' + affiliation + '_graph.gml')
+        filename = f = data_path + label + affiliation + '_graph.gml'
+        print filename
+        G = igraph.Graph.Read_GML(filename)
         dict_string_2_ind = {v['label']:v.index for v in G.vs}
         G.dict_string_2_ind = dict_string_2_ind
     except IOError:
@@ -150,7 +152,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     # If this is for a multi-state table
     if param_state == "multi_state":
         table_name = "multi_state_combined"
-    project.putData('param_state' , param_state)
+    project.putData('state' , param_state)
 
     
     record_start = record_limit[0]
@@ -215,7 +217,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     tokenizer.setTokenizedFields(list_tokenized_fields)
     tokenizer.tokenize()
     
-    tokenizer.tokens.save_to_file(project["data_path"] + batch_id + "-tokendata.pickle")
+    tokenizer.tokens.save_to_file(project["data_path"] + param_state + "-" + "affiliations-" + batch_id + "-tokendata.pickle")
     list_of_records = tokenizer.getRecords()
     print len(tokenizer.tokens.token_2_index.keys())
     
@@ -263,7 +265,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     
     print 'Saving adjacency matrix to file...'
     print 'Printing list of identifiers and text of adjacency matrix to file...'
-    project.save_data(with_tokens=False)
+    project.save_data(with_tokens=False, file_label=param_state + "-" + "affiliations-")
     print 'Done...'
     
     time2 = time.time()
@@ -273,14 +275,14 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
 
 
     project.log('MESSAGE', 'Computing affiliation networks...')
-    project.saveSettings()
+    project.saveSettings(file_label=param_state + "-" + "affiliations-")
 
     if affiliation is None or affiliation == 'occupation':
         try:
-            analyst = AffiliationAnalyzer(batch_id=batch_id, affiliation="occupation")
+            analyst = AffiliationAnalyzerUndirected(state=param_state, batch_id=batch_id, affiliation="occupation")
             project.log('MESSAGE', 'AffiliationAnalyzer created...')
             
-            state = analyst.settings["param_state"]
+            state = analyst.settings["state"]
             analyst.load_data()
             analyst.extract()
             analyst.compute_affiliation_links()
@@ -289,15 +291,18 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
             analyst.save_data(label=state)
             project.log('MESSAGE', 'Affiliation data saved...')
         #     analyst.save_data_textual(label=state)
-        except Exception as e:
-            print e
+        except IndexError:
+            pass
+#         except Exception as e:
+#             print e.msg
+            
 
     if affiliation is None or affiliation == 'employer':
         try:
-            analyst = AffiliationAnalyzer(batch_id=batch_id, affiliation="employer")
+            analyst = AffiliationAnalyzerUndirected(state=param_state, batch_id=batch_id, affiliation="employer")
             project.log('MESSAGE', 'AffiliationAnalyzer created...')
             
-            state = analyst.settings["param_state"]
+            state = analyst.settings["state"]
             analyst.load_data()
             analyst.extract()
             analyst.compute_affiliation_links()
@@ -306,7 +311,9 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
             analyst.save_data(label=state)
             project.log('MESSAGE', 'Affiliation data saved...')
         except Exception as e:
-            print e
+            print "ERROR", e.msg
+   
+    
 
 
 
@@ -342,7 +349,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     table_name = param_state + "_combined"
     
-    project.putData('param_state' , param_state)
+    project.putData('state' , param_state)
 
     
     
@@ -387,12 +394,16 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     retriever = FecRetriever(table_name=table_name,
                       query_fields=all_fields,
                       limit=(record_start, record_no),
-                      list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
-                      where_clause=" WHERE NAME LIKE '%COHEN, ROBERT%'")
+                      list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"]
+#                       where_clause=" WHERE NAME LIKE '%COHEN, ROBERT%'"
+                      )
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
     
     list_of_records = retriever.getRecords()
+    if not list_of_records:
+        print "ERROR: list of records empty. Aborting..."
+        quit()
     
 #     # A list(1) of lists(2)  where each list(2) corresponds to one of the records returned by MySQL
 #     # and it contains only the "identifier" fields of that record. This is the main piece of data processed by this program.
@@ -408,7 +419,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     tokenizer.setTokenizedFields(list_tokenized_fields)
     tokenizer.tokenize()
     
-    tokenizer.tokens.save_to_file(project["data_path"] + batch_id + "-tokendata.pickle")
+    tokenizer.tokens.save_to_file(project["data_path"] + param_state + "-" + "disambiguation-" + batch_id + "-tokendata.pickle")
     list_of_records = tokenizer.getRecords()
     
 
@@ -422,7 +433,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     interpreted as True.   Affiliations on the <state>_addresses data.
     '''
     
-    G_employer = loadAffiliationNetwork(param_state, project['data_path'], 'employer')
+    G_employer = loadAffiliationNetwork(param_state + "-", project['data_path'], 'employer')
     if G_employer:
         for record in list_of_records:
             record.list_G_employer = [G_employer]
@@ -432,7 +443,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 
     
     
-    G_occupation = loadAffiliationNetwork(param_state, project['data_path'], 'occupation')
+    G_occupation = loadAffiliationNetwork(param_state + "-" , project['data_path'], 'occupation')
     if G_occupation:  
         for record in list_of_records:
             record.list_G_occupation = [G_occupation]
@@ -450,7 +461,6 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     project.list_of_records = list_of_records
-    
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
@@ -515,15 +525,15 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     print 'Saving adjacency matrix to file...'
     print 'Printing list of identifiers and text of adjacency matrix to file...'
 #     project.save_data(with_tokens=False)
-    project.save_data_textual(with_tokens=False, file_label=param_state)
+    project.save_data_textual(with_tokens=False, file_label=param_state + "-" + "disambiguation-")
     print 'Done...'
     
     time2 = time.time()
     print time2 - time1
 
-    project.saveSettings()
+    project.saveSettings(file_label=param_state + "-" + "disambiguation-")
     
-    project.dump_full_adjacency()
+    project.dump_full_adjacency(file_label=param_state + "-" + "disambiguation")
     
     
     
@@ -613,7 +623,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
                       query_fields=all_fields,
                       limit=(record_start, record_no),
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
-                      where_clause=" WHERE NAME LIKE '%COHEN, ROBERT%'"   )
+                      where_clause=" WHERE NAME LIKE '%COHEN, ROBERT%'")
 #                       where_clause=" ")
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
@@ -649,7 +659,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     tokenizer.setTokenizedFields(list_tokenized_fields)
     tokenizer.tokenize()
     
-    tokenizer.tokens.save_to_file(project["data_path"] + batch_id + "-tokendata.pickle")
+    tokenizer.tokens.save_to_file(project["data_path"] + param_state + "-" + "disambiguate-" + batch_id + "-tokendata.pickle")
     list_of_records = tokenizer.getRecords()
     
 
@@ -830,7 +840,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     time2 = time.time()
     print time2 - time1
 
-    project.saveSettings()
+    project.saveSettings(file_label=param_state + "-" + "affiliations-")
     
     project.dump_full_adjacency()
     
@@ -854,7 +864,7 @@ class Project(dict):
     
     
         
-    def saveSettings(self):
+    def saveSettings(self, file_label=""):
         settings = {}
         for item in self.keys():
             if item not in ['list_of_records', "D", "tokenizer"]:
@@ -864,7 +874,7 @@ class Project(dict):
                     settings[item] = self[item]
                 except TypeError:
                     print "WWARNING: ", item, " not serializable. Skiping." 
-        f = open(self["data_path"] + self["batch_id"] + '-settings.json', 'w')
+        f = open(self["data_path"] + file_label + self["batch_id"] + '-settings.json', 'w')
         f.write(json.dumps(settings, indent=4))
         f.close()
         
@@ -891,9 +901,9 @@ class Project(dict):
 
     ''' Take the adjacency matrix resulting from the Disambiguator object,
     and write it to file in edgelist (.edges) and .json formats '''
-    def save_graph_to_file(self, list_of_nodes=[]):
-        filename_json = self["data_path"] + self["batch_id"] + '-adjacency.json'
-        filename_edgelist = self["data_path"] + self["batch_id"] + '-adjacency.edges'
+    def save_graph_to_file(self, list_of_nodes=[], file_label=""):
+        filename_json = self["data_path"] + file_label + self["batch_id"] + '-adjacency.json'
+        filename_edgelist = self["data_path"] + file_label + self["batch_id"] + '-adjacency.edges'
         f_json = open(filename_json, 'w') 
         f_edgelist = open(filename_edgelist, 'w') 
 
@@ -918,9 +928,9 @@ class Project(dict):
     
     
     # Computes the full adjacency matrix from the D.set_of_persons and dumps it to a text file as edgelist
-    def dump_full_adjacency(self):
+    def dump_full_adjacency(self, file_label=""):
         print "writing full adjacency to file... "
-        filename_edgelist = self["data_path"] + self["batch_id"] + '-adjacency.edges'
+        filename_edgelist = self["data_path"] + file_label + '-adjacency.edges'
         f = open(filename_edgelist, 'w')
         for person in self.D.set_of_persons:
             for record1 in person.set_of_records:
@@ -1066,7 +1076,7 @@ class Project(dict):
             
 
     
-    def save_data(self, r=[], verbose=False, with_tokens=False):
+    def save_data(self, r=[], verbose=False, with_tokens=False, file_label=""):
             ''' This function does three things:
                 1- saves a full description of the nodes with all attributes in json format to a file <batch_id>-list_of_nodes.json
                    This file, together with the <batch-id>-adjacency.txt file provides all the information about the graph and its
@@ -1076,11 +1086,11 @@ class Project(dict):
             '''
             
             # Save the adjacency matrix to file in both edgelist and json formats
-            self.save_graph_to_file()
+            self.save_graph_to_file(file_label=file_label)
             
-            filename1 = self["data_path"] + self["batch_id"] + '-adj_text_identifiers.json'
-            filename2 = self["data_path"] + self["batch_id"] + '-adj_text_auxiliary.json'
-            filename3 = self["data_path"] + self["batch_id"] + '-list_of_nodes.json'
+            filename1 = self["data_path"] + file_label + self["batch_id"] + '-adj_text_identifiers.json'
+            filename2 = self["data_path"] + file_label + self["batch_id"] + '-adj_text_auxiliary.json'
+            filename3 = self["data_path"] + file_label + self["batch_id"] + '-list_of_nodes.json'
             if self.D and self.D.index_adjacency:
     #             separator = '----------------------------------------------------------------------------------------------------------------------'
                 separator = '______________________________________________________________________________________________________________________'
@@ -1190,14 +1200,26 @@ def worker(conn):
 
 if __name__ == "__main__":
 
-    generateAffiliationData('delaware',affiliation='occupation', record_limit=(0, 50000))
+#     print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
+#     generateAffiliationData('delaware', affiliation='occupation', record_limit=(0, 500))
+#      
+#     print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
+#     generateAffiliationData('delaware', affiliation='employer', record_limit=(0, 500))
+     
+    # Generate networks for both employers and occupations
+    generateAffiliationData('delaware', affiliation=None, record_limit=(0, 500))
+
+
+    print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
+    disambiguate_main('delaware', record_limit=(0, 500), logstats=True)
+
     quit()
+    
     
     hand_code('newyork', record_limit=(0, 10000), sample_size=10000, logstats=True)
     quit()
     
     
-    disambiguate_main('newyork', record_limit=(0, 15000), logstats=True)
     quit()
 
  

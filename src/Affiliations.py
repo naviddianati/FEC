@@ -18,7 +18,7 @@ from scipy.stats import binom
 class AffiliationAnalyzer(object):
     
 
-    def __init__(self, batch_id=89, affiliation="employer"):
+    def __init__(self, state="",batch_id=None, affiliation="employer"):
         self.debug = False
         self.data_path = os.path.expanduser('~/data/FEC/')
 
@@ -41,7 +41,7 @@ class AffiliationAnalyzer(object):
         self.list_sample_affiliation_groups = []
         
         self.contributors_subgraphs = None
-        self.load_settings()
+        self.load_settings(file_label = state+"-"+"affiliations-")
         
 #         batch_id = 88  # NY
 #         # batch_id = 89   # OH
@@ -73,9 +73,9 @@ class AffiliationAnalyzer(object):
     particularly large.
     '''
     def load_data(self):
-        
-        file_adjacency = open(self.data_path + str(self.batch_id) + '-adjacency.json')
-        file_nodes = open(self.data_path + str(self.batch_id) + '-list_of_nodes.json')
+        file_label = self.settings['state'] + "-" + "affiliations-"
+        file_adjacency = open(self.data_path + file_label + str(self.batch_id) + '-adjacency.json')
+        file_nodes = open(self.data_path + file_label + str(self.batch_id) + '-list_of_nodes.json')
         
         ''' Gives a list of links where each link is a list:[source,target].
             Each node is an FEC transaction.'''
@@ -192,8 +192,8 @@ class AffiliationAnalyzer(object):
         file_sample_affiliations.close()
             
 
-    def load_settings(self):
-        file_settings = open(self.data_path + str(self.batch_id) + '-settings.json')
+    def load_settings(self, file_label=""):
+        file_settings = open(self.data_path + file_label + str(self.batch_id) + '-settings.json')
         self.settings = json.load(file_settings)
         
 
@@ -206,7 +206,7 @@ class AffiliationAnalyzer(object):
         
         
         # Generate the graph of linked affiliation names
-        tmp_adj = [(link[0], link[1], self.affiliation_adjacency[link], -self.dict_likelihoods[link]) for link in self.affiliation_adjacency if link[0]!=link[1]]
+        tmp_adj = [(link[0], link[1], self.affiliation_adjacency[link], -self.dict_likelihoods[link]) for link in self.affiliation_adjacency if link[0] != link[1]]
         print "number of links to save ", len(tmp_adj) 
         
         # Apparently, when a graph is generated from an edge list like this where each edge is an tuple (ind1,ind2), 
@@ -254,6 +254,7 @@ class AffiliationAnalyzer(object):
                       "batch_id": self.batch_id}
         f.write(json.dumps(dict_data))
         f.close()
+        print "Saved affiliation graphs to file..."
 
 
     
@@ -455,10 +456,10 @@ class AffiliationAnalyzerDirected(AffiliationAnalyzer):
     
 
 
-    def pvalue(self,m,ku,kv,q):
+    def pvalue(self, m, ku, kv, q):
         '''The pvalue according to a random undirected weighted graph null model'''      
-        f = binom(q,ku*kv*1.0/q/q)
-        return 1-f.cdf(m-1),f
+        f = binom(q, ku * kv * 1.0 / q / q)
+        return 1 - f.cdf(m - 1), f
     
     
         
@@ -471,10 +472,10 @@ class AffiliationAnalyzerDirected(AffiliationAnalyzer):
         self.dict_likelihoods = {}
         total_degree = sum(self.affiliation_score.values())    
         T0 = 0.2
-        print "Number of links",len(self.affiliation_adjacency)
+        print "Number of links", len(self.affiliation_adjacency)
         count = 0
         for link in self.affiliation_adjacency:
-            print "count: ",count
+            print "count: ", count
             count += 1        
             ind0, ind1 = link[0], link[1]
             if ind0 == ind1:
@@ -498,7 +499,7 @@ class AffiliationAnalyzerDirected(AffiliationAnalyzer):
             loglikelihood = self.loglikelihood(uu, vv, uv, vu, ku, kv, T0, total_degree)
             
             # simple undirected edge pvalue
-            loglikelihood = self.logpvalue(uv+vu, ku, kv, total_degree/2.0)
+            loglikelihood = self.logpvalue(uv + vu, ku, kv, total_degree / 2.0)
             
             
             
@@ -542,7 +543,7 @@ class AffiliationAnalyzerDirected(AffiliationAnalyzer):
             # Loop through the nodes in each subgraph
             timeline = []
             dict_temp_affiliations = {}
-            for counter_v,v in enumerate(g.vs):
+            for counter_v, v in enumerate(g.vs):
                 affiliation_index = self.settings['field_2_index'][self.affiliation.upper()]
 #                 affiliation_index = 1 if self.affiliation == 'employer' else (6 if self.affiliation == 'occupation' else None)
                 affiliation_identifier = self.dict_record_nodes[str(v['name'])]['data'][affiliation_index]
@@ -598,9 +599,9 @@ class AffiliationAnalyzerDirected(AffiliationAnalyzer):
                 id0, id1 = timeline[i][1], timeline[i + 1][1]
                 link = (id0, id1)
                 try:
-                    self.affiliation_score[id0]+= 1
+                    self.affiliation_score[id0] += 1
                 except KeyError:
-                    self.affiliation_score[id0]= 1
+                    self.affiliation_score[id0] = 1
                 
                 try:
                     self.affiliation_adjacency[link] += 1 
@@ -608,7 +609,7 @@ class AffiliationAnalyzerDirected(AffiliationAnalyzer):
                     self.affiliation_adjacency[link] = 1
                 
                 # Self-edge
-                link = (id0,id0)
+                link = (id0, id0)
                 try:
                     self.affiliation_adjacency[link] += 1 
                 except KeyError:
@@ -622,16 +623,16 @@ class AffiliationAnalyzerDirected(AffiliationAnalyzer):
             id_last = timeline[-1][1]
             link = (id_last, id_last)
             try:
-                self.affiliation_score[id_last]+= 1
+                self.affiliation_score[id_last] += 1
             except KeyError:
-                self.affiliation_score[id_last]= 1
+                self.affiliation_score[id_last] = 1
             try:
                 self.affiliation_adjacency[link] += 1 
             except KeyError:
                 self.affiliation_adjacency[link] = 1
         
             # Self-edge
-            link = (id_last,id_last)
+            link = (id_last, id_last)
             try:
                 self.affiliation_adjacency[link] += 1 
             except KeyError:
@@ -668,35 +669,35 @@ class AffiliationAnalyzerDirected(AffiliationAnalyzer):
 
     
     
-class AffiliationAnalyzerUnDirected(AffiliationAnalyzer):
+class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
     
 
 
-    def pvalue(self,m,ku,kv,q):
+    def pvalue(self, m, ku, kv, q):
         '''The pvalue according to a random undirected weighted graph null model'''      
-        f = binom(q,ku*kv*1.0/q/q)
+        f = binom(q, ku * kv * 1.0 / q / q)
         
         n0 = m
         N = q
 
         pn0 = f.pmf(n0)
-        if f.pmf(n0+1) > pn0:
+        if f.pmf(n0 + 1) > pn0:
             n = n0 + 1
             while (f.pmf(n) > pn0) and (n < N):
                 n += 1
             # if moving right and up, we hit N
-            right_half = 0 if n == N else (1-f.cdf(n-1)) 
-            print n,n0
+            right_half = 0 if n == N else (1 - f.cdf(n - 1)) 
+            print n, n0
             return f.cdf(n0) + right_half 
     
-        elif f.pmf(n0-1) > pn0:
+        elif f.pmf(n0 - 1) > pn0:
             n = n0 - 1
             while (f.pmf(n) > pn0) and (n > 0):
                 n -= 1
             # If moving left and up, we hit zero
             left_half = 0 if n == 0 else f.cdf(n)
-            print n,n0
-            return left_half + (1-f.cdf(n0-1)) 
+            print n, n0
+            return left_half + (1 - f.cdf(n0 - 1)) 
 
         else:
             # n0 has the maximum pmf
@@ -705,8 +706,8 @@ class AffiliationAnalyzerUnDirected(AffiliationAnalyzer):
        
     
     
-    def logpvalue(self,m,ku,kv,q):
-        pv = self.pvalue(m,ku,kv,q)
+    def logpvalue(self, m, ku, kv, q):
+        pv = self.pvalue(m, ku, kv, q)
         return np.log(pv)
     
         
@@ -719,10 +720,10 @@ class AffiliationAnalyzerUnDirected(AffiliationAnalyzer):
         self.dict_likelihoods = {}
         total_degree = sum(self.affiliation_score.values())    
         T0 = 0.2
-        print "Number of links",len(self.affiliation_adjacency)
+        print "Number of links", len(self.affiliation_adjacency)
         count = 0
         for link in self.affiliation_adjacency:
-            print "count: ",count
+            print "count: ", count
             count += 1        
             ind0, ind1 = link[0], link[1]
             if ind0 == ind1:
@@ -746,7 +747,7 @@ class AffiliationAnalyzerUnDirected(AffiliationAnalyzer):
 
             
             # simple undirected edge pvalue
-            loglikelihood = self.logpvalue(uv+vu, ku, kv, total_degree/2.0)
+            loglikelihood = self.logpvalue(uv + vu, ku, kv, total_degree / 2.0)
             
             
             
@@ -790,7 +791,7 @@ class AffiliationAnalyzerUnDirected(AffiliationAnalyzer):
             # Loop through the nodes in each subgraph
             timeline = []
             dict_temp_affiliations = {}
-            for counter_v,v in enumerate(g.vs):
+            for counter_v, v in enumerate(g.vs):
                 affiliation_index = self.settings['field_2_index'][self.affiliation.upper()]
 #                 affiliation_index = 1 if self.affiliation == 'employer' else (6 if self.affiliation == 'occupation' else None)
                 affiliation_identifier = self.dict_record_nodes[str(v['name'])]['data'][affiliation_index]
@@ -845,19 +846,19 @@ class AffiliationAnalyzerUnDirected(AffiliationAnalyzer):
                 # ids of affiliations located in timeline[i] and timeline[i+1]
                 id0, id1 = timeline[i][1], timeline[i + 1][1]
                 try:
-                    self.affiliation_score[id0]+= 1
+                    self.affiliation_score[id0] += 1
                 except KeyError:
-                    self.affiliation_score[id0]= 1
+                    self.affiliation_score[id0] = 1
         
                 
-                for link in[(id0, id1), (id1,id0)]:
+                for link in[(id0, id1), (id1, id0)]:
                     try:
                         self.affiliation_adjacency[link] += 1 
                     except KeyError:
                         self.affiliation_adjacency[link] = 1
                     
                 # Self-edge (WHY?!?!?!)
-                link = (id0,id0)
+                link = (id0, id0)
                 try:
                     self.affiliation_adjacency[link] += 0 
                 except KeyError:
@@ -871,9 +872,9 @@ class AffiliationAnalyzerUnDirected(AffiliationAnalyzer):
             id_last = timeline[-1][1]
             link = (id_last, id_last)
             try:
-                self.affiliation_score[id_last]+= 1
+                self.affiliation_score[id_last] += 1
             except KeyError:
-                self.affiliation_score[id_last]= 1
+                self.affiliation_score[id_last] = 1
           
             try:
                 self.affiliation_adjacency[link] += 1 
@@ -901,14 +902,14 @@ class AffiliationAnalyzerUnDirected(AffiliationAnalyzer):
 def main():
     batch_id = 1897
     '''analyst = AffiliationAnalyzer(batch_id=batch_id, affiliation="occupation")
-    state = analyst.settings["param_state"]
+    state = analyst.settings["state"]
     analyst.load_data()
     analyst.extract()
     analyst.compute_affiliation_links()
     analyst.save_data(label=state)
     '''
-    analyst = AffiliationAnalyzerUnDirected(batch_id=batch_id, affiliation="employer")
-    state = analyst.settings["param_state"]
+    analyst = AffiliationAnalyzerUndirected(batch_id=batch_id, affiliation="employer")
+    state = analyst.settings["state"]
     print state
     analyst.load_data()
     analyst.extract()

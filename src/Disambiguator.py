@@ -412,6 +412,7 @@ class Disambiguator():
         self.LSH_hash = LSH_hash
         
         
+        
     def save_LSH_hash(self, filename=None, batch_id=0):
         if not filename: filename = '../results/' + batch_id + '-LSH_hash.txt'
         f = open(filename, 'w')
