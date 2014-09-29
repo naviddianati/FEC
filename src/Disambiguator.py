@@ -14,6 +14,8 @@
 
 import igraph
 import json
+from multiprocessing.process import Process
+from multiprocessing.queues import Queue
 from numpy import math
 import os
 import pprint
@@ -93,6 +95,8 @@ class Disambiguator():
         
         if self.do_stats:
             self.set_logstats(True)
+            
+        self.num_procs = 3
 
             
             
@@ -103,9 +107,9 @@ class Disambiguator():
         
         if self.do_stats:
             # open output buffer (of size 100kb) for the statistics 
-            self.logstats_filename = 'stats-'+str(time.time())+".txt"
+            self.logstats_filename = 'stats-' + str(time.time()) + ".txt"
             self.logstats_file = open(self.logstats_filename, 'w', 100000)
-            self.logstats_file.write('#\n'*5)
+            self.logstats_file.write('#\n' * 5)
             self.logstats_count = 0
             self.logstats_header = []
         
@@ -215,13 +219,16 @@ class Disambiguator():
                 ADJ[s - 1, u - 1] = 1
         return ADJ
     
-    def __update_dict(self, dict1, dict_add):
+    def __update_dict_of_sets(self, dict1, dict_add):
         ''' This function updates dict1 in place so that the corresponding values of dict_add are
-            added to and merged with the values in dict1
-            NOT BEING USED ANYMORE. Now, self.index_adjacency is updated in-place.
+            added to and merged with the values in dict1.
+            It's assumed that the values of the dicts are sets.
             '''
         for s in dict1:
-            dict1[s] = list(set(dict1[s] + dict_add[s]))
+            try:
+                dict1[s] = dict1[s].union(dict_add[s])
+            except KeyError:
+                continue
             
     def print_list_of_vectors(self):
         # print all vectors
@@ -300,7 +307,15 @@ class Disambiguator():
         self.logstats_count += 1
     
     
-    def update_nearest_neighbors(self, B, hashes=None, allow_repeats=False):
+  
+        
+        
+        
+        
+        
+        
+    
+    def update_nearest_neighbors(self, B, hashes=None, allow_repeats=False, num_procs=3):
         ''' given a list of strings or hashes, this function computes the nearest
             neighbors of each string among the list.
 
@@ -308,6 +323,7 @@ class Disambiguator():
                 hashes: a list of strings of same length. The default is self.LSH_hashes: the strings comprise 0 and 1
                     pass non-default hashes to perform the updating using a custom ordering of the records.
                 B: an even integer. The number of adjacent strings to check for proximity for each string
+                num_procs: number of processes to use for this operation.
 
             Output: dictionary of indices. For each key (string index), the value is a list of indices
                     of all its nearest neighbors
@@ -316,54 +332,67 @@ class Disambiguator():
         if hashes is None:
             hashes = self.LSH_hash
             
-        list_of_hashes_sorted = sorted(hashes)
         sort_indices = argsort(hashes)
         
         # number of hash strings in list_of_hashes
         n = len(hashes)
         
-        # Now I'm directly updating self.index_adjacency. This won't be necessary
-        # dict_neighbors = {}
-             
-        for s, i in zip(list_of_hashes_sorted, range(n)):
+        '''
+            data['pid']: process id
+            data['queue']: queue for communication with parent process
+            data['matching_mode']: same as self.matching_mode
+            data['do_stats']: whether to log stats. same as self.do_stats
+            data['dict_of_records']: a dictionary of records relevant to this worker. It should be constructed such that
+                data['dict_of_records'][i] is equivalent self.list_of_records[sort_indices[i]]
+            data['index_adjacency']: a sub-dictionary of the full index_adjacency with entries for records relevant to this process.
+            data['sort_indices']
+            data['B']
+            data['allow_repeats']
+        '''
+  
+        list_procs = []
+        list_queues = []
+        for pid in range(num_procs):
+            list_indices = chunkit_padded(range(n), pid, num_procs, B)
+            data = {"pid":pid,
+                    "queue": Queue(),
+                    "matching_mode": self.matching_mode,
+                    "do_stats": self.do_stats,
+                    "dict_of_records":{i:self.list_of_records[sort_indices[i]] for i in list_indices},
+                    "index_adjacency":{sort_indices[j]: self.index_adjacency[sort_indices[j]] for j in list_indices},
+                    "sort_indices":sort_indices,
+                    "B":B,
+                    "allow_repeats":allow_repeats}
+            p = Process(target=find_nearest_neighbors, args=[data])
+            list_procs.append(p)
+            list_queues.append(data['queue'])
+            p.start()
+        
+        # Receive outputs from processes
+        for q in list_queues:
+            result = q.get()
+            # Process the results
             
-            # for entry s, find the B nearest entries in the list
-            j_low , j_high = max(0, i - B / 2), min(i + B / 2, n - 1)
-#                        
-            iteration_indices = range(j_low, j_high + 1)
-            iteration_indices.remove(i)
-            for j in iteration_indices:
-                # i,j: current index in the sorted has list
-                # sort_indices[i]: the original index of the item residing at index i of the sorted list
+            # merge result['index_adjacency'] into self.index_adjacency
+            self.__update_dict_of_sets(self.index_adjacency, result['index_adjacency'])
                 
-                record1, record2 = self.list_of_records[sort_indices[i]], self.list_of_records[sort_indices[j]]
-                if  not allow_repeats:
-                    if sort_indices[j] in self.index_adjacency[sort_indices[i]]:
-                        continue
-                
-                # If the two records already have identities and they are the same, skip.
-                if None != record2.identity == record1.identity != None:
-                    continue
-                    
-                    
-                    
-                # New implementation: comparison is done via instance function of the Record class
-                # Comparison (matching) mode is passed to the Record's compare method.
-                verdict, result = record1.compare(record2, mode=self.matching_mode)
-                if verdict > 0:
-                    self.match_count += 1
-                    self.index_adjacency[sort_indices[i]].add(sort_indices[j])
-                    self.new_match_buffer.add((sort_indices[i], sort_indices[j]))
-                
-                # compute some statistics about the records
-                if self.do_stats:
-                    self.logstats(record1, record2, verdict, result)
-                    
-#                 if (sort_indices[i], sort_indices[j]) not in self.dict_already_compared_pairs:
-#                     if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]], mode=self.matching_mode):
-#                         dict_neighbors[sort_indices[i]].append(sort_indices[j])
-#                     self.dict_already_compared_pairs[(sort_indices[i], sort_indices[j])] = 1
-    
+            # merge result['new_match_buffer'] into self.new_match_buffer
+            self.__update_dict_of_sets(self.new_match_buffer, result['new_match_buffer'])
+            
+            self.match_count += result['match_count']
+
+
+        
+        # join processes
+        for p in list_procs:
+            p.join()
+            
+      
+      
+      
+      
+      
+      
     def compute_LSH_hash(self, hash_dim):
         ''' Input:
                 list_of_vectors:    list of vectors. Each vector is a dictionary {vector coordinate index, value}
@@ -702,8 +731,8 @@ class Disambiguator():
     ''' 
     def merge_identities(self):
         
-        for count,pair in enumerate(self.new_match_buffer):
-            print "comparing pair no. %d"% count
+        for count, pair in enumerate(self.new_match_buffer):
+            print "comparing pair no. %d" % count
             i, j = pair
             r1 = self.list_of_records[i]
             r2 = self.list_of_records[j]
@@ -891,6 +920,100 @@ class Disambiguator():
         db_manager.connection.commit()
         db_manager.connection.close()
                 
+
+
+
+def find_nearest_neighbors(data):
+    '''
+    The worker function run in each process spawed by Disambiguator.update_nearest_neighbors().
+    This function finds the nearest neighbors for all records in a list of records it receives.
+    Parameters:
+        data: a dict of all the data needed by this worker function.
+        data['pid']: process id
+        data['queue']: queue for communication with parent process
+        data['matching_mode']: same as self.matching_mode
+        data['do_stats']: whether to log stats. same as self.do_stats
+        data['dict_of_records']: a dictionary of records relevant to this worker. It should be constructed such that
+            data['dict_of_records'][i] is equivalent self.list_of_records[sort_indices[i]]
+        data['index_adjacency']: a sub-dictionary of the full index_adjacency with entries for records relevant to this process.
+        data['sort_indices']
+        data['B']
+        data['allow_repeats']
+
+    Returns:
+        result: a dict of all output variables.
+        result['match_count']: number of matches found by this process
+        result['new_match_buffer']: Set of matched record id pairs
+        result['index_adjacency']: updated index_adjacency. Will be merged into self.index_adjacency in the calling process.
+    '''
+    
+    allow_repeats = data['allow_repeats']
+    sort_indices = data['sort_indices']
+    
+    B = data['B']
+    matching_mode = data['matching_mode']
+    do_stats = data['do_stats']
+    dict_of_records = data['dict_of_records']
+    n = len(dict_of_records)
+    index_adjacency = data['index_adjacency']
+    
+    output = {'match_count':0,
+              'new_match_buffer':set(),
+              'index_adjacency':index_adjacency}
+
+    i_min, i_max = min(dict_of_records.keys()), max(dict_of_records.keys())
+    
+    for  i in  sorted(dict_of_records.keys()):
+        
+        # for entry s, find the B nearest entries in the list
+        j_low , j_high = max(i_min, i - B / 2), min(i + B / 2, i_max)
+    #                        
+        iteration_indices = range(j_low, j_high + 1)
+        iteration_indices.remove(i)
+        for j in iteration_indices:
+            # i,j: current index in the sorted has list
+            # sort_indices[i]: the original index of the item residing at index i of the sorted list
+            
+            record1, record2 = dict_of_records[i], dict_of_records[j]
+            if  not allow_repeats:
+#                 print "BLAH BLAH ",result['index_adjacency']
+                if sort_indices[j] in output['index_adjacency'][sort_indices[i]]:
+                    continue
+            
+            # If the two records already have identities and they are the same, skip.
+            if None != record2.identity == record1.identity != None:
+                continue
+                
+            # New implementation: comparison is done via instance function of the Record class
+            # Comparison (matching) mode is passed to the Record's compare method.
+            verdict, result = record1.compare(record2, mode=matching_mode)
+            if verdict > 0:
+                output['match_count'] += 1
+                output['index_adjacency'][sort_indices[i]].add(sort_indices[j])
+                output['new_match_buffer'].add((sort_indices[i], sort_indices[j]))
+            
+            # compute some statistics about the records
+            # Forget about logstats for now
+            # if do_stats:
+            #    logstats(record1, record2, verdict, result)
+    data['queue'].put(output)
+    
+      
+
+
+
+def chunkit_padded(list_input, i, num_chunks, overlap=0):
+    '''
+    This function splits a list into "total_count" sublists of roughly equal sizes and returns the "ith" one.
+    These lists are overlapping.
+    '''
+    n = len(list_input)
+
+    size = n / num_chunks
+
+    x, y = i * size, min((i + 1) * size + overlap, n)
+    return list_input[x:y]
+
 
 
 

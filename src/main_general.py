@@ -1207,13 +1207,13 @@ if __name__ == "__main__":
 #     generateAffiliationData('delaware', affiliation='employer', record_limit=(0, 500))
      
     # Generate networks for both employers and occupations
-    generateAffiliationData('massachusetts', affiliation=None, record_limit=(0, 5000000))
-    quit()
+#     generateAffiliationData('massachusetts', affiliation=None, record_limit=(0, 5000000))
+#     quit()
     
 
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
-    disambiguate_main('delaware', record_limit=(0, 500), logstats=True)
+    disambiguate_main('delaware', record_limit=(0, 50000), logstats=True)
 
     quit()
     
