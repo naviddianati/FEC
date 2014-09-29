@@ -673,8 +673,11 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
     
 
 
-    def pvalue(self, m, ku, kv, q):
-        '''The pvalue according to a random undirected weighted graph null model'''      
+    def pvalue_old(self, m, ku, kv, q):
+        '''
+        The pvalue according to a random undirected weighted graph null model.
+        Extreme is defined as any value with probability less than the observed.
+        '''      
         f = binom(q, ku * kv * 1.0 / q / q)
         
         n0 = m
@@ -703,6 +706,13 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
             # n0 has the maximum pmf
             return 1.0
         
+    
+    def pvalue(self, m, ku, kv, q):
+        ''' 
+          "Extreme" is defined as any value greater than m.
+        '''
+        f = binom(q, ku * kv * 1.0 / q / q)
+        return 1-f.cdf(m-1)
        
     
     

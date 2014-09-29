@@ -318,29 +318,18 @@ class Disambiguator():
             
         list_of_hashes_sorted = sorted(hashes)
         sort_indices = argsort(hashes)
-#         print sort_indices
-        # should be optimized. redundant sorting performed
         
         # number of hash strings in list_of_hashes
         n = len(hashes)
-        
-        # NOT USED length of each hash string
-        # m = len(hashes[0])
         
         # Now I'm directly updating self.index_adjacency. This won't be necessary
         # dict_neighbors = {}
              
         for s, i in zip(list_of_hashes_sorted, range(n)):
-            # Now I'm directly updating self.index_adjacency. This won't be necessary
-            # dict_neighbors[sort_indices[i]] = []
             
             # for entry s, find the B nearest entries in the list
             j_low , j_high = max(0, i - B / 2), min(i + B / 2, n - 1)
-#             if (i - B / 2 < 0):
-#                 j_low, j_high = 0, B
-#             if (i + B / 2 > n - 1):
-#                 j_low, j_high = n - 1 - B, n - 1
-            
+#                        
             iteration_indices = range(j_low, j_high + 1)
             iteration_indices.remove(i)
             for j in iteration_indices:
@@ -374,7 +363,6 @@ class Disambiguator():
 #                     if self.list_of_records[sort_indices[i]].compare(self.list_of_records[sort_indices[j]], mode=self.matching_mode):
 #                         dict_neighbors[sort_indices[i]].append(sort_indices[j])
 #                     self.dict_already_compared_pairs[(sort_indices[i], sort_indices[j])] = 1
-#         return dict_neighbors      
     
     def compute_LSH_hash(self, hash_dim):
         ''' Input:
@@ -450,9 +438,6 @@ class Disambiguator():
         self.update_nearest_neighbors(B=80, hashes=xrange(len(self.list_of_records)))
 
             
-                    # set neighbors of all items in current group and move on to the next item
-                    
-                    
     # Convert self.index_adjacency to an edgelist
     def compute_edgelist(self):
 
