@@ -53,11 +53,10 @@ def restrict_to_neighborhood(G,target_label,dist):
     return G
 
 class Settings:
-    def __init__(self, draw_groups=False, batch_id=94, state_id='VT', state = "vermont",
+    def __init__(self, draw_groups=False, state_id='VT', state = "vermont",
                  affiliation='occupation', data_path = os.path.expanduser('~/data/FEC/'),
                  output_dim=(3200, 3200), num_components=(0, 80), verbose=False):
         self.draw_groups = draw_groups
-        self.batch_id = batch_id
         self.state_id = state_id
         self.state = state
         self.affiliation = affiliation
@@ -487,11 +486,11 @@ def get_neighborhood(index,n):
 
 
 
-settings = Settings(batch_id=94,
+settings = Settings(
                     state_id='VT',
                     state = "vermont",
-                    affiliation='employer',
-#                     affiliation='occupation',
+#                     affiliation='employer',
+                    affiliation='occupation',
                     data_path = os.path.expanduser('~/data/FEC/'),
                     output_dim=(3200, 3200),
                     num_components=(0, 1),
@@ -500,8 +499,8 @@ settings = Settings(batch_id=94,
       
 
 # settings.state='delaware'; settings.state_id = 'DE'  
-# settings.state='newyork'; settings.state_id = 'NY'  
-settings.state='massachusetts'; settings.state_id = 'MA'  
+settings.state='newyork'; settings.state_id = 'NY'  
+# settings.state='massachusetts'; settings.state_id = 'MA'  
 # settings.batch_id = 90; settings.state_id = 'DE'  # Delaware
 # settings.batch_id = 91; settings.state_id = 'MO'   # Missouri
 # settings.batch_id = 83; settings.state_id = 'AK'   # Alaska
@@ -532,8 +531,9 @@ G = load_affiliation_graph(settings, component = "giant")
 # quit()
 
 # Optionally select a neighborhood of a given vertex
-# G = restrict_to_neighborhood(G,'ATTORNEY',1)
+G = restrict_to_neighborhood(G,'ATTORNEY',2)
 # G = restrict_to_neighborhood(G,'HARVARD UNIVERSITY',3)
+# G = restrict_to_neighborhood(G,'GOLDMAN SACHS',2)
 
 
 
@@ -598,8 +598,8 @@ pal = mplPalette(numcolors, name='binary')
 
 
 # Set vertex and edge properties
-set_vertexSize(G, s_max=80, s_min=5)
-set_edgeWidth(G, w_max=5, w_min=1, field='confidence', threshold=None, percent=5)
+set_vertexSize(G, s_max=20, s_min=2)
+set_edgeWidth(G, w_max=1, w_min=.3, field='confidence', threshold=None, percent=2)
 # print G.es['color']
 set_labelSize(G, s_max=40, s_min=5, percent=30)
 
@@ -697,7 +697,7 @@ mylayout = G.layout('drl', weights=G.es['layout-weight'])
 coords = mylayout.coords
 
 # mylayout = G.layout('fr', seed=coords, maxiter=100, maxdelta=1,weights=np.sqrt(G.es['layout-weight']),repulserad=0)
-mylayout = G.layout('gfr', seed=coords, maxiter=100, maxdelta=10)
+mylayout = G.layout('gfr', seed=coords, maxiter=100, maxdelta=10,cellsize=5)
 print "Layout computed..."
 
 
@@ -785,7 +785,7 @@ leaves_seq.delete()
 
 # Plot graph with edges
 p = igraph.plot(G,
-    settings.data_path + str(settings.batch_id) + "-" + settings.affiliation + "s.pdf",
+    settings.data_path + str(settings.state) + "-" + settings.affiliation + "s.pdf",
     bbox=settings.output_dim,
     # layout = "large",
     layout=mylayout,

@@ -33,7 +33,7 @@ import pylab as pl
 
 
 class Disambiguator():
-    def __init__(self, list_of_records, vector_dimension, matching_mode="strict"):
+    def __init__(self, list_of_records, vector_dimension, matching_mode="strict", num_procs = 3):
         
         
         
@@ -96,7 +96,7 @@ class Disambiguator():
         if self.do_stats:
             self.set_logstats(True)
             
-        self.num_procs = 3
+        self.num_procs = num_procs
 
             
             
@@ -315,7 +315,7 @@ class Disambiguator():
         
         
     
-    def update_nearest_neighbors(self, B, hashes=None, allow_repeats=False, num_procs=3):
+    def update_nearest_neighbors(self, B, hashes=None, allow_repeats=False, num_procs= None):
         ''' given a list of strings or hashes, this function computes the nearest
             neighbors of each string among the list.
 
@@ -331,6 +331,8 @@ class Disambiguator():
         
         if hashes is None:
             hashes = self.LSH_hash
+        
+        if not num_procs: num_procs = self.num_procs
             
         sort_indices = argsort(hashes)
         

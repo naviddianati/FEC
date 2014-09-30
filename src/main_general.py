@@ -91,15 +91,37 @@ def get_next_batch_id():
 
 
 
-''' Loads the saved output of AffiliatoinAnalyzer from file: the affiliation network.
+def loadAffiliationNetwork(label, data_path, affiliation):
+    '''
+    Loads the saved output of AffiliatoinAnalyzer from file: the affiliation network.
     It also adds a new attribute to the graph instance that contains a dictionary from
     affiliation identifier strings to the index of their corresponding vertex in the graph object.
-'''
-def loadAffiliationNetwork(label, data_path, affiliation):
+
+    TODO: allow filtering based on value of an edge (or vertex) parameter
+    '''
+            
+    def prune(G, field='confidence', percent=15):
+        '''
+        Remove all but the top X percent of the edges with respect to the value of their field.
+        '''
+        deathrow = []
+        n = len(G.es)
+        threshold_index = n - n * percent / 100
+        threshold_value = sorted(G.es[field])[threshold_index]
+        
+        for e in G.es:
+            if e[field] < threshold_value: 
+                deathrow.append(e.index)
+        G.delete_edges(deathrow)
+        return G
+    
     try:
         filename = f = data_path + label + affiliation + '_graph.gml'
         print filename
         G = igraph.Graph.Read_GML(filename)
+        
+        G = prune(G, field='confidence', percent=5)
+        
         dict_string_2_ind = {v['label']:v.index for v in G.vs}
         G.dict_string_2_ind = dict_string_2_ind
     except IOError:
@@ -317,7 +339,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
 
 
 
-def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", logstats=False):  
+def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", logstats=False, whereclause='', num_procs = 3):  
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -394,8 +416,8 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     retriever = FecRetriever(table_name=table_name,
                       query_fields=all_fields,
                       limit=(record_start, record_no),
-                      list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"]
-#                       where_clause=" WHERE NAME LIKE '%COHEN, ROBERT%'"
+                      list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
+                        where_clause=whereclause
                       )
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
@@ -464,7 +486,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator(list_of_records, dim, matching_mode=method_id)
+    D = Disambiguator(list_of_records, dim, matching_mode=method_id, num_procs = num_procs)
     D.tokenizer = tokenizer
     project.D = D
     D.project = project
@@ -1002,9 +1024,6 @@ class Project(dict):
                 for r in sorted(list(person.set_of_records), key=lambda record : record['NAME']):
                 
                 
-                    
-#                     index = r.index
-                    list_id.append(r.id)
                     record_as_list_tokenized = [r[field] for field in self["list_tokenized_fields"]]
                     record_as_list_auxiliary = [r[field] for field in self["list_auxiliary_fields"]]
                     
@@ -1023,7 +1042,7 @@ class Project(dict):
                     # without normalized names
                     new_row = record_as_list_tokenized + [r['N_address']]
                     
-                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s, unicode) else s  for s in new_row ]
+                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s, unicode) else s  for s in new_row ] + [r.id]
                     new_block.append(new_row)
 
                     
@@ -1034,14 +1053,14 @@ class Project(dict):
 #                     f1.write(s1)
                 new_block = sorted(new_block, key=lambda row:row[time_index])
                 dataframe_data += new_block
-                list_id += ["" for i in range(3)]
-                dataframe_data += [["" for i in range(len(dataframe_data[0]) - 1)] + ["|"] for j in range(3)]
+                dataframe_data += [["" for i in range(len(dataframe_data[0]) - 2)] + ["|"] + [""] for j in range(3)]
                 
                 person_counter += 1
                 
                 # Save a group of blocks to file
                 if person_counter % page_size == 0:
-                    df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"] + ['N_address'])
+                    df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
+                    df.set_index('id',inplace = True)
                     f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
                     f2.write(df.to_html().encode('ascii', 'ignore'))
                     f2.write("<br/><br/>")
@@ -1060,7 +1079,7 @@ class Project(dict):
             
             # if there's a fraction of a page left at the end, write that too. 
             if dataframe_data:
-                df = pd.DataFrame(dataframe_data, index=list_id, columns=self["list_tokenized_fields"] + ['N_address'])
+                df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address']+['id'])
                 f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
     
                 f2.write(df.to_html().encode('ascii', 'ignore'))
@@ -1213,7 +1232,7 @@ if __name__ == "__main__":
 
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
-    disambiguate_main('delaware', record_limit=(0, 50000), logstats=True)
+    disambiguate_main('newyork', record_limit=(0, 500), logstats=True, whereclause=" WHERE NAME LIKE '%COHEN%' ", num_procs = 3)
 
     quit()
     
