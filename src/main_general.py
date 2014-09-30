@@ -91,7 +91,7 @@ def get_next_batch_id():
 
 
 
-def loadAffiliationNetwork(label, data_path, affiliation):
+def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     '''
     Loads the saved output of AffiliatoinAnalyzer from file: the affiliation network.
     It also adds a new attribute to the graph instance that contains a dictionary from
@@ -100,7 +100,7 @@ def loadAffiliationNetwork(label, data_path, affiliation):
     TODO: allow filtering based on value of an edge (or vertex) parameter
     '''
             
-    def prune(G, field='confidence', percent=15):
+    def prune(G, field='confidence', percent):
         '''
         Remove all but the top X percent of the edges with respect to the value of their field.
         '''
@@ -120,7 +120,7 @@ def loadAffiliationNetwork(label, data_path, affiliation):
         print filename
         G = igraph.Graph.Read_GML(filename)
         
-        G = prune(G, field='confidence', percent=5)
+        G = prune(G, field='confidence', percent=percent)
         
         dict_string_2_ind = {v['label']:v.index for v in G.vs}
         G.dict_string_2_ind = dict_string_2_ind
@@ -339,7 +339,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
 
 
 
-def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", logstats=False, whereclause='', num_procs = 3):  
+def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", logstats=False, whereclause='', num_procs=1, percent_employers=5, percent_occupations=5):  
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -355,6 +355,13 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
         saves a json version of all records to a file, etc.
     5- The json files saved by Project, namely the adjacency matrix and the list of records, will be used by the code
         defined in the Affiliations module to extract
+
+
+
+    Parameters:
+        percent_employers: percentage of top edges in the employers network to use.
+        percent_occupations: percentage of top edges in the occupations network to use.
+
     '''  
     batch_id = get_next_batch_id()
     project = Project(batch_id=batch_id)
@@ -455,7 +462,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     interpreted as True.   Affiliations on the <state>_addresses data.
     '''
     
-    G_employer = loadAffiliationNetwork(param_state + "-", project['data_path'], 'employer')
+    G_employer = loadAffiliationNetwork(param_state + "-", project['data_path'], 'employer', percent=percent_employers)
     if G_employer:
         for record in list_of_records:
             record.list_G_employer = [G_employer]
@@ -465,7 +472,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 
     
     
-    G_occupation = loadAffiliationNetwork(param_state + "-" , project['data_path'], 'occupation')
+    G_occupation = loadAffiliationNetwork(param_state + "-" , project['data_path'], 'occupation', percent=percent_occupations)
     if G_occupation:  
         for record in list_of_records:
             record.list_G_occupation = [G_occupation]
@@ -486,7 +493,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator(list_of_records, dim, matching_mode=method_id, num_procs = num_procs)
+    D = Disambiguator(list_of_records, dim, matching_mode=method_id, num_procs=num_procs)
     D.tokenizer = tokenizer
     project.D = D
     D.project = project
@@ -1060,7 +1067,7 @@ class Project(dict):
                 # Save a group of blocks to file
                 if person_counter % page_size == 0:
                     df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
-                    df.set_index('id',inplace = True)
+                    df.set_index('id', inplace=True)
                     f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
                     f2.write(df.to_html().encode('ascii', 'ignore'))
                     f2.write("<br/><br/>")
@@ -1079,7 +1086,7 @@ class Project(dict):
             
             # if there's a fraction of a page left at the end, write that too. 
             if dataframe_data:
-                df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address']+['id'])
+                df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
                 f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
     
                 f2.write(df.to_html().encode('ascii', 'ignore'))
@@ -1232,7 +1239,13 @@ if __name__ == "__main__":
 
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
-    disambiguate_main('newyork', record_limit=(0, 500), logstats=True, whereclause=" WHERE NAME LIKE '%COHEN%' ", num_procs = 3)
+    disambiguate_main('newyork',
+                       record_limit=(0, 500),
+                       logstats=True,
+                       whereclause=" WHERE NAME LIKE '%COHEN%' ",
+                       num_procs=3,
+                       percent_employers = 5,
+                       percent_occupations = 5)
 
     quit()
     

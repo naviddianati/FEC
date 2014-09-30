@@ -127,7 +127,7 @@ class Disambiguator():
 
 
     @classmethod
-    def getCompoundDisambiguator(cls, list_of_Ds):
+    def getCompoundDisambiguator(cls, list_of_Ds, num_procs = 1):
         ''' Receive a list of Disambiguator objects and combine them into one fresh object'''
         # Records of each D have a separate TokenData object. Those need to be combined
         # Each record has a vector. Those need to be updated according to the new unified TokenData
@@ -135,7 +135,7 @@ class Disambiguator():
         # update self.input_dimension 
         # TODO: Towns need to be combined too
         
-        D_new = Disambiguator([], 0)
+        D_new = Disambiguator([], 0,num_procs = num_procs)
         
         
         # Matching mode. Only set if they are all the same
