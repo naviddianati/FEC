@@ -9,3 +9,5 @@ tmp*
 *.list
 *.log
 config/batches.list
+*.pickle
+output

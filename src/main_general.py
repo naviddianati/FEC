@@ -100,7 +100,7 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     TODO: allow filtering based on value of an edge (or vertex) parameter
     '''
             
-    def prune(G, field='confidence', percent):
+    def prune(G, field='confidence', percent=5):
         '''
         Remove all but the top X percent of the edges with respect to the value of their field.
         '''
@@ -1240,10 +1240,10 @@ if __name__ == "__main__":
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     disambiguate_main('newyork',
-                       record_limit=(0, 500),
+                       record_limit=(0, 50000),
                        logstats=True,
                        whereclause=" WHERE NAME LIKE '%COHEN%' ",
-                       num_procs=3,
+                       num_procs=10,
                        percent_employers = 5,
                        percent_occupations = 5)
 

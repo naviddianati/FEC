@@ -369,10 +369,12 @@ class Disambiguator():
             list_procs.append(p)
             list_queues.append(data['queue'])
             p.start()
+            print "started process ", pid
         
         # Receive outputs from processes
-        for q in list_queues:
+        for i,q in enumerate(list_queues):
             result = q.get()
+            print "Received results from process" , i
             # Process the results
             
             # merge result['index_adjacency'] into self.index_adjacency
@@ -387,7 +389,10 @@ class Disambiguator():
         
         # join processes
         for p in list_procs:
+            print "joining process", p
             p.join()
+        
+        print "all processes returned"
             
       
       

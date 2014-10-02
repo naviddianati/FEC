@@ -7,28 +7,43 @@ The number of processes can be changed and the computation is timed.
 
 from cmath import exp
 from multiprocessing import *
-from time import time
+from time import time,sleep
 
+# Accessible to child processes
+globaldata = 127
 
-def doSomething(p_data):
+def worker(p_data):
     pid = p_data['pid']
     print pid
     data = p_data['data']
     queue = p_data['queue']
     
-    for x in data:
-        for i in range(100):
-            y = exp(.23421342134)  + x % 234358793
-#         print pid,'    ',x
+    self.doSomething(data)
     queue.put('Done with process '+ str(pid))
     
     pass
 
+
+
+def doSomething(data):
+    print data ,'----'
+    return
+    for x in data:
+        for i in range(100):
+            y = exp(.23421342134)  + x % 234358793
+
+
+def actionDummy(data):
+    print "worker working started ", globaldata, " ", maindata, thing.N
+    sleep(1)
+
+
+
 class Thing:
     def __init__(self):
-        self.N = 1000000
+        self.N = 1000000*100
         self.data = range(self.N)
-        self.num_procs = 1
+        self.num_procs = 10
     
     
     
@@ -46,8 +61,17 @@ class Thing:
         chunk_size = N / num_chunks + 1
         return data[chunk_size * i: chunk_size * (i+1)]
     
+
+    def run2(self):
+        # This data is invisible to child processes
+        insidedata = 394
+        pool = Pool(processes = 10)
+
+        #p_data['data'] = self.chunkit(self.data, i,self.num_procs,0)
+        pool.map(actionDummy,range(10))
+        
     
-    def run(self):
+    def run1(self):
         list_procs = []
         list_queues = []
         
@@ -61,7 +85,7 @@ class Thing:
             p_data['data'] = self.chunkit(self.data, i,self.num_procs,0)
             
             
-            p = Process(target=doSomething, args = (p_data,))
+            p = Process(target=worker, args = (p_data,))
             list_procs.append(p)
             p.start()
         
@@ -75,10 +99,14 @@ class Thing:
 
 
 if __name__=="__main__":
+    
+    # This data is accessible to child processes spawned inside thing
+    maindata = 666
+
     thing = Thing()
     
     t1 = time()
-    thing.run()
+    thing.run2()
     t2 = time()
     
     print t2-t1
