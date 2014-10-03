@@ -33,56 +33,18 @@ import pylab as pl
 
 
 
-class ProcessManager():
-    '''
-    This class will be instantiate once when the Disambiguator module is imported. (this should be done only once in any given run)
-    The purpose of that instance is to serve as a global variable that keeps track of all the Disambiguator instances in existence.
-    Then, whenever a child process worker spawned by one of these Disambiguator instances needs to access the global variable
-    corresponding to that instance, it will be able to retrieve it from the ProcessManager instance using an id.
-    '''
-    def __init__(self):
-        # A dictionary {id(int): Disambiguator instance}
-        self.dict_D = {}
-        pass
-    
-    def getDisambiguator(self,D_id):
-        return self.dict_D[D_id]
-
-    def dropDisambiguator(self,D_id):
-        del self.dict_D[D_id]
-
-    def addDisambiguator(self,D):
-        D.id = self.getNewId()
-        self.dict_D[D.id] = D
-
-    def getNewId(self):
-        print self.dict_D
-        if len(self.dict_D) == 0:
-            return 0
-        else:
-            return max(self.dict_D.keys()) + 1
-
-# Global manager instance that keeps track of all Disambiguator instances created in a session
-processManager = ProcessManager()
-
 
 
 
 
 class Disambiguator():
     def __init__(self, list_of_records, vector_dimension, matching_mode="strict", num_procs = 3):
-       
-        # Should be set by processManager 
-        self.id = None
-
-        # Every disambiguator objects gets added to processManager upon creation, and receives an id. 
-        processManager.addDisambiguator(self)
-
         # I Believe these are unnecessary. 
 #         self.index_2_token = index_2_token
 #         self.token_2_index = token_2_index
 #         self.list_of_vectors = list_of_vectors
         self.list_of_records = list_of_records
+        self.sort_list_of_records()
         
         # dimension of the input vectors (this is necessary because the vectors come in a sparse form)
         self.input_dimensions = vector_dimension
@@ -140,6 +102,12 @@ class Disambiguator():
         self.num_procs = num_procs
 
             
+    def sort_list_of_records(self):
+        '''
+        sord the records in place by their id. This makes it easier to reconstruct list_of_records from a partitioning of it.
+        Usefull mainly for multi-processing.
+        '''
+        self.list_of_records.sort(key = lambda r: r.id)
             
                 
     def set_logstats(self, is_on=True):
@@ -217,7 +185,7 @@ class Disambiguator():
                 # add record to the new D's list_of_records
                 D_new.list_of_records.append(record) 
         
-        
+        D_new.sort_list_of_records()        
         return D_new
         
                 
@@ -402,6 +370,13 @@ class Disambiguator():
   
         list_procs = []
         list_queues = []
+
+        # Split self.list_of_records into chunks, and truncate it as the split progresses
+        # Each element in this list is a DICT X such that X[i] = self.list_of_records[sorted_indices[i]]
+        list_chunks = self.chunk_padded_list_of_records(num_procs,B)        
+        
+
+
         for pid in range(num_procs):
             list_indices = chunkit_padded(range(n), pid, num_procs, B)
             data = {"pid":pid,
@@ -410,6 +385,7 @@ class Disambiguator():
                     "matching_mode": self.matching_mode,
                     "do_stats": self.do_stats,
                     "list_indices": list_indices,
+                    "dict_of_records": list_chunks[pid],
                     "index_adjacency":{sort_indices[j]: self.index_adjacency[sort_indices[j]] for j in list_indices},
                     "sort_indices":sort_indices,
                     "B":B,
@@ -990,6 +966,7 @@ def find_nearest_neighbors(data):
         data['matching_mode']: same as self.matching_mode
         data['do_stats']: whether to log stats. same as self.do_stats
         data['index_adjacency']: a sub-dictionary of the full index_adjacency with entries for records relevant to this process.
+        data['list_of_records']
         data['sort_indices']
         data['B']
         data['allow_repeats']
@@ -1015,12 +992,9 @@ def find_nearest_neighbors(data):
     do_stats = data['do_stats']
     D_id = data['D_id']
     index_adjacency = data['index_adjacency']
+    list_of_records = data['list_of_records']
 
-    # Retrieve the particular Disambiguator instance that spawned this child worker.
-    D = processManager.getDisambiguator(D_id)
-
-    # We're hoping that D is visible as global variable
-    n = len(D.list_of_records)
+    n = len(list_of_records)
     
     output = {'match_count':0,
               'new_match_buffer':set(),
@@ -1040,7 +1014,7 @@ def find_nearest_neighbors(data):
             # sort_indices[i]: the original index of the item residing at index i of the sorted list
             
             #record1, record2 = dict_of_records[i], dict_of_records[j]
-            record1, record2 = D.list_of_records[sort_indices[i]], D.list_of_records[sort_indices[j]]
+            record1, record2 = dict_of_records[sort_indices[i]], dict_of_records[sort_indices[j]]
             if  not allow_repeats:
                 if sort_indices[j] in output['index_adjacency'][sort_indices[i]]:
                     continue

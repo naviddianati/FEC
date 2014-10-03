@@ -14,7 +14,7 @@ globaldata = 127
 
 def worker(p_data):
     pid = p_data['pid']
-    print pid
+    print 'worker %d started.' % pid
     data = p_data['data']
     queue = p_data['queue']
     
@@ -28,7 +28,8 @@ def worker(p_data):
 def doSomething(data):
     #print data ,'----'
     #return
-    sleep(5)
+    print id(data[0])
+    sleep(20)
 
 def actionDummy(data):
     print "worker working started ", data, globaldata, " ",  thing.N
@@ -42,7 +43,8 @@ def actionDummy(data):
 class Thing:
     def __init__(self):
         self.N = 1000000*100
-        self.data = range(self.N)
+        #self.data = range(self.N)
+        self.data = [{} for i in xrange(self.N)]
         self.num_procs = 10
     
     
@@ -59,7 +61,29 @@ class Thing:
         pass
         N = len(data)
         chunk_size = N / num_chunks + 1
-        return data[chunk_size * i: chunk_size * (i+1)]
+        output = data[chunk_size * i: chunk_size * (i+1)]
+        return output
+
+
+
+    def getchunk(self,data,i,num_chunks,B):
+        ''' 
+        split data into chunks, and delete each chunk from data as it's sliced off
+        parameters:
+            data    : a list
+            i    : return the ith chunk
+            num_chunks: total number of chunks
+            B: 
+            '''
+        pass
+        N = len(data)
+        chunk_size = N / num_chunks + 1
+        
+        output = []
+        for i in range(num_chunks):
+            output.append(data[:chunk_size] )
+            del data[:chunk_size]
+        return output
     
 
     def run2(self):
@@ -71,7 +95,7 @@ class Thing:
 
         print "Spawning children in 5 seconds"
         sleep(5)
-        list_procs = [Process(target = actionDummy, args=[[]]) for i in range(5)]
+        list_procs = [Process(target = actionDummy, args=[[]]) for i in range(10)]
         for p in list_procs: p.start()
         for p in list_procs: p.join()
 
@@ -81,27 +105,33 @@ class Thing:
     def run1(self):
         list_procs = []
         list_queues = []
-        
+        print "spawning children in 5 seconds"
+        sleep(5)     
         # Create processes
+    
+        list_data = [self.getchunk(self.data,i,self.num_procs,0) for i in range(self.num_procs)]
         for i in range(self.num_procs):
+
             p_data = {}
             p_data['pid'] = i
             q = Queue()
             list_queues.append(q)
             p_data['queue'] = q            
-            p_data['data'] = self.chunkit(self.data, i,self.num_procs,0)
-            
+            p_data['data'] = list_data[i]
+                
             
             p = Process(target=worker, args = (p_data,))
             list_procs.append(p)
             p.start()
-        
+            print self.data        
+
         for i,p in enumerate(list_procs):
             result = list_queues[i].get() 
             print result   
         
         for p in list_procs:
             p.join()            
+        
 
 
 print __name__       
