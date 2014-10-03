@@ -57,7 +57,10 @@ import time
 
 from Affiliations import AffiliationAnalyzerUndirected
 from Database import FecRetriever
-from Disambiguator import Disambiguator
+
+# Import the module as a whole, so we can add global variables to its namespace for shared memory parallel processing
+import Disambiguator
+
 from Tokenizer import Tokenizer, TokenizerNgram
 import numpy as np
 import pandas as pd
@@ -253,7 +256,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator(list_of_records, dim, matching_mode="strict")
+    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode="strict")
     project.D = D
     D.project = project
     
@@ -493,7 +496,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator(list_of_records, dim, matching_mode=method_id, num_procs=num_procs)
+    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode=method_id, num_procs=num_procs)
     D.tokenizer = tokenizer
     project.D = D
     D.project = project
@@ -802,7 +805,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator(list_of_records, dim, matching_mode=method_id)
+    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode=method_id)
     D.tokenizer = tokenizer
     project.D = D
     D.project = project
@@ -1000,11 +1003,13 @@ class Project(dict):
                  + "</head>")
         
         list_tokens = []
-        dict_tokens = {}
-        for record in self.D.list_of_records:
-            dict_tokens[record.id] = self.D.tokenizer._get_tokens(record, self["list_tokenized_fields"])
+
+        if with_tokens:
+            dict_tokens = {}
+            for record in self.D.list_of_records:
+                dict_tokens[record.id] = self.D.tokenizer._get_tokens(record, self["list_tokenized_fields"])
             
-        print len(dict_tokens), len(self.D.list_of_records)
+        len(self.D.list_of_records)
 #         quit()
 
 
@@ -1034,9 +1039,9 @@ class Project(dict):
                     record_as_list_tokenized = [r[field] for field in self["list_tokenized_fields"]]
                     record_as_list_auxiliary = [r[field] for field in self["list_auxiliary_fields"]]
                     
-#                     print len(list_tokens), index
-                    tmp_tokens = dict_tokens[r.id]
-                    tokens_str = [str(x) for x in tmp_tokens]
+                    if with_tokens:
+                        tmp_tokens = dict_tokens[r.id]
+                        tokens_str = [str(x) for x in tmp_tokens]
                     
                     # new_row = record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
 
@@ -1237,15 +1242,16 @@ if __name__ == "__main__":
 #     quit()
     
 
-
+    print Disambiguator.processManager.dict_D
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     disambiguate_main('newyork',
-                       record_limit=(0, 50000),
+                       record_limit=(0, 500),
                        logstats=True,
-                       whereclause=" WHERE NAME LIKE '%COHEN%' ",
+                       #whereclause=" WHERE NAME LIKE '%COHEN%' ",
                        num_procs=10,
                        percent_employers = 5,
                        percent_occupations = 5)
+    print Disambiguator.processManager.dict_D
 
     quit()
     

@@ -21,7 +21,7 @@ def two_state_test():
     
     list_of_Ds = [project1.D, project2.D]
     
-    D = Disambiguator.getCompoundDisambiguator(list_of_Ds)
+    D = Disambiguator.Disambiguator.getCompoundDisambiguator(list_of_Ds)
     D.compute_LSH_hash(20)
     D.save_LSH_hash(batch_id='9999')
     D.compute_similarity(B1=40, m=20 , sigma1=None)
@@ -50,8 +50,6 @@ def worker(conn):
     for state in data:
         try:
             project = disambiguate_main(state, record_limit=(0, 5000000))
-#         project = generateAffiliationData(state)  
-
             
             # WOW! The following attributes contain pointers to instance methods, and they can't be pickled! So I just unset them!
             project.D.tokenizer.tokenize_functions = None
@@ -69,14 +67,6 @@ def worker(conn):
     f = open('states_batch_-' + proc_name + ".pickle", 'w')
     pickle.dump(list_results, f)
     f.close()
-#     for i,project in enumerate(list_results):
-#         print i
-#         s = pickle.dumps(project.D)
-#     quit()
-#    conn.send(list_results)    
-
-
-
 
 
 
@@ -95,9 +85,9 @@ if __name__ == "__main__":
 
 
     # Use custom list of states
-    list_states = ['california', 'texas', 'marshallislands', 'palau', 'georgia', 'newjersey']
     list_states = ['delaware', 'maryland']
     list_states = ['virginia', 'maryland']
+    list_states = ['california', 'texas', 'marshallislands', 'palau', 'georgia', 'newjersey']
 
 
     # Do the entire country
@@ -159,9 +149,8 @@ if __name__ == "__main__":
     
 
 
-
     # Only load one of the batches
-    dict_states = {11:dict_states[11]}
+    dict_states = {9:dict_states[9]}
 
 
     # Process the outputs
@@ -186,7 +175,7 @@ if __name__ == "__main__":
     
     try:
         print "Generating compound disambiguator..."
-        D = Disambiguator.getCompoundDisambiguator(list_of_Ds, num_procs=num_procs)
+        D = Disambiguator.Disambiguator.getCompoundDisambiguator(list_of_Ds, num_procs=num_procs)
         print "compound Disambiguator generated"
     except Exception as e:
         print "ERROR: could not get compound Disambiguator... ", e
@@ -197,6 +186,7 @@ if __name__ == "__main__":
 
     num_D_before = [len(D.set_of_persons), len(D.list_of_records)]
     
+    print "Computing hashes"
     D.compute_LSH_hash(20)
     print "Hashes computed"    
     
