@@ -511,7 +511,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
-    B = 20
+    B = 40
     
     
     # Number of times the hashes are permutated and sorted
@@ -1242,16 +1242,14 @@ if __name__ == "__main__":
 #     quit()
     
 
-    print Disambiguator.processManager.dict_D
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
-    disambiguate_main('newyork',
-                       record_limit=(0, 500),
+    disambiguate_main('delaware',
+                       record_limit=(0,10000),
                        logstats=True,
                        #whereclause=" WHERE NAME LIKE '%COHEN%' ",
                        num_procs=10,
                        percent_employers = 5,
                        percent_occupations = 5)
-    print Disambiguator.processManager.dict_D
 
     quit()
     
