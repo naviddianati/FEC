@@ -21,7 +21,7 @@ def two_state_test():
     
     list_of_Ds = [project1.D, project2.D]
     
-    D = Disambiguator.getCompoundDisambiguator(list_of_Ds)
+    D = Disambiguator.Disambiguator.getCompoundDisambiguator(list_of_Ds)
     D.compute_LSH_hash(20)
     D.save_LSH_hash(batch_id='9999')
     D.compute_similarity(B1=40, m=20 , sigma1=None)
@@ -50,8 +50,6 @@ def worker(conn):
     for state in data:
         try:
             project = disambiguate_main(state, record_limit=(0, 5000000))
-#         project = generateAffiliationData(state)  
-
             
             # WOW! The following attributes contain pointers to instance methods, and they can't be pickled! So I just unset them!
             project.D.tokenizer.tokenize_functions = None
@@ -69,14 +67,6 @@ def worker(conn):
     f = open('states_batch_-' + proc_name + ".pickle", 'w')
     pickle.dump(list_results, f)
     f.close()
-#     for i,project in enumerate(list_results):
-#         print i
-#         s = pickle.dumps(project.D)
-#     quit()
-#    conn.send(list_results)    
-
-
-
 
 
 
@@ -86,22 +76,22 @@ if __name__ == "__main__":
     
 
     # Whether to run new state batches or read from existing output files.
-    run_fresh_batches = True
+    run_fresh_batches = False
 
     # Total number of processes we can use in different stages. This specifies  both the number
     # of processes used for parallel processing of the different states, and the number of processes
     # used to distribute the combined processing of all states together.
-    num_procs = 10
+    num_procs = 12
 
 
     # Use custom list of states
-    list_states = ['california', 'texas', 'marshallislands', 'palau', 'georgia', 'newjersey']
     list_states = ['delaware', 'maryland']
     list_states = ['virginia', 'maryland']
+    list_states = ['california', 'texas', 'marshallislands', 'palau', 'georgia', 'newjersey']
 
 
     # Do the entire country
-    # list_states = []
+    list_states = []
 
     list_jobs = []
 
@@ -158,6 +148,11 @@ if __name__ == "__main__":
     list_results = []
     
 
+
+    # Only load one of the batches
+    dict_states = {9:dict_states[9]}
+
+
     # Process the outputs
     for id in dict_states:
         # (conn_parent, conn_child) = dict_conns[id] 
@@ -166,27 +161,45 @@ if __name__ == "__main__":
         result = pickle.load(f)
         list_results += result
         f.close()
+        print "Loaded pickle file " , id
 
 
     list_of_Ds = [project.D for project in list_results]
 #     list_of_Ds = [D for D in list_results]
 
     print "Disambiguating the compound data..."
-        
+    print "Sleeping..."
+    time.sleep(20)
+
+    
+    
     try:
-        D = Disambiguator.getCompoundDisambiguator(list_of_Ds, num_procs=num_procs)
+        print "Generating compound disambiguator..."
+        D = Disambiguator.Disambiguator.getCompoundDisambiguator(list_of_Ds, num_procs=num_procs)
+        print "compound Disambiguator generated"
     except Exception as e:
         print "ERROR: could not get compound Disambiguator... ", e
     
+
+    print "Sleeping..."
+    time.sleep(20)
+
     num_D_before = [len(D.set_of_persons), len(D.list_of_records)]
     
+    print "Computing hashes"
     D.compute_LSH_hash(20)
-    D.save_LSH_hash(batch_id='9999')
-    D.compute_similarity(B1=40, m=20 , sigma1=None)
+    print "Hashes computed"    
     
+    D.save_LSH_hash(batch_id='9999')
+
+    print "Beginning compute_cimilarity"
+    D.compute_similarity(B1=40, m=20 , sigma1=None)
+    print "compute_similarity done"
     
     # D.generate_identities SHOULDN'T BE RUN FOR A COMPOUND D!
+    print "Beginning refine_identities"
     D.refine_identities()
+    print "refine_identities done"
         
     project = copy(list_results[0])
 #     
@@ -197,6 +210,7 @@ if __name__ == "__main__":
     project.D = D
 #     
 
+    print "Beginning save_data_textual"
     project.save_data_textual(file_label="country")
 
 
@@ -210,7 +224,7 @@ if __name__ == "__main__":
     
     print ("="*70 + "\n") * 10
     
-    D.print_set_of_persons(D.get_set_of_persons_multistate(), 'Persons with multiple states in timeline')
+    D.print_list_of_persons(D.get_set_of_persons_multistate(), 'Persons with multiple states in timeline')
 
         
 

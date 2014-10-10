@@ -24,6 +24,9 @@ class Town():
         return result
     
     
+    def getAllPersons(self):
+        return self.dict_persons.values()
+    
     def addPerson(self,person):
         self.dict_persons[id(person)] = person
         person.town = self
@@ -36,6 +39,11 @@ class Town():
 #             person.town = None
         except KeyError:
             pass
+    
+    def merge(self,town):
+        ''' Merge another town into this town'''
+        self.dict_persons.update(town.dict_persons)
+            
         
         
         

@@ -428,7 +428,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
                       query_fields=all_fields,
                       limit=(record_start, record_no),
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
-                        where_clause=whereclause
+                      where_clause=whereclause
                       )
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
@@ -508,15 +508,15 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     # desired dimension (length) of hashes
-    hash_dim = 20
+    hash_dim = 40
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
-    B = 20
+    B = 40
     
     
     # Number of times the hashes are permutated and sorted
-    no_of_permutations = 20
+    no_of_permutations = 2
     project.putData('number_of_permutations' , str(no_of_permutations))
 
     
@@ -965,7 +965,7 @@ class Project(dict):
         print "writing full adjacency to file... "
         filename_edgelist = self["data_path"] + file_label + '-adjacency.edges'
         f = open(filename_edgelist, 'w')
-        for person in self.D.set_of_persons:
+        for id,person in self.D.town.dict_persons.iteritems():
             for record1 in person.set_of_records:
                 for record2 in person.set_of_records:
                     if record1 is not record2:
@@ -1004,9 +1004,11 @@ class Project(dict):
                  + "</head>")
         
         list_tokens = []
-        dict_tokens = {}
-        for record in self.D.list_of_records:
-            dict_tokens[record.id] = self.D.tokenizer._get_tokens(record, self["list_tokenized_fields"])
+
+        if with_tokens:
+            dict_tokens = {}
+            for record in self.D.list_of_records:
+                dict_tokens[record.id] = self.D.tokenizer._get_tokens(record, self["list_tokenized_fields"])
             
         print len(dict_tokens), len(self.D.list_of_records)
 #         quit()
@@ -1030,7 +1032,9 @@ class Project(dict):
             time_index = self["list_tokenized_fields"].index('TRANSACTION_DT')
             
             person_counter = 0 
-            for person in sorted(list(self.D.set_of_persons), key=lambda person:min([r['NAME'] for r in person.set_of_records ])):
+            list_persons = self.D.town.getAllPersons()
+            list_persons.sort(key=lambda person:min([r['NAME'] for r in person.set_of_records ]))
+            for person in list_persons:
                 new_block = []
                 for r in sorted(list(person.set_of_records), key=lambda record : record['NAME']):
                 
@@ -1038,9 +1042,9 @@ class Project(dict):
                     record_as_list_tokenized = [r[field] for field in self["list_tokenized_fields"]]
                     record_as_list_auxiliary = [r[field] for field in self["list_auxiliary_fields"]]
                     
-#                     print len(list_tokens), index
-                    tmp_tokens = dict_tokens[r.id]
-                    tokens_str = [str(x) for x in tmp_tokens]
+                    if with_tokens:
+                        tmp_tokens = dict_tokens[r.id]
+                        tokens_str = [str(x) for x in tmp_tokens]
                     
                     # new_row = record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
 
@@ -1225,7 +1229,43 @@ def worker(conn):
 
 
 
+def process_last_names(project):
+    D = project.D
+    f = open('multipele_last_names.txt','w')
+    counter = 0
+    for id,person in D.town.dict_persons.iteritems():
+        all_names = set()
+        for record in person.set_of_records:
+            all_names.add(record['N_last_name'])
+        if len(all_names) > 1:
+            counter += 1
+            f.write(person.toString()+"\n")
+            print "_" * 80
+    f.close()
+    print "Total number of persons containing different last names: ", counter
 
+
+
+
+def process_middle_names(project):
+    D = project.D
+    dict_middle_names = {}
+    for record in D.list_of_records:
+        if not record['N_middle_name']: continue
+        try:
+            dict_middle_names[record['N_middle_name']] += 1
+        except KeyError:
+            dict_middle_names[record['N_middle_name']] = 1
+    sorted_list = [(name,freq) for name,freq in dict_middle_names.iteritems()]
+    sorted_list.sort(key = lambda x: x[1])
+
+    f = open('middle_name_freqs.txt','w')
+    for item in sorted_list:
+        f.write('%s\t%d\n' % item)
+    f.close()
+        
+            
+        
 
 
 if __name__ == "__main__":
@@ -1233,12 +1273,12 @@ if __name__ == "__main__":
 #     print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
 #     generateAffiliationData('delaware', affiliation='occupation', record_limit=(0, 500))
 #      
-    print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
-    generateAffiliationData('massachusetts',
-                             affiliation='employer',
-                             record_limit=(0, 500000),
-                             whereclause = " WHERE CITY='BOSTON' ")
-    quit()
+#     print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
+#     generateAffiliationData('massachusetts',
+#                              affiliation='employer',
+#                              record_limit=(0, 500000),
+#                              whereclause = " WHERE CITY='BOSTON' ")
+#     quit()
      
     # Generate networks for both employers and occupations
 #     generateAffiliationData('massachusetts', affiliation=None, record_limit=(0, 5000000))
@@ -1247,13 +1287,19 @@ if __name__ == "__main__":
 
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
-    disambiguate_main('newyork',
-                       record_limit=(0, 500),
-                       logstats=True,
-                       whereclause=" WHERE NAME LIKE '%COHEN%' ",
+    project = disambiguate_main('newyork',
+                       record_limit=(0,3000),
+
+                       logstats=False,
+                       #whereclause=" WHERE NAME LIKE '%COHEN%' ",
+                       #whereclause=" WHERE NAME like '%ANDRISANI%' ",
                        num_procs=3,
                        percent_employers = 5,
                        percent_occupations = 5)
+
+    process_last_names(project)
+    process_middle_names(project)
+    
 
     quit()
     
