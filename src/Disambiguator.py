@@ -395,7 +395,7 @@ class Disambiguator():
       
       
       
-    def compute_LSH_hash(self, hash_dim):
+    def compute_LSH_hash_single_process(self, hash_dim):
         ''' Input:
                 list_of_vectors:    list of vectors. Each vector is a dictionary {vector coordinate index, value}
                 hash_dim:    dimension of the generated hash.
@@ -429,7 +429,47 @@ class Disambiguator():
                 LSH_hash[i] += c
 #         return LSH_hash
         self.LSH_hash = LSH_hash
+    
+    
+    
+    
+    def compute_LSH_hash(self, hash_dim):
+        ''' Input:
+                list_of_vectors:    list of vectors. Each vector is a dictionary {vector coordinate index, value}
+                hash_dim:    dimension of the generated hash.
+
+            Output:
+                list of hashes of the vectors. Each hash is an m-tuple.
+        '''
+        dimensions = self.input_dimensions
         
+        self.hash_dim = hash_dim
+        
+        # Number of vectors
+        N = len(self.list_of_records)
+        
+        LSH_hash = ['' for i in range(N)]
+        
+        # generate hash_dim random probe vectors and compute 
+        # their inner products with each of the input vectors.
+        
+        
+        
+        for k in range(hash_dim):
+    #        
+            # random "probe" vector 
+            vec_tmp = random_uniform_hyperspherical(dimensions)
+            
+            # convert to sparse form
+            vec = sparse_vector(vec_tmp)
+            vec_n = vec_norm(vec)
+            for record, i in zip(self.list_of_records, range(N)):
+                v = record.vector
+                c = '1' if inner_product(v, vec) > 0 else '0'
+    #             c = 1 if inner_product(v, vec) / vec_n / vec_norm(v) > 0.0001 else 0
+                LSH_hash[i] += c
+#         return LSH_hash
+        self.LSH_hash = LSH_hash   
         
         
     def save_LSH_hash(self, filename=None, batch_id=0):

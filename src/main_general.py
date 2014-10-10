@@ -100,7 +100,7 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     TODO: allow filtering based on value of an edge (or vertex) parameter
     '''
             
-    def prune(G, field='confidence', percent):
+    def prune(G, field='confidence', percent = 5):
         '''
         Remove all but the top X percent of the edges with respect to the value of their field.
         '''
@@ -141,7 +141,7 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     The output of this method will be the data files which can be loaded by loadAffiliationNetwork().
     The comparison method used by Records here should be strict.
     '''
-def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 5000000)):
+def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 5000000), whereclause = ''):
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -213,13 +213,17 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     project.putData("field_2_index", field_2_index)
     
     
-    
+    if whereclause == "":
+        whereclause = " WHERE ENTITY_TP='IND' "
+    else:
+        whereclause = whereclause + " AND ENTITY_TP='IND' "
+        print "whereclasue: ", whereclause
     
     retriever = FecRetriever(table_name=table_name,
                       query_fields=all_fields,
                       limit=(record_start, record_no),
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE", "CMTE_ID"],
-                      where_clause=" WHERE ENTITY_TP='IND' ")
+                      where_clause=whereclause)
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
     
@@ -1229,8 +1233,12 @@ if __name__ == "__main__":
 #     print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
 #     generateAffiliationData('delaware', affiliation='occupation', record_limit=(0, 500))
 #      
-#     print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
-#     generateAffiliationData('delaware', affiliation='employer', record_limit=(0, 500))
+    print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
+    generateAffiliationData('massachusetts',
+                             affiliation='employer',
+                             record_limit=(0, 500000),
+                             whereclause = " WHERE CITY='BOSTON' ")
+    quit()
      
     # Generate networks for both employers and occupations
 #     generateAffiliationData('massachusetts', affiliation=None, record_limit=(0, 5000000))

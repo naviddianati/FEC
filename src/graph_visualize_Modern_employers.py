@@ -489,8 +489,8 @@ def get_neighborhood(index,n):
 settings = Settings(
                     state_id='VT',
                     state = "vermont",
-                    affiliation='employer',
-#                     affiliation='occupation',
+#                     affiliation='employer',
+                    affiliation='occupation',
                     data_path = os.path.expanduser('~/data/FEC/'),
                     output_dim=(3200, 3200),
                     num_components=(0, 1),
@@ -522,7 +522,7 @@ dict_combine_attrs = {'size':lambda sizes:np.sqrt(np.sum([np.sqrt(x) for x in si
 
 
 
-G = load_affiliation_graph(settings, component = "giant")
+G = load_affiliation_graph(settings, component = "full")
 
 
 # print_sorted_significance()
@@ -531,8 +531,8 @@ G = load_affiliation_graph(settings, component = "giant")
 # quit()
 
 # Optionally select a neighborhood of a given vertex
-# G = restrict_to_neighborhood(G,'ATTORNEY',2)
-G = restrict_to_neighborhood(G,'HARVARD UNIVERSITY',3)
+G = restrict_to_neighborhood(G,'ATTORNEY',2)
+# G = restrict_to_neighborhood(G,'HARVARD UNIVERSITY',3)
 # G = restrict_to_neighborhood(G,'GOLDMAN SACHS',2)
 
 
@@ -598,17 +598,11 @@ pal = mplPalette(numcolors, name='binary')
 
 
 # Set vertex and edge properties
+set_vertexSize(G, s_max=20, s_min=2)
+set_edgeWidth(G, w_max=1, w_min=.3, field='confidence', threshold=None, percent=2)
+# print G.es['color']
+set_labelSize(G, s_max=40, s_min=5, percent=30)
 
-# HARVARD 3
-set_vertexSize(G, s_max=150, s_min=10)
-set_edgeWidth(G, w_max=20, w_min=5, field='weight', threshold=None, percent=50)
-set_labelSize(G, s_max=70, s_min=15, percent=20)
-
-
-# 
-# set_vertexSize(G, s_max=100, s_min=10)
-# set_edgeWidth(G, w_max=10, w_min=2, field='confidence', threshold=None, percent=90)
-# set_labelSize(G, s_max=40, s_min=15, percent=15)
 
 
 if G.vs['membership_vector']:
@@ -702,8 +696,8 @@ mylayout = G.layout('drl', weights=G.es['layout-weight'])
 
 coords = mylayout.coords
 
-# mylayout = G.layout('fr', seed=coords, maxiter=100, maxdelta=1,weights=np.sqrt(G.es['layout-weight']))
-mylayout = G.layout('fr', seed=coords, maxiter=500, maxdelta=10)
+# mylayout = G.layout('fr', seed=coords, maxiter=100, maxdelta=1,weights=np.sqrt(G.es['layout-weight']),repulserad=0)
+mylayout = G.layout('gfr', seed=coords, maxiter=100, maxdelta=10,cellsize=5)
 print "Layout computed..."
 
 
