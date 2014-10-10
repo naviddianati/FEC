@@ -48,11 +48,6 @@ def worker(conn):
     f = open('tmp-compare-'+proc_name,'w')
     pickle.dump(list_results,f)
     f.close()
-#     for i,project in enumerate(list_results):
-#         print i
-#         s = pickle.dumps(project.D)
-#     quit()
-#    conn.send(list_results)    
 
 
 

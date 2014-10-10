@@ -39,10 +39,7 @@ import pylab as pl
 
 class Disambiguator():
     def __init__(self, list_of_records, vector_dimension, matching_mode="strict", num_procs = 3):
-        # I Believe these are unnecessary. 
-#         self.index_2_token = index_2_token
-#         self.token_2_index = token_2_index
-#         self.list_of_vectors = list_of_vectors
+
         self.list_of_records = list_of_records
         self.sort_list_of_records()
         
@@ -100,14 +97,21 @@ class Disambiguator():
             self.set_logstats(True)
             
         self.num_procs = num_procs
+        
 
-            
-    def sort_list_of_records(self):
+
+    
+    def sort_list_of_records(self, orderby='id'):
         '''
-        sord the records in place by their id. This makes it easier to reconstruct list_of_records from a partitioning of it.
+        sord the records in place by their id (other field(s)). The default ordering is by r.id which makes it easier to reconstruct list_of_records from a partitioning of it.
         Usefull mainly for multi-processing.
         '''
-        self.list_of_records.sort(key = lambda r: r.id)
+        if orderby == 'id':
+            self.list_of_records.sort(key = lambda r: r.id)
+        elif orderby == 'name':
+            self.list_of_records.sort(key = lambda r: r['NAME'])
+
+
             
                 
     def set_logstats(self, is_on=True):
@@ -339,12 +343,16 @@ class Disambiguator():
         output = []
         
         block_counter = 0 
-        while self.list_of_records:
+        
+        while True:
             index_offset = block_counter * (size )
             output.append({i + index_offset : r for i,r in enumerate(self.list_of_records[:size + overlap])})
-            del self.list_of_records[:size ]
-            block_counter += 1
-        
+            if size + overlap >= len(self.list_of_records):
+                del self.list_of_records[:size + overlap ]
+                break
+            else:
+                del self.list_of_records[:size ]
+                block_counter += 1
         #print output[0].keys()
         #print "_"*80
         #print output[1].keys()
@@ -363,6 +371,8 @@ class Disambiguator():
             print "ERROR: self.list_of_records is not empty. Can't reconstruct it."
             quit()
     
+        print "total entries in list_chunks: ",  sum([len(chunk)  for chunk in list_chunks])
+
         while list_chunks:
             chunk = list_chunks[0]
             num_chunks = len(list_chunks)
@@ -390,9 +400,81 @@ class Disambiguator():
         print "NUMBER OF DISTINCT RECORDS IN list_of_records: ", len(tmp) 
             
         
-        
+    
     
     def update_nearest_neighbors(self, B, hashes=None, allow_repeats=False, num_procs= None):
+        if not num_procs:
+            num_procs = self.num_procs
+        if (num_procs == 1):
+            self.update_nearest_neighbors_single_proc(B,hashes,allow_repeats)
+        else:
+            self.update_nearest_neighbors_multi_proc(B,hashes,allow_repeats,num_procs)
+        
+    
+    def update_nearest_neighbors_single_proc(self, B, hashes=None, allow_repeats=False):
+        ''' given a list of strings or hashes, this function computes the nearest
+            neighbors of each string among the list.
+
+            Input:
+                hashes: a list of strings of same length. The default is self.LSH_hashes: the strings comprise 0 and 1
+                    pass non-default hashes to perform the updating using a custom ordering of the records.
+                B: an even integer. The number of adjacent strings to check for proximity for each string
+
+            Output: dictionary of indices. For each key (string index), the value is a list of indices
+                    of all its nearest neighbors
+        '''
+        
+        if hashes is None:
+            hashes = self.LSH_hash
+
+            
+        list_of_hashes_sorted = sorted(hashes)
+        sort_indices = argsort(hashes)
+        
+        # number of hash strings in list_of_hashes
+        n = len(hashes)
+        
+        for s, i in zip(list_of_hashes_sorted, range(n)):
+            
+            # for entry s, find the B nearest entries in the list
+            j_low , j_high = max(0, i - B / 2), min(i + B / 2, n - 1)
+#                        
+            iteration_indices = range(j_low, j_high + 1)
+            iteration_indices.remove(i)
+            for j in iteration_indices:
+                # i,j: current index in the sorted has list
+                # sort_indices[i]: the original index of the item residing at index i of the sorted list
+                
+                record1, record2 = self.list_of_records[sort_indices[ai]], self.list_of_records[sort_indices[j]]
+                if  not allow_repeats:
+                    if sort_indices[j] in self.index_adjacency[sort_inadices[i]]:
+                        continue
+                
+                # If the two records already have identities and they are the same, skip.
+                if None != record2.identity == record1.identity != None:
+                    continue
+                    
+                    
+                    
+                # New implementation: comparison is done via instance function of the Record class
+                # Comparison (matching) mode is passed to the Record's compare method.
+                verdict, result = record1.compare(record2, mode=self.matching_mode)
+                if verdict > 0:
+                    self.match_count += 1
+                    self.index_adjacency[sort_indices[i]].add(sort_indices[j])
+                    self.new_match_buffer.add((sort_indices[i], sort_inadices[j]))
+                
+                # compute some statistics about the records
+                if self.do_stats:
+                    self.logstats(record1, record2, verdict, result)
+                    
+ 
+
+
+
+
+
+    def update_nearest_neighbors_multi_proc(self, B, hashes=None, allow_repeats=False, num_procs= None):
         ''' given a list of strings or hashes, this function computes the nearest
             neighbors of each string among the list.
 
@@ -431,6 +513,7 @@ class Disambiguator():
  
         if not num_procs: num_procs = self.num_procs
 
+
         if hashes is None:
             hashes = self.LSH_hash
         
@@ -438,14 +521,18 @@ class Disambiguator():
         n = len(hashes)
 
             
+
+
+
         sort_indices = argsort(hashes)
 
         sort_indices_dict_inv = {sort_indices[i]:i for i in sort_indices}
         #  Sort self.list_of_records using the hashes as keys. This way, when we're chunking it, we'll have 
         # contiguous pieces, and we can efficiently delete the current chunk from self.list_of_records
+        print "Number of records in self.list_of_records: ", len(self.list_of_records)
         permute_inplace(self.list_of_records, sort_indices_dict_inv)
         
-        
+
         list_procs = []
         list_queues = []
 
@@ -458,7 +545,7 @@ class Disambiguator():
 
 
         for pid in range(num_procs):
-            print "compiling data for process ", pid
+            #print "compiling data for process ", pid
             #list_indices = chunkit_padded(range(n), pid, num_procs, B)
             data = {"pid":pid,
                     "queue": Queue(),
@@ -473,12 +560,12 @@ class Disambiguator():
             list_procs.append(p)
             list_queues.append(data['queue'])
             p.start()
-            print "started process ", pid
+            #print "started process ", pid
         
         # Receive outputs from processes
         for i,q in enumerate(list_queues):
             result = q.get()
-            print "Received results from process" , i
+            #print "Received results from process" , i
             # Process the results
             
             # merge result['index_adjacency'] into self.index_adjacency
@@ -493,7 +580,7 @@ class Disambiguator():
         
         # join processes
         for p in list_procs:
-            print "joining process", p
+            #print "joining process", p
             p.join()
         
         print "all processes returned"
@@ -579,7 +666,12 @@ class Disambiguator():
             i = j
         
         # update nearest neighbors once with the initial ordering of the records (before hashes are calculated and sorted)
-        self.update_nearest_neighbors(B=100, hashes=xrange(len(self.list_of_records)))
+        #self.update_nearest_neighbors(B=100, hashes=xrange(len(self.list_of_records)))
+
+        # Perform the update with list_of_records sorted by names. To do this, all we have to do 
+        # Is use the names themselves as the hashes!
+        self.update_nearest_neighbors(B=100, hashes=[x['NAME'] for x in self.list_of_records])
+
 
             
     # Convert self.index_adjacency to an edgelist
@@ -753,6 +845,7 @@ class Disambiguator():
     def refine_identities_on_MIDDLENAME(self):
         set_new_persons = set()
         set_dead_persons = set()
+
         for person in self.set_of_persons:
             middlenames = person.get_middle_names()
             
@@ -766,12 +859,9 @@ class Disambiguator():
                     self.print_set_of_persons(spawns, message="Spawns of the person")
                     self.print_set_of_persons(self.town.getPersonsById(person.neighbors), message="Neighbors of the person")
                 
-                
                 set_stillborn_spawns = set()
                 
                 # TODO: check that the neighbor isn't already dead
-                
-                
                 # Go through all neighbors of the person and decide if the child should be merged with them
                 # See if you can merge the spawns with any of the parent's neighbors
                 for child in spawns:
@@ -1057,7 +1147,8 @@ def permute_inplace(X,Y):
             if c_index == t_index:
                 death_row_keys.append(c_index)
                 continue
-             # Swap values of the current and target indexes in X
+            # Swap values of the current and target indexes in X
+            #print t_index,c_index
             X[t_index], X[c_index] = X[c_index], X[t_index]
             Y[t_index], Y[c_index] = Y[c_index], Y[t_index]
 
@@ -1219,6 +1310,18 @@ def shuffle_list_of_str(list_of_strs):
     for j in range(len(list_of_strs)):
         list_of_strs[j] = ''.join([list_of_strs[j][l[i]] for i in range(n) ])
     
+
+def argsort_list_of_dicts(seq, orderby):
+    ''' argsort for a sequence of dicts or dict subclasses. Allows sorting by the value of a given key of the dicts.
+         returns the indices of the sorted sequence'''
+    if not orderby:
+        raise Exception("Must specify key to order dicts by.") 
+    # http://stackoverflow.com/questions/3071415/efficient-method-to-calculate-the-rank-vector-of-a-list-in-python
+    return sorted(range(len(seq)), key= lambda index: seq.__getitem__(index)[orderby])
+
+
+
+
 
 def argsort(seq):
     ''' Generic argsort. returns the indices of the sorted sequence'''

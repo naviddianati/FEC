@@ -427,7 +427,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
                       query_fields=all_fields,
                       limit=(record_start, record_no),
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
-                        where_clause=whereclause
+                      where_clause=whereclause
                       )
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
@@ -453,7 +453,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     tokenizer.tokens.save_to_file(project["data_path"] + param_state + "-" + "disambiguation-" + batch_id + "-tokendata.pickle")
     list_of_records = tokenizer.getRecords()
-    
+    print "Number of records: ", len(list_of_records) 
 
     
     ''' Load affiliation graph data.
@@ -507,7 +507,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     # desired dimension (length) of hashes
-    hash_dim = 20
+    hash_dim = 40
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
@@ -1226,7 +1226,43 @@ def worker(conn):
 
 
 
+def process_last_names(project):
+    D = project.D
+    f = open('multipele_last_names.txt','w')
+    counter = 0
+    for person in D.set_of_persons:
+        all_names = set()
+        for record in person.set_of_records:
+            all_names.add(record['N_last_name'])
+        if len(all_names) > 1:
+            counter += 1
+            f.write(person.toString()+"\n")
+            print "_" * 80
+    f.close()
+    print "Total number of persons containing different last names: ", counter
 
+
+
+
+def process_middle_names(project):
+    D = project.D
+    dict_middle_names = {}
+    for record in D.list_of_records:
+        if not record['N_middle_name']: continue
+        try:
+            dict_middle_names[record['N_middle_name']] += 1
+        except KeyError:
+            dict_middle_names[record['N_middle_name']] = 1
+    sorted_list = [(name,freq) for name,freq in dict_middle_names.iteritems()]
+    sorted_list.sort(key = lambda x: x[1])
+
+    f = open('middle_name_freqs.txt','w')
+    for item in sorted_list:
+        f.write('%s\t%d\n' % item)
+    f.close()
+        
+            
+        
 
 
 if __name__ == "__main__":
@@ -1243,13 +1279,19 @@ if __name__ == "__main__":
     
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
-    disambiguate_main('delaware',
-                       record_limit=(0,10000),
-                       logstats=True,
+    project = disambiguate_main('newyork',
+                       record_limit=(0,1000000),
+
+                       logstats=False,
                        #whereclause=" WHERE NAME LIKE '%COHEN%' ",
-                       num_procs=10,
+                       #whereclause=" WHERE NAME like '%ANDRISANI%' ",
+                       num_procs=12,
                        percent_employers = 5,
                        percent_occupations = 5)
+
+    process_last_names(project)
+    process_middle_names(project)
+    
 
     quit()
     

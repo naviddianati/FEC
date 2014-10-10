@@ -20,7 +20,7 @@ from nltk.util import ngrams
 
 
 class Tokenizer():
-    ''' This class receives a list of records (perhaps retrieved from a MySQL query). The fields are divided between "identifier" fields
+    ''' This class receives a list of records (perhaps retrieved from a MySQL query). The fields are divided between "identifier" fieldsz
         and "auxiliary" fields.
         The class tokenizes all the identifier fields of all records, and for each record computes a vector that encapsulates this information.
         The set of these vectors is then sent to a Disambiguator instance which computes a similarity graph between the nodes(records) based
@@ -74,21 +74,43 @@ class Tokenizer():
         ''' this normalizer is applied to the whole name, that is, when first/middle/last name and titles are all mixed into one string.'''
         # remove all numerals
         s = record['NAME']
-        
+
         s1 = re.sub(r'\.|[0-9]+', '', s)
         s1 = re.sub(r'(\bESQ\b)|(\bENG\b)|(\bINC\b)|(\bLLC\b)|(\bLLP\b)|(\bMRS\b)|(\bPHD\b)|(\bSEN\b)', '', s1)
-        s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bSR\b)|(\bSGT\b)|(\bDC\b)|(\bREV\b)|(\bFR\b)', '', s1)
+        s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bMISS\b)|(\bSR\b)|(\bSGT\b)|(\bDC\b)|(\bREV\b)|(\bFR\b)', '', s1)
         s1 = re.sub(r'\.', '', s1)
-                
+
         name = HumanName(s1)
-#         print "%s ----- %s ---- %s ---- %s" % (s, name.last, name.first, name.middle)
-       
-        
+
+
         record['N_last_name'] = name.last.upper()        
-            
         record['N_first_name'] = name.first.upper()
+
+        # The middle name is sometimes very difficult to pinpoint. If there are multiple pieces, look for a single-letter piece and pick that one
+        mn = name.middle.upper()
+        if (len(mn) == 1) and ( not re.match(r'[A-Z]', mn)):
+            record['N_middle_name'] = '' 
+            return
+        # If there are multiple "chunks", see if there is a single-letter one. Else, pick the first one.
+        chunks = re.findall(r'\S+', mn)
+        if len(chunks) > 1:
+            list_lengths = [len(x) for x in chunks]
+            try:
+                # Index of the single letter chunk
+                index = list_lengths.index(1)
+            except ValueError:
+                # No single-letter chunk found. Pick the first element
+                index = 0 
+            record['N_middle_name'] = chunks[index]
+        else:
+            record['N_middle_name'] = mn
             
-        record['N_middle_name'] = name.middle.upper()
+        
+        
+        
+        
+             
+        
 
    
     # Void. updates the record
@@ -501,6 +523,45 @@ class TokenizerNgram(Tokenizer):
         
                 
     
+
+    # Override.
+    def _normalize_STREET(self, record):
+        s = record['CONTRIBUTOR_STREET_1']
+        if not s: 
+            record["N_address"] = s
+            return
+
+        # Treat special cases
+        # Leave P.O. Boxes alone
+        if re.match(r'\bP\.?O\.?\b|\bbox\b|p\.?o\.?box',s,re.IGNORECASE):
+            record["N_address"] = s
+            return           
+        
+        try:
+            address = self.ap.parse_address(s)
+        
+            tmp = [address.house_number, address.street_prefix, address.street, address.street_suffix]
+            tmp = [x  for x in tmp if x is not None]
+
+            address_new = ' '.join(tmp)
+#             print "ADDRESS parsed properly=================================================================="
+            record["N_address"] = address_new.upper()
+        except:
+#             print 'error'
+#             print "ADDRESS FAILED=================================================================="
+            record["N_address"] = s
+
+        # Check if normalizer screwed up too badly
+        # If final string length is less than 5, then use the raw string
+        if len(record["N_address"]) < 5:
+            record["N_address"] = s
+        
+        
+
+   
+
+
+
     # Override: here, tokens are ngrams
     def _get_tokens_FIRST_NAME(self, record):
         firstname = record['N_first_name']

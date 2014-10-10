@@ -84,7 +84,7 @@ class Person(object):
             
             
     def toString(self):
-        s = ''.join(["\t".join([r['NAME'], r['OCCUPATION'], r['EMPLOYER'], r['ZIP_CODE'], r['CITY'], r['STATE'], "\n"]) for r in self.set_of_records])
+        s = ''.join(["\t".join([r['NAME'],r['N_last_name'], r['OCCUPATION'], r['EMPLOYER'], r['ZIP_CODE'], r['CITY'], r['STATE'], "\n"]) for r in self.set_of_records])
 #         s += '_'*50
         return s
             
@@ -119,6 +119,13 @@ class Person(object):
     def get_middle_names(self):
         return {r['N_middle_name'][0] for r in self.set_of_records if r['N_middle_name']}
 
+    # Return a list of all first names in this person's records
+    def get_first_names(self):
+        return {r['N_first_name'] for r in self.set_of_records if r['N_first_name']}
+
+    # Return a list of all last names in this person's records
+    def get_last_names(self):
+        return {r['N_last_name'] for r in self.set_of_records if r['N_last_name']}
 
 
 
