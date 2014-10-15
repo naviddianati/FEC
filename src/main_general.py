@@ -816,11 +816,11 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     
     
     # desired dimension (length) of hashes
-    hash_dim = 20
+    hash_dim = 40
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
-    B = 20
+    B = 40
     
     
     # Number of times the hashes are permutated and sorted
@@ -1052,9 +1052,9 @@ class Project(dict):
                     # new_row = record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
                     
                     # without normalized names
-                    new_row = record_as_list_tokenized + [r['N_address']]
+                    new_row = record_as_list_tokenized 
                     
-                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s, unicode) else s  for s in new_row ] + [r.id]
+                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s, unicode) else s  for s in new_row ] + [r.id]+ [r['N_address']]+ [r['N_middle_name']]
                     new_block.append(new_row)
 
                     
@@ -1071,7 +1071,8 @@ class Project(dict):
                 
                 # Save a group of blocks to file
                 if person_counter % page_size == 0:
-                    df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
+                    df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id']+ ['N_middle_name'])
+                    #df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
                     df.set_index('id', inplace=True)
                     f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
                     f2.write(df.to_html().encode('ascii', 'ignore'))
@@ -1091,7 +1092,7 @@ class Project(dict):
             
             # if there's a fraction of a page left at the end, write that too. 
             if dataframe_data:
-                df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
+                df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id']+ ['N_middle_name'])
                 f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
     
                 f2.write(df.to_html().encode('ascii', 'ignore'))
@@ -1280,12 +1281,13 @@ if __name__ == "__main__":
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     project = disambiguate_main('newyork',
-                       record_limit=(0,1000000),
+                       record_limit=(0,10000000),
 
                        logstats=False,
                        #whereclause=" WHERE NAME LIKE '%COHEN%' ",
-                       #whereclause=" WHERE NAME like '%ANDRISANI%' ",
-                       num_procs=12,
+                       #whereclause=" WHERE NAME like '%AARONS%' ",
+                       whereclause=" WHERE NAME like '%COHEN%' ",
+                       num_procs=1,
                        percent_employers = 5,
                        percent_occupations = 5)
 

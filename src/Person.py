@@ -92,7 +92,7 @@ class Person(object):
             
     # TODO: Return a numberf self and otherPerson are so similar and consistent that they must be merged
     def compatibility(self, person1, person2):
-        print "computing compatibility", id(person1), id(person2)
+        #print "computing compatibility", id(person1), id(person2)
         n1 = len(person1.set_of_records)
         n2 = len(person2.set_of_records)
         score = 0.0 
