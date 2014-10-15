@@ -1010,7 +1010,7 @@ class Project(dict):
             for record in self.D.list_of_records:
                 dict_tokens[record.id] = self.D.tokenizer._get_tokens(record, self["list_tokenized_fields"])
             
-        print len(dict_tokens), len(self.D.list_of_records)
+            print len(dict_tokens), len(self.D.list_of_records)
 #         quit()
 
 
@@ -1291,7 +1291,7 @@ if __name__ == "__main__":
                        record_limit=(0,3000),
 
                        logstats=False,
-                       #whereclause=" WHERE NAME LIKE '%COHEN%' ",
+                    whereclause=" WHERE NAME LIKE '%COHEN%' ",
                        #whereclause=" WHERE NAME like '%ANDRISANI%' ",
                        num_procs=3,
                        percent_employers = 5,

@@ -16,6 +16,8 @@ class Person(object):
         # Store the hashable record objects.
         if records:
             self.set_of_records = set(records)
+            for record in self.set_of_records:
+                record.identity = self
         else:
             self.set_of_records = set()
             
@@ -99,7 +101,6 @@ class Person(object):
         for i,r1 in enumerate(person1.set_of_records):
             for j,r2 in enumerate(person2.set_of_records):
                 verdict, result = r1.compare(r2, mode='thorough')
-#                 print "comparison performed %d,%d" %(i,j)
                 score += verdict 
         return float(score) / (n1 * n2)
                 

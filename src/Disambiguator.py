@@ -521,10 +521,6 @@ class Disambiguator():
         # number of hash strings in list_of_hashes
         n = len(hashes)
 
-            
-
-
-
         sort_indices = argsort(hashes)
 
         sort_indices_dict_inv = {sort_indices[i]:i for i in sort_indices}
@@ -584,12 +580,11 @@ class Disambiguator():
             # print "joining process", p
             p.join()
         
-        print "all processes returned"
 
         # Reconstruct self.list_of_records from the chunks extracted earlier.
         print "Reconstructing self.list_of_records..."
         self.reconstruct_list_of_records(list_chunks, overlap=B)
-        print "\n\n\n\n\n\n\n\n\n\n\n"
+        print "\n\n"
       
       
       
@@ -706,8 +701,6 @@ class Disambiguator():
                     print '    ', index, self.index_adjacency[index]
             i = j
         
-        # update nearest neighbors once with the initial ordering of the records (before hashes are calculated and sorted)
-        # self.update_nearest_neighbors(B=100, hashes=xrange(len(self.list_of_records)))
 
         # Perform the update with list_of_records sorted by names. To do this, all we have to do 
         # Is use the names themselves as the hashes!
@@ -889,7 +882,9 @@ class Disambiguator():
         set_new_persons = set()
         set_dead_persons = set()
 
-        for id, person in self.town.dict_persons.iteritems():
+        # If we iterate over the town's persons usint iteritems, we can't add persons to it in the loop
+        for id in self.town.dict_persons.keys():
+            person = self.town.dict_persons[id]
             middlenames = person.get_middle_names()
             
             # If there are more than 1 middle names, person needs to split
@@ -907,25 +902,27 @@ class Disambiguator():
                 # TODO: check that the neighbor isn't already dead
                 # Go through all neighbors of the person and decide if the child should be merged with them
                 # See if you can merge the spawns with any of the parent's neighbors
-                for child in spawns:
-#                     print "-------spawn:"
-#                     print child.toString()
-                    for neighbor in self.town.getPersonsById(person.neighbors):
-                        if neighbor.isDead: continue
-                        if neighbor.isCompatible(child):
-                           
-                            self.print_compatibility(neighbor, child)
-                            # TODO: update self.index_adjacency as well
-                            
-                            neighbor.merge(child)
-#                             print '----------merging'
-#                             print neighbor.toString()
-#                             print "-"*20
-#                             print child.toString()
-#                             print "="*40
-                            
-                            set_stillborn_spawns.add(child)
-                            break
+                
+                # Temporarily doing without
+#                 for child in spawns:
+# #                     print "-------spawn:"
+# #                     print child.toString()
+#                     for neighbor in self.town.getPersonsById(person.neighbors):
+#                         if neighbor.isDead: continue
+#                         if neighbor.isCompatible(child):
+#                            
+#                             self.print_compatibility(neighbor, child)
+#                             # TODO: update self.index_adjacency as well
+#                             
+#                             neighbor.merge(child)
+# #                             print '----------merging'
+# #                             print neighbor.toString()
+# #                             print "-"*20
+# #                             print child.toString()
+# #                             print "="*40
+#                             
+#                             set_stillborn_spawns.add(child)
+#                             break
                 
 #                 print "--------new persons:"
 #                 print set(spawns).difference(set_stillborn_spawns),"\n\n"

@@ -22,7 +22,7 @@ When can we use name frequency in record comparison?
 1- city and zipcode are different, no meaningful affiliation info, bu name VERY rare
     ________________________________________________________________________________
                           0            1      2                    3        4  5
-    0    CANCELLIERE, LAURA  BAY VILLAGE  44140              RETIRED  RETIRED   
+    0    CANCELLIERE, LAURA  BAY VILLAGE  44140              RETIRED  RETIRED
     1  CANCELLIERE, LAURA N     WESTLAKE  44145  COMMUNITY VOLUNTEER           N
 
 
@@ -605,14 +605,15 @@ class Record(dict):
             return 0
              
     
-    '''
-    Returns a number:
-        0: they both exist but are unrelated
-        1: at least one doesn't have the field
-        2: connected in the affiliations network
-        3: exactly the same. '''
     
     def compare_occupations(self, r1, r2):
+        '''
+        Returns a number:
+            0: they both exist but are unrelated
+            1: at least one doesn't have the field
+            2: connected in the affiliations network
+            3: exactly the same but not "bad_identifier"
+        '''
         try:
             occupation1 = r1['OCCUPATION']
         except KeyError:
@@ -627,9 +628,8 @@ class Record(dict):
         
 #         print occupation1, occupation2
         
-#         if bad_identifier(occupation1, type="occupation") or bad_identifier(occupation2, type="occupation"):
-#             pass
-#             return False
+        if bad_identifier(occupation1, type="occupation") or bad_identifier(occupation2, type="occupation"):
+            return 1
         
         if occupation1 == occupation2:
             if Record.debug: print "occupations are the same" 
@@ -685,7 +685,7 @@ class Record(dict):
             0: they both exist but are unrelated
             1: at least one doesn't have the field, or there is no affiliation graph that contains both
             2: connected in the affiliations network or employer1/2 == occupation2/1
-            3: exactly the same
+            3: exactly the same, but not "bad_identifier"
         '''
         try:
             employer1 = r1['EMPLOYER']
@@ -702,9 +702,8 @@ class Record(dict):
         
 #         print employer1,employer2
         
-#         if bad_identifier(employer1, type="employer") or bad_identifier(employer2, type="employer"):
-#             pass
-#             return False
+        if bad_identifier(employer1, type="employer") or bad_identifier(employer2, type="employer"):
+            return 1
 
 
 
