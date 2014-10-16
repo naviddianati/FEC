@@ -57,7 +57,10 @@ import time
 
 from Affiliations import AffiliationAnalyzerUndirected
 from Database import FecRetriever
-from Disambiguator import Disambiguator
+
+# Import the module as a whole, so we can add global variables to its namespace for shared memory parallel processing
+import Disambiguator
+
 from Tokenizer import Tokenizer, TokenizerNgram
 import numpy as np
 import pandas as pd
@@ -100,7 +103,7 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     TODO: allow filtering based on value of an edge (or vertex) parameter
     '''
             
-    def prune(G, field='confidence', percent = 5):
+    def prune(G, field='confidence', percent=5):
         '''
         Remove all but the top X percent of the edges with respect to the value of their field.
         '''
@@ -257,7 +260,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator(list_of_records, dim, matching_mode="strict")
+    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode="strict")
     project.D = D
     D.project = project
     
@@ -454,7 +457,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     tokenizer.tokens.save_to_file(project["data_path"] + param_state + "-" + "disambiguation-" + batch_id + "-tokendata.pickle")
     list_of_records = tokenizer.getRecords()
-    
+    print "Number of records: ", len(list_of_records) 
 
     
     ''' Load affiliation graph data.
@@ -497,7 +500,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator(list_of_records, dim, matching_mode=method_id, num_procs=num_procs)
+    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode=method_id, num_procs=num_procs)
     D.tokenizer = tokenizer
     project.D = D
     D.project = project
@@ -516,7 +519,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     # Number of times the hashes are permutated and sorted
-    no_of_permutations = 2
+    no_of_permutations = 20
     project.putData('number_of_permutations' , str(no_of_permutations))
 
     
@@ -806,7 +809,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator(list_of_records, dim, matching_mode=method_id)
+    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode=method_id)
     D.tokenizer = tokenizer
     project.D = D
     D.project = project
@@ -817,11 +820,11 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     
     
     # desired dimension (length) of hashes
-    hash_dim = 20
+    hash_dim = 40
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
-    B = 20
+    B = 40
     
     
     # Number of times the hashes are permutated and sorted
@@ -1010,7 +1013,7 @@ class Project(dict):
             for record in self.D.list_of_records:
                 dict_tokens[record.id] = self.D.tokenizer._get_tokens(record, self["list_tokenized_fields"])
             
-            print len(dict_tokens), len(self.D.list_of_records)
+        len(self.D.list_of_records)
 #         quit()
 
 
@@ -1055,9 +1058,9 @@ class Project(dict):
                     # new_row = record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
                     
                     # without normalized names
-                    new_row = record_as_list_tokenized + [r['N_address']]
+                    new_row = record_as_list_tokenized #+ [r['N_address']]
                     
-                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s, unicode) else s  for s in new_row ] + [r.id]
+                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s, unicode) else s  for s in new_row ] + [r.id]+ [r['N_address']]+ [r['N_middle_name']]
                     new_block.append(new_row)
 
                     
@@ -1074,7 +1077,8 @@ class Project(dict):
                 
                 # Save a group of blocks to file
                 if person_counter % page_size == 0:
-                    df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
+                    df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id']+ ['N_middle_name'])
+                    #df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
                     df.set_index('id', inplace=True)
                     f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
                     f2.write(df.to_html().encode('ascii', 'ignore'))
@@ -1094,7 +1098,7 @@ class Project(dict):
             
             # if there's a fraction of a page left at the end, write that too. 
             if dataframe_data:
-                df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
+                df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id']+ ['N_middle_name'])
                 f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
     
                 f2.write(df.to_html().encode('ascii', 'ignore'))
@@ -1233,7 +1237,7 @@ def process_last_names(project):
     D = project.D
     f = open('multipele_last_names.txt','w')
     counter = 0
-    for id,person in D.town.dict_persons.iteritems():
+    for person in D.set_of_persons:
         all_names = set()
         for record in person.set_of_records:
             all_names.add(record['N_last_name'])
@@ -1274,11 +1278,7 @@ if __name__ == "__main__":
 #     generateAffiliationData('delaware', affiliation='occupation', record_limit=(0, 500))
 #      
 #     print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
-#     generateAffiliationData('massachusetts',
-#                              affiliation='employer',
-#                              record_limit=(0, 500000),
-#                              whereclause = " WHERE CITY='BOSTON' ")
-#     quit()
+#     generateAffiliationData('delaware', affiliation='employer', record_limit=(0, 500))
      
     # Generate networks for both employers and occupations
 #     generateAffiliationData('massachusetts', affiliation=None, record_limit=(0, 5000000))
@@ -1288,17 +1288,18 @@ if __name__ == "__main__":
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     project = disambiguate_main('newyork',
-                       record_limit=(0,3000),
+                       record_limit=(0,1000),
 
                        logstats=False,
-                    whereclause=" WHERE NAME LIKE '%COHEN%' ",
-                       #whereclause=" WHERE NAME like '%ANDRISANI%' ",
-                       num_procs=3,
+                       #whereclause=" WHERE NAME LIKE '%COHEN%' ",
+                       #whereclause=" WHERE NAME like '%AARONS%' ",
+                       whereclause=" WHERE NAME like '%COHEN%' ",
+                       num_procs=1,
                        percent_employers = 5,
                        percent_occupations = 5)
 
-    process_last_names(project)
-    process_middle_names(project)
+    #process_last_names(project)
+    #process_middle_names(project)
     
 
     quit()

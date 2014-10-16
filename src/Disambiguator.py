@@ -460,6 +460,8 @@ class Disambiguator():
                 # New implementation: comparison is done via instance function of the Record class
                 # Comparison (matching) mode is passed to the Record's compare method.
                 verdict, result = record1.compare(record2, mode=self.matching_mode)
+                if record1['N_first_name'] == 'RICHARD' and record2['N_first_name']== "ROBERT" and verdict > 0:
+                    print record1.toString(),'--',record2.toString(), verdict, result
                 if verdict > 0:
                     self.match_count += 1
                     self.index_adjacency[sort_indices[i]].add(sort_indices[j])
@@ -1047,10 +1049,10 @@ class Disambiguator():
     Refine the list of Persons: split, merge, etc.
     '''
     def refine_identities(self):
-        
         self.refine_identities_on_MIDDLENAME()
         
         print "Merging similar persons..." 
+        raw_input()
         self.refine_identities_merge_similars(5)
         
                 
@@ -1202,6 +1204,8 @@ def find_nearest_neighbors(data):
             # New implementation: comparison is done via instance function of the Record class
             # Comparison (matching) mode is passed to the Record's compare method.
             verdict, result = record1.compare(record2, mode=matching_mode)
+            if record1['N_first_name'] == 'BONNIE' and record2['N_first_name']== "ANDREW" and verdict > 0:
+                print record1.toString(),'--',record2.toString(), verdict, result
             if verdict > 0:
                 output['match_count'] += 1
                 output['index_adjacency'][sort_indices[i]].add(sort_indices[j])

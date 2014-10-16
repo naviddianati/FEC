@@ -58,7 +58,7 @@ class DatabaseManager:
 class FecRetriever(DatabaseManager):
     ''' subclass of DatabaseManager with a method specifically to retrieve our desired data
     from MySQL database.'''
-    def __init__(self, table_name, query_fields, limit, list_order_by,where_clause = ''):
+    def __init__(self, table_name, query_fields, limit, list_order_by,where_clause = '', require_id = True):
         
         DatabaseManager.__init__(self)
 
@@ -68,6 +68,7 @@ class FecRetriever(DatabaseManager):
         self.list_of_records = []
         self.query = ''
         self.where_clause = where_clause
+        self.require_id = require_id
         
         # process the limit arg
         if limit:
@@ -104,7 +105,13 @@ class FecRetriever(DatabaseManager):
                 r[field] = item[i]
             
             # I require that each row have a unique "id" column
-            r.id = r['id']
+            try:
+                r.id = r['id']
+            except KeyError:
+                if self.require_id :
+                    raise Exception("ERROR: record does not have 'id' column")
+                pass
+            
             self.list_of_records.append(r) 
         
 
