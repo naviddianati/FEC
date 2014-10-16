@@ -238,11 +238,12 @@ class Disambiguator():
             added to and merged with the values in dict1.
             It's assumed that the values of the dicts are sets.
             '''
-        for s in dict1:
+        for s in dict_add:
             try:
-                dict1[s] = dict1[s].union(dict_add[s])
+                dict1[s].update(dict_add[s])
             except KeyError:
                 continue
+        return dict1
             
     def print_list_of_vectors(self):
         # print all vectors
@@ -569,9 +570,12 @@ class Disambiguator():
             
             # merge result['index_adjacency'] into self.index_adjacency
             self.__update_dict_of_sets(self.index_adjacency, result['index_adjacency'])
+            print "size of  updated self.index_adjacency: %d"% len(self.index_adjacency)
                 
             # merge result['new_match_buffer'] into self.new_match_buffer
-            self.__update_dict_of_sets(self.new_match_buffer, result['new_match_buffer'])
+            print "Size of new_match_buffer received from process %d: %d" %(i,len(result['new_match_buffer']))
+            self.new_match_buffer.update(result['new_match_buffer'])
+            print "size of updated self.new_match_buffer: %d" % len(self.new_match_buffer)
             
             self.match_count += result['match_count']
 
@@ -975,24 +979,25 @@ class Disambiguator():
     ''' 
     def merge_identities(self):
         
+        
         for count, pair in enumerate(self.new_match_buffer):
-            print "comparing pair no. %d" % count
             i, j = pair
             r1 = self.list_of_records[i]
             r2 = self.list_of_records[j]
             
-            
-            
             p1 , p2 = r1.identity, r2.identity
-            print "identities:", len(p1.set_of_records), len(p2.set_of_records)
             
-            
-                        
             # If both records belong to the same person continue
             if p1 is p2:
                 continue
             
             # Otherwise compare persons and if compatible, merge
+            if p1.getAlreadyCompared(p2) or p2.getAlreadyCompared(p1):
+                continue
+
+            print "identities:", len(p1.set_of_records), len(p2.set_of_records)
+            print "comparing pair no. %d" % count
+
             if p1.isCompatible(p2):
                 if self.verbose:
                     print "MERGING two persons" + "="*70
@@ -1001,9 +1006,10 @@ class Disambiguator():
                     print p2.toString()
                     print "="*70
                 p1.merge(p2)
-#                 self.set_of_persons.remove(p2)
+                # self.set_of_persons.remove(p2)
                 self.town.removePerson(p2)
             else:
+                p1.setAlreadyCompared(p2)
                 print "pair rejected"
         pass
             
@@ -1032,7 +1038,10 @@ class Disambiguator():
             self.update_nearest_neighbors(B=20, allow_repeats=True)
             print "New matches found: " , self.match_count
             
+            print "Size of new_match_buffer: ", len(self.new_match_buffer)
+            
             # process the newly found matches and if necessary merge their corresponding Persons
+            print "Merging identities..."
             self.merge_identities() 
 
             if self.project:

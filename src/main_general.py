@@ -1288,13 +1288,13 @@ if __name__ == "__main__":
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     project = disambiguate_main('newyork',
-                       record_limit=(0,1000),
+                       record_limit=(0,100000),
 
                        logstats=False,
                        #whereclause=" WHERE NAME LIKE '%COHEN%' ",
                        #whereclause=" WHERE NAME like '%AARONS%' ",
                        whereclause=" WHERE NAME like '%COHEN%' ",
-                       num_procs=1,
+                       num_procs=10,
                        percent_employers = 5,
                        percent_occupations = 5)
 
