@@ -15,6 +15,7 @@
 import igraph
 import json
 from multiprocessing.process import Process
+from multiprocessing import Pool 
 from multiprocessing.queues import Queue
 from numpy import math
 import os
@@ -30,6 +31,7 @@ from Town import Town
 import editdist
 import numpy as np
 import pylab as pl
+from math import ceil,floor
 
 
 
@@ -597,7 +599,7 @@ class Disambiguator():
       
       
       
-    def compute_LSH_hash_single_process(self, hash_dim):
+    def __compute_LSH_hash_single_proc(self, hash_dim):
         ''' Input:
                 list_of_vectors:    list of vectors. Each vector is a dictionary {vector coordinate index, value}
                 hash_dim:    dimension of the generated hash.
@@ -632,47 +634,65 @@ class Disambiguator():
 #         return LSH_hash
         self.LSH_hash = LSH_hash
     
-    
-    
-    
-    def compute_LSH_hash(self, hash_dim):
+    def __compute_LSH_hash_multi_proc(self, hash_dim, num_procs):
         ''' Input:
                 list_of_vectors:    list of vectors. Each vector is a dictionary {vector coordinate index, value}
                 hash_dim:    dimension of the generated hash.
+                num_procs: number of processes to use
 
             Output:
                 list of hashes of the vectors. Each hash is an m-tuple.
         '''
+
+        
+
+
         dimensions = self.input_dimensions
-        
         self.hash_dim = hash_dim
+
+        list_probe_vectors = [random_uniform_hyperspherical(dimensions) for i in range(self.hash_dim)]
+
+        # Pool of workers
+        pool = Pool(processes = num_procs)
+        list_feature_vecs = [r.vector for r in self.list_of_records]
+        list_data = [{'id': i,
+                      'vecs':  chunkit_padded(list_feature_vecs, i, num_procs, overlap=0),
+                      'hash_dim':self.hash_dim,
+                      'probe_vectors':list_probe_vectors} for i in range(num_procs)]
         
-        # Number of vectors
-        N = len(self.list_of_records)
+        results = pool.map(get_hashes, list_data)
         
-        LSH_hash = ['' for i in range(N)]
-        
-        # generate hash_dim random probe vectors and compute 
-        # their inner products with each of the input vectors.
-        
-        
-        
-        for k in range(hash_dim):
-    #        
-            # random "probe" vector 
-            vec_tmp = random_uniform_hyperspherical(dimensions)
+        # Unreference large intermediate data lists
+        list_feature_vecs = None
+        list_data = None
+
+        # Sort results by process id
+        results.sort(key = lambda x: x[0])
+
+        self.LSH_hash = []
+
+        # Concatenate the blocks of hashes computed by child workers
+        for id,hashes in results:     
+            print hashes[0]
+            self.LSH_hash += hashes
+
+        print "Number of LSH hashes: %d" % len(self.LSH_hash)
+        print "Length of list_of_records: %d" % len(self.list_of_records)
+
             
-            # convert to sparse form
-            vec = sparse_vector(vec_tmp)
-            vec_n = vec_norm(vec)
-            for record, i in zip(self.list_of_records, range(N)):
-                v = record.vector
-                c = '1' if inner_product(v, vec) > 0 else '0'
-    #             c = 1 if inner_product(v, vec) / vec_n / vec_norm(v) > 0.0001 else 0
-                LSH_hash[i] += c
-#         return LSH_hash
-        self.LSH_hash = LSH_hash   
-        
+    
+
+    def compute_LSH_hash(self, hash_dim,num_procs = 1):
+        '''
+        Decide which method to use based on num_procs.
+        '''
+        if num_procs == 1:
+            self.__compute_LSH_hash_single_proc(hash_dim)
+        if num_procs > 1:
+            self.__compute_LSH_hash_multi_proc(hash_dim, num_procs)
+            
+            
+
         
     def save_LSH_hash(self, filename=None, batch_id=0):
         if not filename: filename = '../results/' + batch_id + '-LSH_hash.txt'
@@ -1061,7 +1081,6 @@ class Disambiguator():
         self.refine_identities_on_MIDDLENAME()
         
         print "Merging similar persons..." 
-        raw_input()
         self.refine_identities_merge_similars(5)
         
                 
@@ -1120,6 +1139,40 @@ def permute_inplace(X, Y):
         for key in death_row_keys:
             del Y[key]
 
+
+def get_hashes(data):
+    '''
+    Receive a chunk of the record vectors and compute their LSH hashes given
+    a list of probe vectors.
+
+    data is a dict.
+    data['id']: which chunk of data is being passed to this worker, integer
+    data['vecs']: a set of record feature vectors
+    data['hash_dim']: hash_dim
+    data['probe_vecs']: a list of hash_dim (all) probe vectors
+    '''
+    vecs = data['vecs']
+    hash_dim = data['hash_dim']
+    probe_vectors = data['probe_vectors']
+    pid = data['id']
+    print "Generating hashes in process %d" % pid
+    # Number of records being processed by this worker    
+    n = len(vecs)
+
+    LSH_hash = ['' for i in xrange(n)]
+
+    for k in range(hash_dim):
+        # random "probe" vector 
+        vec_tmp = probe_vectors[k]
+        
+        # convert to sparse form
+        vec = sparse_vector(vec_tmp)
+        vec_n = vec_norm(vec)
+        #for record, i in zip(self.list_of_records, range(N)):
+        for i, v in enumerate(vecs):
+            c = '1' if inner_product(v, vec) > 0 else '0'
+            LSH_hash[i] += c
+    return (pid,LSH_hash)
 
 
 
@@ -1237,9 +1290,9 @@ def chunkit_padded(list_input, i, num_chunks, overlap=0):
     '''
     n = len(list_input)
 
-    size = n / num_chunks
+    size = float(n) / num_chunks
 
-    x, y = i * size, min((i + 1) * size + overlap, n)
+    x, y = int(ceil(i * size)), min( int(ceil((i + 1) * size)) + overlap, n)
     return list_input[x:y]
 
 
@@ -1367,5 +1420,24 @@ def generate_rand_list_of_vectors(N, dim):
             vec_previous = vec
             i += 1
     return list_of_vectors
+
+
+
+
+
+
+
+if __name__=="__main__":
+    
+    num_chunks = 12
+    set_items = set()
+    for i in range(num_chunks):
+        chunk = chunkit_padded(range(100), i, num_chunks, overlap=0)
+        set_items.update(chunk)
+        print chunk
+    print len(set_items)
+
+
+
 
 
