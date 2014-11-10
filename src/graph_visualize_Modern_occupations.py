@@ -45,17 +45,21 @@ def plot_edge_significance(G):
     plt.show()
     return x
 
-def restrict_to_neighborhood(G,target_label,dist):
+def restrict_to_neighborhood(G, target_label, dist):
     v = G.vs.select(label=target_label)[0]
-    list_indexes = get_neighborhood(v.index, dist-1)
+    list_indexes = get_neighborhood(G, v.index, dist - 1)
     print len(list_indexes)
     G = G.induced_subgraph(list_indexes)
     return G
 
 class Settings:
-    def __init__(self, draw_groups=False, state_id='VT', state = "vermont",
-                 affiliation='occupation', data_path = os.path.expanduser('~/data/FEC/'),
-                 output_dim=(3200, 3200), num_components=(0, 80), verbose=False):
+    def __init__(self, draw_groups=False, state_id='VT', state="vermont",
+                 affiliation='occupation', data_path=os.path.expanduser('~/data/FEC/'),
+                 output_dim=(3200, 3200), num_components=(0, 80), verbose=False,
+                 e_max=None, e_min=None, v_max=None, v_min=None, l_max=None, l_min=None,
+                 e_percent=None, l_percent=None, filter_components=False,
+                 restrict_to_neighborhood={}, output_label="",
+                 e_field = 'confidence'):
         self.draw_groups = draw_groups
         self.state_id = state_id
         self.state = state
@@ -64,6 +68,15 @@ class Settings:
         self.output_dim = output_dim
         self.num_components = num_components
         self.verbose = verbose
+        self.e_max, self.e_min = e_max, e_min
+        self.v_max, self.v_min = v_max, v_min
+        self.l_max, self.l_min = l_max, l_min
+        self.filter_components = filter_components
+        self.e_percent = e_percent
+        self.l_percent = l_percent
+        self.restrict_to_neighborhood = restrict_to_neighborhood
+        self.output_label = output_label
+        self.e_field = e_field
         
         
         
@@ -343,7 +356,7 @@ def identity_function_common_word(v1, v2):
         
        
 
-def collapse_graph(G, identity_function, comparison_mode='vertex'):
+def collapse_graph(G, identity_function, comparison_mode='vertex', dict_combine_attrs=None):
     ''' This function returns a collapsed version of G by contracting some edges.
     the function identity_function should be able to take two vertices as arguments
     and return True of False indicating whether the two should be considered identical.'''
@@ -429,11 +442,11 @@ def normalize_labels(G):
     
 
 
-def print_sorted_significance(n = 100):
+def print_sorted_significance(G, n=100):
     # print edges with top significnce values
     sig_edges = sorted(G.es, key=lambda e:e['confidence'], reverse=False)
     for e in sig_edges[:n]:
-        n0,n1 = e.source,e.target
+        n0, n1 = e.source, e.target
         print G.vs[n0]['label'], "-"*10, G.vs[n1]['label'], e['confidence']
 #         print G.vs[n0], G.vs[n1], e['confidence']
 
@@ -449,23 +462,23 @@ def get_top_identifiers(G, field='size', n=200, batch_size=50):
     ordered_list = sorted(ordered_list, key=lambda x:float(x[1]), reverse=True)
     n = min(n, len(G.vs))
     i = 0
-    output_path = settings.data_path+settings.affiliation+"-tagging/"+settings.state_id
+    output_path = settings.data_path + settings.affiliation + "-tagging/" + settings.state_id
     if not os.path.exists(output_path):
         os.makedirs(output_path)
      
     for batch_no, sublist in enumerate(chunks(ordered_list, batch_size)):
-        filename = output_path +"/%d.json" % batch_no
+        filename = output_path + "/%d.json" % batch_no
         dict_identifiers = {i:{"label":G.vs[ordered_list[i][0]]['label'],
-                               "neighbors":[v['label'] for v in sorted(G.vs[ordered_list[i][0]].neighbors(),key=lambda v:v['size'])[:20]   ]} 
+                               "neighbors":[v['label'] for v in sorted(G.vs[ordered_list[i][0]].neighbors(), key=lambda v:v['size'])[:20]   ]} 
                             for i in xrange(len(sublist)) }
-        f = open(filename,'w')
-        f.write(json.dumps(dict_identifiers,indent=4))
+        f = open(filename, 'w')
+        f.write(json.dumps(dict_identifiers, indent=4))
         f.close()
 
 
 
 
-def get_neighborhood(index,n):
+def get_neighborhood(G, index, n):
     '''
     Return a list of vertex ids for all vertices at a distance n from the vertex with id=index.
     '''
@@ -473,9 +486,9 @@ def get_neighborhood(index,n):
     neighbors = G.vs[index].neighbors()
     list_ids = [v.index for v in neighbors]
     list_ids.append(index)
-    for i,v in enumerate(neighbors):
+    for i, v in enumerate(neighbors):
         
-        new_ones = get_neighborhood(v.index,n-1)
+        new_ones = get_neighborhood(G, v.index, n - 1)
         if new_ones:
             list_ids += new_ones 
     return list(set(list_ids))    
@@ -486,392 +499,408 @@ def get_neighborhood(index,n):
 
 
 
-settings = Settings(
-                    state_id='VT',
-                    state = "vermont",
-                    affiliation='employer',
-#                     affiliation='occupation',
-                    data_path = os.path.expanduser('~/data/FEC/'),
-                    output_dim=(3200, 3200),
-                    num_components=(0, 1),
-                    verbose=False
-                     )
+
       
 
-# settings.state='delaware'; settings.state_id = 'DE'  
-# settings.state='newyork'; settings.state_id = 'NY'  
-settings.state='massachusetts'; settings.state_id = 'MA'  
-# settings.batch_id = 90; settings.state_id = 'DE'  # Delaware
-# settings.batch_id = 91; settings.state_id = 'MO'   # Missouri
-# settings.batch_id = 83; settings.state_id = 'AK'   # Alaska
-# settings.batch_id = 92; settings.state_id = 'MA'  # Massachussetes
-# settings.batch_id = 93; settings.state_id = 'NV'  # Nevada
-# settings.batch_id = 94; settings.state_id = 'VT'  # Vermont
 
 
-
-
-
-''' This dictionary defines how the new vertex attribute is to be computed when some vertices are contracted'''
-dict_combine_attrs = {'size':lambda sizes:np.sqrt(np.sum([np.sqrt(x) for x in sizes])),
-                    'labels-all':lambda mylist: ''.join([x + '<br/>' for x in mylist]),
-                      'label' :lambda mylist: mylist[np.argmax([x[1] for x in mylist])][0],
-                      'name':lambda mylist: ''.join([x + '\n' for x in mylist]),
-                      'id': np.min
-                      }
-
-
-
-G = load_affiliation_graph(settings, component = "giant")
-
-
-# print_sorted_significance()
-# plot_edge_significance(G)
-# plot_significance_vs_weight(G)
-# quit()
-
-# Optionally select a neighborhood of a given vertex
-# G = restrict_to_neighborhood(G,'ATTORNEY',2)
-G = restrict_to_neighborhood(G,'HARVARD UNIVERSITY',3)
-# G = restrict_to_neighborhood(G,'GOLDMAN SACHS',2)
-
-
-
-G.vs['membership_vector'] = None
-G['group-markers'] = None
-for v in G.vs:
-    v['label'] = (v['label'], v['size'])
-    v['labels-all'] = v['label'][0]
+def print_graph_stats(G):
+    '''print some statistics of the graph'''
+    print "Number of vertices: ", len(G.vs)
+    print "Number of edges: ", len(G.es)
     
-print len(G.vs)
-# G = collapse_graph(G, identity_function_common_word)
-# G = collapse_graph(G, identity_function_confidence, comparison_mode='edge')
-normalize_labels(G)
-print len(G.vs)
-print G.vs.attribute_names()
-# G.simplify(loops=True, combine_edges='sum')
-print G.vs.attribute_names()
-N = len(G.vs)
-numcolors = 100
 
-print G.es.attribute_names()
-print G.es['weight']
-# make_dendrogram(G)
-
-G.es['id'] = [e.index for e in G.es]
-
-print N
-
-
-
+def plot_network(settings):
+ 
     
-     
-
-get_top_identifiers(G, field='size', n=1000)
-
-
-
-
-# Generate Gradient palette
-palettes = []
-palettes.append(igraph.AdvancedGradientPalette(["#66ffcc", "#ffffcc", "#ff0066"], n=100));
-palettes.append(igraph.AdvancedGradientPalette(["red", "yellow"], n=500));
-pal = palettes[0]
-pal = igraph.palettes['red-blue']
-pal = gnuplotPalette1(numcolors)
-pal = igraph.ClusterColoringPalette(n=50);pal.n = 50
-# pal = mplPalette(numcolors, name='gist_ncar')
-# pal = mplPalette(numcolors, name='Paired')
-# pal = mplPalette(numcolors, name='hot')
-# pal = mplPalette(numcolors, name='autumn')
-# pal = mplPalette(numcolors, name='spring')
-# pal = mplPalette(numcolors, name='Set1')
-# pal = mplPalette(numcolors, name='jet')
-# pal = mplPalette(numcolors, name='PuOr')
-# pal = mplPalette(numcolors, name='bone')
-pal = mplPalette(numcolors, name='binary')
-# pal = mplPalette(numcolors, name='gray')
-# pal = mplPalette(numcolors, name='spectral')
-
-
-
-
-
-# Set vertex and edge properties
-
-# HARVARD 3
-set_vertexSize(G, s_max=150, s_min=10)
-set_edgeWidth(G, w_max=20, w_min=5, field='weight', threshold=None, percent=50)
-set_labelSize(G, s_max=70, s_min=15, percent=20)
-
-
-# 
-# set_vertexSize(G, s_max=100, s_min=10)
-# set_edgeWidth(G, w_max=10, w_min=2, field='confidence', threshold=None, percent=90)
-# set_labelSize(G, s_max=40, s_min=15, percent=15)
-
-
-if G.vs['membership_vector']:
-    set_group_markers(G, G.vs['membership_vector'], palette=pal)
-
-# set_group_markers(G, G.vs['membership_vector'], palette=pal)
-
-
-
-
-
-print len(G.vs)
-
-filter_components = False
-
-if filter_components:
-    clustering = G.components()
-    # Only plot the giant component of the graph
-    # G = clustering.giant()
-    # print len(G.vs)
-    # Plot the top few largest connected components
-    all_components = clustering.subgraphs()
-    all_components_sorted = sorted(all_components, key=lambda graph: len(graph.vs), reverse=True)
+    ''' This dictionary defines how the new vertex attribute is to be computed when some vertices are contracted'''
+    dict_combine_attrs = {'size':lambda sizes:np.sqrt(np.sum([np.sqrt(x) for x in sizes])),
+                        'labels-all':lambda mylist: ''.join([x + '<br/>' for x in mylist]),
+                          'label' :lambda mylist: mylist[np.argmax([x[1] for x in mylist])][0],
+                          'name':lambda mylist: ''.join([x + '\n' for x in mylist]),
+                          'id': np.min
+                          }
     
-    list_of_v_ids = []
-    for g in all_components_sorted[settings.num_components[0]:settings.num_components[1]]:
-        print 'component identified ', len(g.vs) 
-        vs_index = [v.index for v in G.vs.select(name_in=g.vs['name'])]
-        for v in g.vs:
-            list_of_v_ids += vs_index
+    
+    
+    G = load_affiliation_graph(settings, component="giant")
+    print_graph_stats(G)
+    
+    # print_sorted_significance(G)
+    # plot_edge_significance(G)
+    # plot_significance_vs_weight(G)
+    # quit()
+    
+    # Optionally select a neighborhood of a given vertex
+    if settings.restrict_to_neighborhood:
+        node_label = settings.restrict_to_neighborhood['label']
+        distance = settings.restrict_to_neighborhood['distance']
+        G = restrict_to_neighborhood(G, node_label, distance)
+    # G = restrict_to_neighborhood(G,'HARVARD UNIVERSITY',3)
+    # G = restrict_to_neighborhood(G,'GOLDMAN SACHS',2)
+    
+    
+    
+    G.vs['membership_vector'] = None
+    G['group-markers'] = None
+    for v in G.vs:
+        v['label'] = (v['label'], v['size'])
+        v['labels-all'] = v['label'][0]
+    
+    normalize_labels(G)
+    
+    # G = collapse_graph(G, identity_function_common_word)
+    # G = collapse_graph(G, identity_function_confidence, comparison_mode='edge')
+    # normalize_labels(G)
+    print G.vs.attribute_names()
+    # G.simplify(loops=True, combine_edges='sum')
+    print G.vs.attribute_names()
+    N = len(G.vs)
+    numcolors = 100
+    
+    # make_dendrogram(G)
+    
+    G.es['id'] = [e.index for e in G.es]
+      
+         
+    
+    # get_top_identifiers(G, field='size', n=1000)
+    
+    
+    
+    
+    # Generate Gradient palette
+    palettes = []
+    palettes.append(igraph.AdvancedGradientPalette(["#66ffcc", "#ffffcc", "#ff0066"], n=100));
+    palettes.append(igraph.AdvancedGradientPalette(["red", "yellow"], n=500));
+    pal = palettes[0]
+    pal = igraph.palettes['red-blue']
+    pal = gnuplotPalette1(numcolors)
+    pal = igraph.ClusterColoringPalette(n=50);pal.n = 50
+    # pal = mplPalette(numcolors, name='gist_ncar')
+    # pal = mplPalette(numcolors, name='Paired')
+    # pal = mplPalette(numcolors, name='hot')
+    # pal = mplPalette(numcolors, name='autumn')
+    # pal = mplPalette(numcolors, name='spring')
+    # pal = mplPalette(numcolors, name='Set1')
+    # pal = mplPalette(numcolors, name='jet')
+    # pal = mplPalette(numcolors, name='PuOr')
+    # pal = mplPalette(numcolors, name='bone')
+    pal = mplPalette(numcolors, name='binary')
+    # pal = mplPalette(numcolors, name='gray')
+    # pal = mplPalette(numcolors, name='spectral')
+    
+    
+    
+    
+    
+    # Set vertex and edge properties
+    set_vertexSize(G, s_max=settings.v_max, s_min=settings.v_min)
+    set_edgeWidth(G, w_max=settings.e_max, w_min=settings.e_min, field=settings.e_field, threshold=None, percent=settings.e_percent)
+    set_labelSize(G, s_max=settings.l_max, s_min=settings.l_min, percent=settings.l_percent)
+    
+    
+    
+    if G.vs['membership_vector']:
+        set_group_markers(G, G.vs['membership_vector'], palette=pal)
+    
+    # set_group_markers(G, G.vs['membership_vector'], palette=pal)
+    
+    
+    filter_components = settings.filter_components
+    
+    if filter_components:
+        clustering = G.components()
+        # Only plot the giant component of the graph
+        # G = clustering.giant()
+        # print len(G.vs)
+        # Plot the top few largest connected components
+        all_components = clustering.subgraphs()
+        all_components_sorted = sorted(all_components, key=lambda graph: len(graph.vs), reverse=True)
         
-    print "number of components: ", len(all_components)
-    # print list_of_v_ids
-    G = G.induced_subgraph(list_of_v_ids)
-    # G = all_components_sorted[0]
-
-
-
-print 'computing eigenvector centrality'
-# evcent = G.evcent(weights='weight')
-# evcent = G.evcent()
-evcent = G.eccentricity()
-
-for v, i in zip(G.vs, range(len(G.vs))):
-    v['evcent'] = evcent[i]
-    v['random'] = random.randint(0, numcolors - 1)
-    v['degree'] = v.degree()
+        list_of_v_ids = []
+        for g in all_components_sorted[settings.num_components[0]:settings.num_components[1]]:
+            print 'component identified ', len(g.vs) 
+            vs_index = [v.index for v in G.vs.select(name_in=g.vs['name'])]
+            for v in g.vs:
+                list_of_v_ids += vs_index
+            
+        print "number of components: ", len(all_components)
+        # print list_of_v_ids
+        G = G.induced_subgraph(list_of_v_ids)
+        # G = all_components_sorted[0]
     
-vs = sorted(G.vs, key=lambda v:v['evcent'], reverse=False)
-
-print G.es['confidence']
-
-
-print "Hello"
-# G.es['betweenness'] = [np.power(x, 3) for x in G.edge_betweenness(weights=G.es['confidence'])]
-print "Hello"
-
-
-print "______________"
-for v in G.vs:
-    print v['size'],"----"
-print G.vs['size']
-print "______________"
-# quit()
-
-
-
-# set_vertexColor(G, field='membership_vector', palette=pal, cluster=False)
-set_vertexColor(G, palette=pal, cluster=False)
-set_edgeColor(G, palette=pal, field=None)
-
-
-print len(G.vs)
-# clustering = G.components()
-# all_components = clustering.subgraphs()
-# print len(all_components)
-# quit()
-
-
-# quit()
-# mylayout = G.layout('sugiyama')
-# mylayout = G.layout('fr', maxiter=1000, maxdelta=2 * N, repulserad=N ** 3)
-# mylayout = G.layout('fr')
-# mylayout = G.layout('kk', initemp=10, maxiter=500)
-# mylayout = G.layout('lgl')
-# mylayout = G.layout('rt')
-
-# mylayout = G.layout('drl', weights=G.es['betweenness'])
-# mylayout = G.layout('drl')
-mylayout = G.layout('drl', weights=G.es['layout-weight'])
-
-coords = mylayout.coords
-
-# mylayout = G.layout('fr', seed=coords, maxiter=100, maxdelta=1,weights=np.sqrt(G.es['layout-weight']))
-mylayout = G.layout('fr', seed=coords, maxiter=500, maxdelta=10)
-print "Layout computed..."
-
-
-
-# my_dist = np.ones([len(G.vs),len(G.vs)])*100.0
-# for e in G.es:
-#     ind0,ind1 = e.source,e.target
-#     my_dist[ind0,ind1] = my_dist[ind1,ind0] = e['layout-weight']
-#     if e['layout-weight'] <20: print ind1,ind0
-# mylayout = G.layout('mds',dist=my_dist)
-#     
-
-
-
-# filename_tmp = settings.data_path + str(settings.batch_id) + "-graph-" + settings.affiliation + "s.json"
-filename_tmp = "/home/navid/Dropbox/FEC-data/results/" + settings.affiliation + "s-" + settings.state_id + ".json"
-f = open(filename_tmp, 'w')
-f.write(json.dumps(graph_to_json(G, mylayout)))
-f.close()
-print "Graph saved in JSON format..."
-
-
-def distance(x1, y1, x2, y2):
-    return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-
-def energy(data):
-    N = len(data)
-    e = 0
-    for i in xrange(N - 1):
-        for j in xrange(i + 1, N):
-            tmp = distance(data[i][0][0], data[i][0][1], data[j][0][0], data[j][0][1]) - data[i][1] - data[j][1]
-            e += -tmp if tmp < 0 else 0
-    return e
-
-
-def noverlap(G, mylayout):
-    data = []
-    vs = G.vs
-    N = len(mylayout)
-    for i in xrange(N):
-        data.append([mylayout[i], vs[i]['size']])
-
-    e_new = energy(data)
-    for i in xrange(100):
-        n = random.randint(0, N - 1)
-        dx = random.random()
-        dy = random.random()
-        e = e_new
-        data[n][0][0] += dx
-        data[n][0][1] += dy
-        e_new = energy(data) 
-        if e < e_new:
-            if random.random() > 0.1:
-                data[n][0][0] -= dx
-                data[n][0][1] -= dy
-                e_new = e
-        print i       
-    return [x[0] for x in data]
-  
     
-
-
-# mylayout_noverlap = noverlap(G, mylayout)
-
-# quit()
-
-# mylayout = G.layout('graphopt',node_charge = 50,spring_length=10,spring_constant=10000)
-# mylayout = G.layout('mds')
-# mylayout = G.layout('star')
-# mylayout = G.layout('gfr')
-
-# print G.es.attributes()
-
-print G['group-markers']
-# quit()
-
-
-g = G.copy()
-g.es.delete(G.es)
-
-
-leaves_seq = G.vs.select(_degree_le=0)
-leaves_seq.delete()
-
-
-# Plot graph with edges
-p = igraph.plot(G,
-    settings.data_path + str(settings.state) + "-" + settings.affiliation + "s.pdf",
-    bbox=settings.output_dim,
-    # layout = "large",
-    layout=mylayout,
-    vertex_label_size=G.vs['labelSize'],
-    vertex_label_color=G.vs['color'],
-#     vertex_label_color='#000000',
-    vertex_label_dist=1.2,
     
-    vertex_frame_width=[max(2, x / 7) for x in G.vs['size']],
-    vertex_frame_color=G.vs['frame_color'],
-    palette=pal,
-    vertex_color=G.vs['color'],
-    mark_groups=G['group-markers'] if G['group-markers'] and settings.draw_groups else None,
-#     vertex_label_color = colors,
-#     vertex_order_by = ("order","asc"),
-    margin=(300, 300, 300, 300),
-#     opacity=0.3,
-#     background=None,  # This is only possible after my changes to igraph.__init__.py
-    # background='#050505',
-    background='#fff',
-    edge_color=G.es['color'],
-#     edge_color='gray',
-    edge_curved=False,
-    edge_width=G.es['width']
-
-#     edge_arrow_size = [x/20.0 for x in v_sizes]
-    # ~ vertex_label_color = "white",
+#     print 'computing eigenvector centrality'
+    # evcent = G.evcent(weights='weight')
+    # evcent = G.evcent()
+#     evcent = G.eccentricity()
     
-)
+#     for v, i in zip(G.vs, range(len(G.vs))):
+#         v['evcent'] = evcent[i]
+#         v['random'] = random.randint(0, numcolors - 1)
+#         v['degree'] = v.degree()
+#         
+    
+    # set_vertexColor(G, field='membership_vector', palette=pal, cluster=False)
+    set_vertexColor(G, palette=pal, cluster=False)
+    set_edgeColor(G, palette=pal, field=None)
+    
+    
+    # clustering = G.components()
+    # all_components = clustering.subgraphs()
+    # print len(all_components)
+    # quit()
+    
+    
+    # mylayout = G.layout('sugiyama')
+    # mylayout = G.layout('fr', maxiter=1000, maxdelta=2 * N, repulserad=N ** 3)
+    # mylayout = G.layout('fr')
+    # mylayout = G.layout('kk', initemp=10, maxiter=500)
+    # mylayout = G.layout('lgl')
+    # mylayout = G.layout('rt')
+    
+    # mylayout = G.layout('drl', weights=G.es['betweenness'])
+    # mylayout = G.layout('drl')
+    print "Computing layout..."
+    mylayout = G.layout('drl', weights=G.es['layout-weight'])
+    
+    coords = mylayout.coords
+    
+    # mylayout = G.layout('fr', seed=coords, maxiter=100, maxdelta=1,weights=np.sqrt(G.es['layout-weight']))
+    mylayout = G.layout('fr', seed=coords, maxiter=100, maxdelta=10)
+    print "Layout computed..."
+    
+    
+    
+    # my_dist = np.ones([len(G.vs),len(G.vs)])*100.0
+    # for e in G.es:
+    #     ind0,ind1 = e.source,e.target
+    #     my_dist[ind0,ind1] = my_dist[ind1,ind0] = e['layout-weight']
+    #     if e['layout-weight'] <20: print ind1,ind0
+    # mylayout = G.layout('mds',dist=my_dist)
+    #     
+    
+    
+    
+    # filename_tmp = settings.data_path + str(settings.batch_id) + "-graph-" + settings.affiliation + "s.json"
+    filename_tmp = "/home/navid/Dropbox/FEC-data/results/" + settings.affiliation + "s-" + settings.state_id + ".json"
+    f = open(filename_tmp, 'w')
+    f.write(json.dumps(graph_to_json(G, mylayout)))
+    f.close()
+    print "Graph saved in JSON format..."
+    
+    
+    def distance(x1, y1, x2, y2):
+        return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+    
+    def energy(data):
+        N = len(data)
+        e = 0
+        for i in xrange(N - 1):
+            for j in xrange(i + 1, N):
+                tmp = distance(data[i][0][0], data[i][0][1], data[j][0][0], data[j][0][1]) - data[i][1] - data[j][1]
+                e += -tmp if tmp < 0 else 0
+        return e
+    
+    
+    def noverlap(G, mylayout):
+        data = []
+        vs = G.vs
+        N = len(mylayout)
+        for i in xrange(N):
+            data.append([mylayout[i], vs[i]['size']])
+    
+        e_new = energy(data)
+        for i in xrange(100):
+            n = random.randint(0, N - 1)
+            dx = random.random()
+            dy = random.random()
+            e = e_new
+            data[n][0][0] += dx
+            data[n][0][1] += dy
+            e_new = energy(data) 
+            if e < e_new:
+                if random.random() > 0.1:
+                    data[n][0][0] -= dx
+                    data[n][0][1] -= dy
+                    e_new = e
+            print i       
+        return [x[0] for x in data]
+      
+        
+    
+    
+    # mylayout_noverlap = noverlap(G, mylayout)
+    
+    
+    # mylayout = G.layout('graphopt',node_charge = 50,spring_length=10,spring_constant=10000)
+    # mylayout = G.layout('mds')
+    # mylayout = G.layout('star')
+    # mylayout = G.layout('gfr')
+    
+    # print G.es.attributes()
+    
+    print G['group-markers']
+    # quit()
+    
+    
+    g = G.copy()
+    g.es.delete(G.es)
+    
+    
+    leaves_seq = G.vs.select(_degree_le=0)
+    leaves_seq.delete()
+    
+    output_filename = settings.data_path + str(settings.state) + "-" + settings.affiliation + "s-" + settings.output_label + ".pdf"
+    # Plot graph with edges
+    p = igraph.plot(G,
+        output_filename,
+        bbox=settings.output_dim,
+        # layout = "large",
+        layout=mylayout,
+        vertex_label_size=G.vs['labelSize'],
+        vertex_label_color=G.vs['color'],
+    #     vertex_label_color='#000000',
+        vertex_label_dist=1.2,
+        
+        vertex_frame_width=[max(2, x / 7) for x in G.vs['size']],
+        vertex_frame_color=G.vs['frame_color'],
+        palette=pal,
+        vertex_color=G.vs['color'],
+        mark_groups=G['group-markers'] if G['group-markers'] and settings.draw_groups else None,
+    #     vertex_label_color = colors,
+    #     vertex_order_by = ("order","asc"),
+        margin=(300, 300, 300, 300),
+    #     opacity=0.3,
+    #     background=None,  # This is only possible after my changes to igraph.__init__.py
+        # background='#050505',
+        background='#fff',
+        edge_color=G.es['color'],
+    #     edge_color='gray',
+        edge_curved=False,
+        edge_width=G.es['width']
+    
+    #     edge_arrow_size = [x/20.0 for x in v_sizes]
+        # ~ vertex_label_color = "white",
+        
+    )
+    
+    
+    # Plot without edges
+    # p .add(g,
+    #     bbox=settings.draw_groups,
+    #     # layout = "large",
+    #     layout=mylayout,
+    # #     vertex_size=5,
+    #     vertex_label=None,
+    # 
+    # #     ~ vertex_color = colors,
+    #     palette=pal,
+    #     vertex_color=g.vs['color'],
+    # #     vertex_order_by = ("order","asc"),
+    #     margin=(300, 300, 300, 300),
+    #     opacity=1,
+    # #     background=None,  # This is only possible after my changes to igraph.__init__.py
+    #     background='black'
+    #     # ~ edge_color = edgeColors,
+    # #     edge_color='gray',
+    # #     edge_curved=False,
+    # #     edge_arrow_size = [x/20.0 for x in v_sizes]
+    #     # ~ vertex_label_color = "white",
+    #     
+    # )
+    
+    
+    # 
+    # p.add(g,
+    #     bbox=settings.draw_groups,
+    #     # layout = "large",
+    #     layout=mylayout,
+    # #     vertex_size=5,
+    # #     ~ vertex_color = colors,
+    #     palette=pal,
+    #     vertex_color=g.vs['color'],
+    #     vertex_order=argsort(G.vs['size']),
+    #     
+    #     vertex_frame_width=[max(2, x / 10) for x in G.vs['size']],
+    #     vertex_frame_color=G.vs['color'],
+    #     vertex_label=None,
+    #     opacity=0.5,
+    # #     vertex_order_by = ("order","asc"),
+    #     margin=(300, 300, 300, 300),
+    # #     opacity=1,
+    # #     background=None,  # This is only possible after my changes to igraph.__init__.py
+    #     background='black'
+    #     
+    # )
+    
+    
+    # p.save()
 
 
-# Plot without edges
-# p .add(g,
-#     bbox=settings.draw_groups,
-#     # layout = "large",
-#     layout=mylayout,
-# #     vertex_size=5,
-#     vertex_label=None,
-# 
-# #     ~ vertex_color = colors,
-#     palette=pal,
-#     vertex_color=g.vs['color'],
-# #     vertex_order_by = ("order","asc"),
-#     margin=(300, 300, 300, 300),
-#     opacity=1,
-# #     background=None,  # This is only possible after my changes to igraph.__init__.py
-#     background='black'
-#     # ~ edge_color = edgeColors,
-# #     edge_color='gray',
-# #     edge_curved=False,
-# #     edge_arrow_size = [x/20.0 for x in v_sizes]
-#     # ~ vertex_label_color = "white",
-#     
-# )
 
 
-# 
-# p.add(g,
-#     bbox=settings.draw_groups,
-#     # layout = "large",
-#     layout=mylayout,
-# #     vertex_size=5,
-# #     ~ vertex_color = colors,
-#     palette=pal,
-#     vertex_color=g.vs['color'],
-#     vertex_order=argsort(G.vs['size']),
-#     
-#     vertex_frame_width=[max(2, x / 10) for x in G.vs['size']],
-#     vertex_frame_color=G.vs['color'],
-#     vertex_label=None,
-#     opacity=0.5,
-# #     vertex_order_by = ("order","asc"),
-#     margin=(300, 300, 300, 300),
-# #     opacity=1,
-# #     background=None,  # This is only possible after my changes to igraph.__init__.py
-#     background='black'
-#     
-# )
 
 
-# p.save()
+
+
+
+
+
+
+
+
+
+
+# sparse network 
+# edges filtered based on weight
+settings1 = Settings(
+                    state_id='MA',
+                    state="massachusetts",
+#                     affiliation='employer',
+                    affiliation='occupation',
+                    restrict_to_neighborhood = {'label':'ATTORNEY','distance':2},
+                    data_path=os.path.expanduser('~/data/FEC/'),
+                    output_dim=(3200, 3200),
+                    num_components=(0, 1),
+                    verbose=False,
+                    v_max=60, v_min=10,
+                    e_max=5, e_min=5,
+                    l_max=70, l_min=4,
+                    e_percent=5,
+                    l_percent=10,
+                    e_field = 'weight',
+                    filter_components=False,
+                    output_label="attorney-2-5pct-weight"
+                     )
+
+# sparse network 
+# edges filtered based on confidence
+settings2 = Settings(
+                    state_id='MA',
+                    state="massachusetts",
+#                     affiliation='employer',
+                    affiliation='occupation',
+                    restrict_to_neighborhood = {'label':'ATTORNEY','distance':2},
+                    data_path=os.path.expanduser('~/data/FEC/'),
+                    output_dim=(3200, 3200),
+                    num_components=(0, 1),
+                    verbose=False,
+                    v_max=60, v_min=10,
+                    e_max=5, e_min=1,
+                    l_max=70, l_min=4,
+                    e_percent=15,
+                    l_percent=10,
+                    e_field = 'confidence',
+                    filter_components=False,
+                    output_label="attorney-2-15pct-confidence"
+                     )
+
+
+settings = settings1
+plot_network(settings)
+
 
             
