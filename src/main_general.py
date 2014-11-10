@@ -511,7 +511,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     # desired dimension (length) of hashes
-    hash_dim = 40
+    hash_dim = 20
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
@@ -529,7 +529,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     print 'Analyze...'
     t1 = time.time()
     # compute the hashes
-    D.compute_LSH_hash(hash_dim)
+    D.compute_LSH_hash(hash_dim,num_procs = num_procs)
     D.save_LSH_hash(batch_id=batch_id)
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     
@@ -1288,13 +1288,13 @@ if __name__ == "__main__":
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     project = disambiguate_main('newyork',
-                       record_limit=(0,1000),
+                       record_limit=(0,10000),
 
                        logstats=False,
                        #whereclause=" WHERE NAME LIKE '%COHEN%' ",
                        #whereclause=" WHERE NAME like '%AARONS%' ",
-                       whereclause=" WHERE NAME like '%COHEN%' ",
-                       num_procs=1,
+                       #whereclause=" WHERE NAME like '%COHEN%' ",
+                       num_procs=12,
                        percent_employers = 5,
                        percent_occupations = 5)
 

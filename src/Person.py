@@ -31,6 +31,8 @@ class Person(object):
         # Town object that contains a dictionary mapping person ids to person objects
         self.town = None
 
+        # set of other persons already compared with this person.
+        self.set_compared = set()
 
 
     ''' The following two methods need to be defined in order to make the object hashable.
@@ -82,6 +84,9 @@ class Person(object):
         # TODO: is this necessary any more?
         otherPerson.destroy()
         self.updateTimeline()
+        
+        # All previous comparisons are null.
+        self.resetAlreadyCompared()
             
             
             
@@ -105,9 +110,26 @@ class Person(object):
         return float(score) / (n1 * n2)
                 
             
+    def setAlreadyCompared(self, other):
+        '''
+        record other as having already been compared with self.
+        '''
+        self.set_compared.add(other)
+
         
+    def getAlreadyCompared(self, other):
+        '''
+        determine if other has already been compared with self.
+        '''
+        return (other in self.set_compared)
     
-    
+    def resetAlreadyCompared(self):
+        '''
+        clear self.set_compared
+        '''
+        self.set_compared.clear()    
+
+
     # Wrapper for lazy boolean access to self.compatibility()
     def isCompatible(self, other):
         
