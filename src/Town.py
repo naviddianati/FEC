@@ -24,8 +24,16 @@ class Town():
         return result
     
     
+    
+    
     def getAllPersons(self):
         return self.dict_persons.values()
+        
+
+    def generateAllPersons(self):
+        for id,person in self.dict_persons.iteritems():
+            yield person
+
     
     def addPerson(self,person):
         self.dict_persons[id(person)] = person

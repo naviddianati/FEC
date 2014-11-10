@@ -511,7 +511,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     # desired dimension (length) of hashes
-    hash_dim = 40
+    hash_dim = 20
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?

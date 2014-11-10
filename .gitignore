@@ -8,6 +8,7 @@
 tmp*
 *.list
 *.log
-config/batches.list
+./config/batches.list
 *.pickle
+*.csv
 output
