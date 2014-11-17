@@ -9,7 +9,7 @@
     This can be further augmented by overriding  the member function __is_close_enough(v1,v2). This functions takes two vectors as inputs
     and decides if they should be linked or not, and uses additional information about the features/tokens as well. This is where
     index_2_token and token_2_index can be used.
-    matching_mode can be "strict" or "thorough"
+    matching_mode can be "strict_address" or "strict_affiliation" or "thorough"
     ''' 
 
 import igraph
@@ -40,7 +40,7 @@ from math import ceil,floor
 
 
 class Disambiguator():
-    def __init__(self, list_of_records, vector_dimension, matching_mode="strict", num_procs=3):
+    def __init__(self, list_of_records, vector_dimension, matching_mode="strict_address", num_procs=3):
 
         self.list_of_records = list_of_records
         self.sort_list_of_records()

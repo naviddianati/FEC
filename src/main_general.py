@@ -55,7 +55,7 @@ from states import *
 import sys
 import time
 
-from Affiliations import AffiliationAnalyzerUndirected
+from Affiliations import AffiliationAnalyzerUndirected,MigrationAnalyzerUndirected
 from Database import FecRetriever
 
 # Import the module as a whole, so we can add global variables to its namespace for shared memory parallel processing
@@ -142,7 +142,7 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     Operates on <state>_addresses tables in order to find high-certainty identities so that
     affiliation networks can be generated.
     The output of this method will be the data files which can be loaded by loadAffiliationNetwork().
-    The comparison method used by Records here should be strict.
+    The comparison method used by Records here should be strict_address.
     '''
 def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 5000000), whereclause = ''):
     '''
@@ -260,7 +260,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode="strict")
+    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode="strict_address")
     project.D = D
     D.project = project
     
@@ -342,7 +342,188 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
         except Exception as e:
             print "ERROR", e.msg
    
+def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000), whereclause = '', num_procs = 3):
+    '''
+    1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
+        This produces a list of Record objects.
+    2- Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the
+        updated list of records. These records now have a reference to the Tokenizers TokenData object, and contain
+        an attribute called record.vector.
+    3- Instantiate a Disambiguator object and pass to it the list of records. This Disambiguator will use the vector
+        attributes of the records to find a set of approximate nearest neighbors for each one. The result is an adjacency
+        matrix.
+    4- Instantiate a Project object, and set various parameters to it as instance variables. For example, the Disambiguator
+        object defined above is bound to the Project as an instance variable.
+        This Project object will then do the book keeping: saves a settings file, saves the adjacency matrix to a file,
+        saves a json version of all records to a file, etc.
+    5- The json files saved by Project, namely the adjacency matrix and the list of records, will be used by the code
+        defined in the Affiliations module to extract
+    '''  
+    batch_id = get_next_batch_id()
+    project = Project(batch_id=batch_id)
     
+    if state:
+        
+        param_state = state
+    else: 
+        param_state = 'newyork_addresses'
+        
+    print "Analyzing data for state: ", param_state 
+    
+    table_name = param_state + "_combined"
+  
+    # If this is for a multi-state table
+    if param_state == "multi_state":
+        table_name = "multi_state_combined"
+    project.putData('state' , param_state)
+
+    
+    record_start = record_limit[0]
+    record_no = record_limit[1]
+    
+
+    project.putData('batch_id' , batch_id)
+
+    
+    time1 = time.time()
+    
+#    list_tokenized_fields = ['NAME','FIRST_NAME', 'LAST_NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1']
+    list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+    project.putData("list_tokenized_fields", list_tokenized_fields)
+    
+    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
+    project.putData("list_auxiliary_fields", list_auxiliary_fields)
+    
+    all_fields = list_tokenized_fields + list_auxiliary_fields 
+    project.putData('all_fields' , all_fields)
+
+    
+    # I BELIEVE THESE ARE UNNECCESSARY
+    # Where in the final query_fields is the given identifier field?
+    index_list_tokenized_fields = [all_fields.index(s) for s in list_tokenized_fields]
+    
+    # Where in the final query_fields is the given auxiliary field?
+    index_auxiliary_fields = [all_fields.index(s) for s in list_auxiliary_fields]    
+    
+    
+    # dictionaries indicating the index numbers associated with all fields
+    index_2_field = { all_fields.index(s):s for s in all_fields}
+    project.putData("index_2_field", index_2_field)
+    
+    field_2_index = { s:all_fields.index(s) for s in all_fields}
+    project.putData("field_2_index", field_2_index)
+    
+    
+    if whereclause == "":
+        whereclause = " WHERE ENTITY_TP='IND' "
+    else:
+        whereclause = whereclause + " AND ENTITY_TP='IND' "
+        print "whereclasue: ", whereclause
+    
+    retriever = FecRetriever(table_name=table_name,
+                      query_fields=all_fields,
+                      limit=(record_start, record_no),
+                      list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE", "CMTE_ID"],
+                      where_clause=whereclause)
+    retriever.retrieve()
+    project.putData("query", retriever.getQuery())
+    
+    list_of_records = retriever.getRecords()
+    
+#     # A list(1) of lists(2)  where each list(2) corresponds to one of the records returned by MySQL
+#     # and it contains only the "identifier" fields of that record. This is the main piece of data processed by this program.
+#     list_of_records_identifier = [[record[index] for index in index_list_tokenized_fields] for record in tmp_list]
+#     
+#     # Same as above, except each list(2) consists of the auxiliary columns of the record returned by MySQL.
+#     list_of_records_auxiliary = [[record[index] for index in index_auxiliary_fields] for record in tmp_list]  
+    
+    
+    tokenizer = TokenizerNgram()
+    project.tokenizer = tokenizer
+    tokenizer.setRecords(list_of_records)
+    tokenizer.setTokenizedFields(list_tokenized_fields)
+    tokenizer.tokenize()
+    
+    tokenizer.tokens.save_to_file(project["data_path"] + param_state + "-" + "affiliations-" + batch_id + "-tokendata.pickle")
+    list_of_records = tokenizer.getRecords()
+    print len(tokenizer.tokens.token_2_index.keys())
+    
+    
+
+    
+    # Unnecessary
+#     project.list_of_records = list_of_records
+    
+    # dimension of input vectors
+    dim = tokenizer.tokens.no_of_tokens
+
+    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode="strict_affiliation", num_procs = num_procs)
+    project.D = D
+    D.project = project
+    
+    
+    # desired dimension (length) of hashes
+    hash_dim = 20
+    project.putData('hash_dim' , str(hash_dim))
+
+    # In D, how many neighbors to examine?
+    B = 40
+    
+    
+    # Number of times the hashes are permutated and sorted
+    no_of_permutations = 20
+    project.putData('number_of_permutations' , str(no_of_permutations))
+    
+    print 'Analyze...'
+    t1 = time.time()
+    # compute the hashes
+    D.compute_LSH_hash(hash_dim)
+    D.save_LSH_hash(batch_id=batch_id)
+    D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
+    
+    # D.show_sample_adjacency()
+
+    t2 = time.time()
+    print 'Done...'
+    print t2 - t1
+   
+    # project.D.imshow_adjacency_matrix(r=(0, record_no))
+    
+    print 'Saving adjacency matrix to file...'
+    print 'Printing list of identifiers and text of adjacency matrix to file...'
+    project.save_data(with_tokens=False, file_label=param_state + "-" + "affiliations-")
+    print 'Done...'
+    
+    time2 = time.time()
+    print time2 - time1
+
+
+
+
+    project.log('MESSAGE', 'Computing affiliation networks...')
+    project.saveSettings(file_label=param_state + "-" + "affiliations-")
+
+    if affiliation is None or affiliation == 'zip_code':
+        try:
+            analyst = MigrationAnalyzerUndirected(state=param_state, batch_id=batch_id, affiliation="zip_code")
+            project.log('MESSAGE', 'AffiliationAnalyzer created...')
+            
+            state = analyst.settings["state"]
+            analyst.load_data()
+            analyst.extract()
+            analyst.compute_affiliation_links()
+            project.log('MESSAGE', 'Affiliation links computed...')
+
+            analyst.save_data(label=state)
+            project.log('MESSAGE', 'Affiliation data saved...')
+        #     analyst.save_data_textual(label=state)
+        except IndexError:
+            print "INDEX ERROR"
+            pass
+
+            
+
+   
 
 
 
@@ -1273,6 +1454,11 @@ def process_middle_names(project):
 
 
 if __name__ == "__main__":
+
+    print "AFFILATION: zip_code\n" + "_"*80 + "\n"*5 
+    generateMigrationData('delaware', affiliation='zip_code', record_limit=(0, 5000000), num_procs = 12)
+    quit()
+
 
 #     print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
 #     generateAffiliationData('delaware', affiliation='occupation', record_limit=(0, 500))

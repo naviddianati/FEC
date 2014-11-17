@@ -15,8 +15,13 @@ import numpy as np
 from scipy.stats import binom
 
 
+
+
+
+
+
 class AffiliationAnalyzer(object):
-    
+
 
     def __init__(self, state="",batch_id=None, affiliation="employer"):
         self.debug = False
@@ -64,15 +69,15 @@ class AffiliationAnalyzer(object):
         plt.yscale('log')
         
 
-    '''Load data.
-    Here we load the data defining a graph of records. This graph should connect nodes that are
-    determined to surely belong to the same individual. In other words, this graph should already
-    be disambiguated with respect to individual identity.
-    The purpose of this exercise is to find a subset of records with known identities, so that we
-    can infer some statistics on their affiliations, etc. This subset of records doesn't have to be
-    particularly large.
-    '''
     def load_data(self):
+        '''Load data.
+        Here we load the data defining a graph of records. This graph should connect nodes that are
+        determined to surely belong to the same individual. In other words, this graph should already
+        be disambiguated with respect to individual identity.
+        The purpose of this exercise is to find a subset of records with known identities, so that we
+        can infer some statistics on their affiliations, etc. This subset of records doesn't have to be
+        particularly large.
+        '''
         file_label = self.settings['state'] + "-" + "affiliations-"
         file_adjacency = open(self.data_path + file_label + str(self.batch_id) + '-adjacency.json')
         file_nodes = open(self.data_path + file_label + str(self.batch_id) + '-list_of_nodes.json')
@@ -85,14 +90,14 @@ class AffiliationAnalyzer(object):
         self.G = igraph.Graph.TupleList(edges=self.record_edge_list)
     
     
-    '''
-    Computes the adjacency matrix between affiliation identifiers.
-    The main product is self.affiliation_adjacency which is a dictionary {link:weight} where
-    link is a tuple (ind1,ind2).
-    The affiliation node indices are stored in two dictionaries self.dict_string_2_name  and
-    self.dict_name_2_string.
-    '''
     def extract(self):         
+        '''
+        Computes the adjacency matrix between affiliation identifiers.
+        The main product is self.affiliation_adjacency which is a dictionary {link:weight} where
+        link is a tuple (ind1,ind2).
+        The affiliation node indices are stored in two dictionaries self.dict_string_2_name  and
+        self.dict_name_2_string.
+        '''
         clustering = self.G.components()
 
         # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
@@ -415,9 +420,8 @@ def bad_identifier(identifier, type='employer'):
                 |instructor\b|chairman\b'
     elif type == 'occupation':
         regex = r'unknown|requested|retired|none|retire|retited|ret\b|declined|N.A\b|refused|NA\b|employed|self'
-    else:
-        print 'invalid identifier type'
-        quit()
+    elif type == "zip_code":
+        regex = r'[a-z]|[A-Z]'
 #     print identifier
     if re.search(regex, identifier, flags=re.IGNORECASE): 
         return True
@@ -669,10 +673,7 @@ class AffiliationAnalyzerDirected(AffiliationAnalyzer):
 
     
     
-class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
-    
-
-
+class AffiliationAnalyzerUndirected(AffiliationAnalyzer): 
     def pvalue_old(self, m, ku, kv, q):
         '''
         The pvalue according to a random undirected weighted graph null model.
@@ -908,7 +909,133 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
         '''
                  
     
+class MigrationAnalyzerUndirected(AffiliationAnalyzerUndirected): 
+    '''
+    This class is used specifically for computing the geogoraphical transition 
+    graph. Here, in extract(), we add a weight of 1 to an edge if the two
+    endpoint locations co-occur within a person's timeline.
+    '''
     
+       
+        
+        
+    def extract(self):         
+        '''Override
+        Computes the adjacency matrix between affiliation identifiers.
+        The main product is self.affiliation_adjacency which is a dictionary {link:weight} where
+        link is a tuple (ind1,ind2).
+        The affiliation node indices are stored in two dictionaries self.dict_string_2_name  and
+        self.dict_name_2_string.
+        '''
+        clustering = self.G.components()
+
+        # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
+        self.contributors_subgraphs = clustering.subgraphs()
+        
+        # The graph of the components: each component is contracted to one node
+        Gbar = clustering.cluster_graph()
+        print "number of subgraphs:", len(Gbar.vs)
+        
+        # show_histories_distribution(contributors_subgraphs); quit()
+        
+        # Loop through the subgraphs, i.e., resolved individual identities.
+        for counter, g in enumerate(self.contributors_subgraphs):
+            if self.debug: 
+                pass
+#                 if counter > 10 : break
+                
+            
+            list_affiliations = []
+            
+            # Loop through the nodes in each subgraph
+            timeline = []
+            dict_temp_affiliations = {}
+            for counter_v, v in enumerate(g.vs):
+                affiliation_index = self.settings['field_2_index'][self.affiliation.upper()]
+#                 affiliation_index = 1 if self.affiliation == 'employer' else (6 if self.affiliation == 'occupation' else None)
+                affiliation_identifier = self.dict_record_nodes[str(v['name'])]['data'][affiliation_index]
+                if bad_identifier(affiliation_identifier, type=self.affiliation): 
+                    if self.debug: print affiliation_identifier
+                    continue   
+                date_index = self.settings['field_2_index']['TRANSACTION_DT']
+                date = self.dict_record_nodes[str(v['name'])]['data'][date_index]
+                if affiliation_identifier not in self.dict_string_2_name : 
+                    self.dict_string_2_name[affiliation_identifier] = str(self.affiliation_name_counter)
+                    self.affiliation_name_counter += 1
+                    self.dict_name_2_string[self.dict_string_2_name[affiliation_identifier]] = affiliation_identifier
+        
+                affiliation_id = self.dict_string_2_name[affiliation_identifier]
+                
+                ''' every unique affiliation occurring in this timeline should be associated with the timeline's id '''
+                if affiliation_identifier not in dict_temp_affiliations:
+                    dict_temp_affiliations[affiliation_identifier] = 1
+                    try:
+                        self.dict_affiliation_to_timelines[affiliation_id].append(self.counter_timelines)
+                    except KeyError:
+                        self.dict_affiliation_to_timelines[affiliation_id] = []
+                        self.dict_affiliation_to_timelines[affiliation_id].append(self.counter_timelines)
+                    
+                list_affiliations.append((affiliation_id, affiliation_identifier))
+                
+                timeline.append((date, affiliation_id))
+            ''' Save this individual's timeline '''
+            if timeline:
+                timeline = sorted(timeline, key=lambda record: record[0])
+        #         list_timelines.append(sorted(timeline, key=lambda record: record[0]))
+                self.dict_timelines[self.counter_timelines] = timeline
+                self.counter_timelines += 1
+            else:
+                continue
+            
+            # Do some verbose logging       
+            if self.debug: print "Number of unique affiliation strings: %d" % len(list_affiliations)
+            if   len(list_affiliations) > 10:
+                self.list_sample_affiliation_groups.append([x[1] for x in list_affiliations])
+                if self.debug:
+                    for x in list_affiliations: print x[1]
+                    print '======================================'
+        
+            
+            set_affiliation_ids = {x[1] for x in timeline}             
+            for id0 in set_affiliation_ids:
+
+                self_link = (id0,id0)
+                try:
+                    self.affiliation_adjacency[self_link] += 1 
+                except KeyError:
+                    self.affiliation_adjacency[self_link] = 1
+
+                for id1 in set_affiliation_ids:
+                    if id0 == id1: continue
+                    try:
+                        self.affiliation_score[id0] += 1
+                    except KeyError:
+                        self.affiliation_score[id0] = 1
+            
+                    link = (id0,id1)
+                    try:
+                        self.affiliation_adjacency[link] += 1 
+                    except KeyError:
+                        self.affiliation_adjacency[link] = 1
+                    
+
+                
+                    
+#     
+        ''' The dictionary affiliation_adjacency assigns to each (source,target) tuple an integer weight.
+            It is the sparse adjacency matrix of the inter-affiliation network.
+        '''
+        
+        
+        ''' The dictionary dict_timelines contains all the timelines with keys being integers.
+            The dictionary dict_affiliation_to_timelines assigns to each affiliation id a list of id's of all timelines containing it
+        '''
+                 
+    
+
+
+
+
 def main():
     batch_id = 1897
     '''analyst = AffiliationAnalyzer(batch_id=batch_id, affiliation="occupation")

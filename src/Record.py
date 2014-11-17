@@ -131,42 +131,45 @@ class Record(dict):
     Positive values are True while others are False.
     Negative numbers can be used to indicate strict irreconcilability.
     '''
-    def compare(self, otherRecord, mode="strict"):
+    def compare(self, otherRecord, mode="strict_address"):
         
         
-        if mode == "strict":
-            return self.compare_STRICT(self, otherRecord) 
+        if mode == "strict_address":
+            return self._compare_STRICT_ADDRESS(self, otherRecord) 
+        
+        elif mode == "strict_affiliation":
+            return self._compare_STRICT_AFFILIATION(self, otherRecord) 
         
         elif mode == "thorough":
-            decision = (self.compare_THOROUGH(self, otherRecord))
+            decision = (self._compare_THOROUGH(self, otherRecord))
             if Record.debug: 
                 print decision
             return decision
         
         
         elif mode == "1":
-            decision = (self.compare_THOROUGH(self, otherRecord, method_id=1))
+            decision = (self._compare_THOROUGH(self, otherRecord, method_id=1))
             return decision
         elif mode == "2":
-            decision = (self.compare_THOROUGH(self, otherRecord, method_id=2))
+            decision = (self._compare_THOROUGH(self, otherRecord, method_id=2))
             return decision 
         elif mode == "3":
-            decision = (self.compare_THOROUGH(self, otherRecord, method_id=3))
+            decision = (self._compare_THOROUGH(self, otherRecord, method_id=3))
             return decision
         elif mode == "4":
-            decision = (self.compare_THOROUGH(self, otherRecord, method_id=4))
+            decision = (self._compare_THOROUGH(self, otherRecord, method_id=4))
             return decision
         elif mode == "5":
-            decision = (self.compare_THOROUGH(self, otherRecord, method_id=5))
+            decision = (self._compare_THOROUGH(self, otherRecord, method_id=5))
             return decision
         elif mode == "6":
-            decision = (self.compare_THOROUGH(self, otherRecord, method_id=6))
+            decision = (self._compare_THOROUGH(self, otherRecord, method_id=6))
             return decision
         elif mode == "7":
-            decision = (self.compare_THOROUGH(self, otherRecord, method_id=7))
+            decision = (self._compare_THOROUGH(self, otherRecord, method_id=7))
             return decision
         elif mode == "8":
-            decision = (self.compare_THOROUGH(self, otherRecord, method_id=8))
+            decision = (self._compare_THOROUGH(self, otherRecord, method_id=8))
             return decision
         
         
@@ -186,7 +189,7 @@ class Record(dict):
         
         
     
-    def compare_STRICT(self, r1, r2):
+    def _compare_STRICT_ADDRESS(self, r1, r2):
         ''' This function returns two values: the verdict, and the detailed result of the  comparisons performed.
         TODO: return the result (details) too. Right now, None is returned for the detailed result.
 
@@ -195,25 +198,20 @@ class Record(dict):
         If both have addresses, then addresses should be idenetical, and other fields must be close enough.'''
         
         
-        if r1.list_G_employer and r2.list_G_employer:
-            # TODO: use employer field in comparison
-            pass
-        
-        if r1.list_G_occupation and r2.list_G_occupation:
-            # TODO: use occupation field in comparison
-            pass
-        
-        
         identical = True
      
         
         # If either has no address, require firstname and last name to be identical and also middle name if both have it.
-        if not r1['N_address'] or not  r2['N_address']:
-            identical = (r1['N_last_name'] == r2['N_last_name']) \
-                        and (r1['N_first_name'] == r2['N_first_name']) \
-                        and ((r1['N_middle_name'] == r2['N_middle_name']) \
-                            if (r1['N_middle_name'] and r2['N_middle_name']) else True)
-            return identical, None
+        # WHY DID I DO THIS?! MAKES NO SENSE!!!!!
+        #if not r1['N_address'] or not  r2['N_address']:
+        #    identical = (r1['N_last_name'] == r2['N_last_name']) \
+        #                and (r1['N_first_name'] == r2['N_first_name']) \
+        #                and ((r1['N_middle_name'] == r2['N_middle_name']) \
+        #                    if (r1['N_middle_name'] and r2['N_middle_name']) else True)
+        #    return identical, None
+
+
+
         
         # IF BOTH HAVE ADDRESSES:
                        
@@ -249,6 +247,63 @@ class Record(dict):
         
         return identical, None
                    
+
+
+
+    def _compare_STRICT_AFFILIATION(self, r1, r2):
+        ''' This function returns two values: the verdict, and the detailed result of the  comparisons performed.
+        TODO: return the result (details) too. Right now, None is returned for the detailed result.
+
+        This function returns True or False indicating whether two name vectors are close enough to be considered identical or not.
+       ''' 
+        
+        
+        identical = True
+     
+        
+                       
+        # If employers aren't identical, then fail
+        if r1['EMPLOYER'] != r2['EMPLOYER'] : 
+            identical = False;
+            return identical, None
+ 
+
+        # If occupations aren't identical, then fail
+        if r1['OCCUPATION'] != r2['OCCUPATION'] : 
+            identical = False;
+            return identical, None
+              
+
+        # If the affiliations were identical but empty, then fail
+        if (not r1['OCCUPATION']) or (not r1['EMPLOYER']):
+            identical = False;
+            return identical, None
+        
+        # if both have middlenames, they should be the same
+        if r1['N_middle_name'] and r2['N_middle_name']:
+            if r1['N_middle_name'] != r2['N_middle_name']: identical = False
+        
+        # if 1 doesn't have a middle name but 2 does, then 2 is not the "parent" of 1
+        if not r1['N_middle_name'] and r2['N_middle_name']: identical = False
+          
+        # if last names arden't close enough, fail.
+#         if dict1[1] != dict2[1]: identical = False;
+        if not r1['N_last_name'] or not r2['N_last_name']: 
+            identical = False       
+        elif editdist.distance(''.join(sorted(r1['N_last_name'])), ''.join(sorted(r2['N_last_name']))) > 2: identical = False
+
+        # if first names don't overlap, then check if they are variants. If not, fail
+#         if not any(i in dict1[2] for i in dict2[2]): identical = False
+        firstname1 = ' '.join(r1['N_first_name'])
+        firstname2 = ' '.join(r2['N_first_name'])  
+        if editdist.distance(firstname1, firstname2) > 1:
+            if firstname2 in self.tokendata.dict_name_variants:
+                if firstname1 not in self.tokendata.dict_name_variants[firstname2]: 
+                    identical = False
+            else:
+                identical = False
+        
+        return identical, None
                    
 #     
 #     def pvalue(self, r1, r2):
@@ -442,7 +497,7 @@ class Record(dict):
        
 
 
-    def compare_THOROUGH(self, r1, r2, method_id=None):
+    def _compare_THOROUGH(self, r1, r2, method_id=None):
         '''
         Returns an integer and a dictionary. One can use this function directly to get additional information about
         the nature of the relationship. For instance, this function can return negative numbers to

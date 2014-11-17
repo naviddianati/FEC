@@ -215,9 +215,10 @@ class Tokenizer():
 #         s = record['CONTRIBUTOR_ZIP'] if record['CONTRIBUTOR_ZIP'] else record['ZIP_CODE']
         s = record['ZIP_CODE']
         if not s:
-            record['N_zipcode'].append(None)           
-        
-        record['N_zipcode'].append(s if len(s) < 5 else s[0:5]) 
+            record['N_zipcode'].append(None)                
+            return
+        record['ZIP_CODE'] = s if len(s) < 5 else s[0:5] 
+        record['N_zipcode'].append(record['ZIP_CODE']) 
     
     # Void. updates the record
     def _normalize_STREET(self, record):
