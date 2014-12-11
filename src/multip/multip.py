@@ -8,16 +8,20 @@ The number of processes can be changed and the computation is timed.
 from cmath import exp
 from multiprocessing import *
 from time import time,sleep
-
+import resource
+import socket
 # Accessible to child processes
 globaldata = 127
 
 def worker(p_data):
     pid = p_data['pid']
     print 'worker %d started.' % pid
+    print(socket.gethostname())
     data = p_data['data']
     queue = p_data['queue']
-    
+   
+    print_resource_usage("-------- inside process %d" % pid )
+
     doSomething(data)
     queue.put('Done with process '+ str(pid))
     
@@ -29,7 +33,6 @@ def doSomething(data):
     #print data ,'----'
     #return
     print id(data[0])
-    sleep(20)
 
 def actionDummy(data):
     print "worker working started ", data, globaldata, " ",  thing.N
@@ -42,10 +45,10 @@ def actionDummy(data):
 
 class Thing:
     def __init__(self):
-        self.N = 1000000*100
+        self.N = 100000*100
         #self.data = range(self.N)
         self.data = [{} for i in xrange(self.N)]
-        self.num_procs = 10
+        self.num_procs =3
     
     
     
@@ -90,7 +93,7 @@ class Thing:
         # This data is invisible to child processes
         insidedata = 394
 
-        #pool = Pool(processes = 10)
+        # pool = Pool(processes = 10)
         #pool.map(actionDummy,range(10))
 
         print "Spawning children in 5 seconds"
@@ -105,11 +108,14 @@ class Thing:
     def run1(self):
         list_procs = []
         list_queues = []
+        print(socket.gethostname())
         print "spawning children in 5 seconds"
-        sleep(5)     
         # Create processes
     
+        print_resource_usage("-------- Begin")
         list_data = [self.getchunk(self.data,i,self.num_procs,0) for i in range(self.num_procs)]
+        print_resource_usage("-------- data split")
+
         for i in range(self.num_procs):
 
             p_data = {}
@@ -131,10 +137,17 @@ class Thing:
         
         for p in list_procs:
             p.join()            
+
         
+        print_resource_usage("-------- after")
+
 
 
 print __name__       
+
+def print_resource_usage(msg):                                                                       
+    print msg,"\n", resource.getrusage(resource.RUSAGE_SELF)
+
 
 
 if __name__=="__main__":

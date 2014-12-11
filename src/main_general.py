@@ -144,7 +144,7 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     The output of this method will be the data files which can be loaded by loadAffiliationNetwork().
     The comparison method used by Records here should be strict_address.
     '''
-def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 5000000), whereclause = ''):
+def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 5000000), whereclause = '', num_procs = 1):
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -260,7 +260,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
-    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode="strict_address")
+    D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode="strict_address", num_procs = num_procs)
     project.D = D
     D.project = project
     
@@ -1455,13 +1455,14 @@ def process_middle_names(project):
 
 if __name__ == "__main__":
 
-    print "AFFILATION: zip_code\n" + "_"*80 + "\n"*5 
-    generateMigrationData('delaware', affiliation='zip_code', record_limit=(0, 5000000), num_procs = 12)
-    quit()
+    #print "AFFILATION: zip_code\n" + "_"*80 + "\n"*5 
+    #generateMigrationData('delaware', affiliation='zip_code', record_limit=(0, 5000000), num_procs = 12)
+    #quit()
 
 
 #     print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
-#     generateAffiliationData('delaware', affiliation='occupation', record_limit=(0, 500))
+    generateAffiliationData('delaware', affiliation=None, record_limit=(0, 5000), num_procs = 2)
+    quit()
 #      
 #     print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
 #     generateAffiliationData('delaware', affiliation='employer', record_limit=(0, 500))

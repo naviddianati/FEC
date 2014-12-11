@@ -211,6 +211,11 @@ class Record(dict):
         #    return identical, None
 
 
+        # Both records MUST have addresses
+        if not r1['N_address'] or not  r2['N_address']:
+            identical = False
+            return identical,None
+            
 
         
         # IF BOTH HAVE ADDRESSES:

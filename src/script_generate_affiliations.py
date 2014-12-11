@@ -38,12 +38,16 @@ def get_todo_affiliation_jobs():
     for state in list_states:
         file1 =  glob.glob(data_path+state+"*employer_graph.gml")
         file2 =  glob.glob(data_path+state+"*occupation_graph.gml")
-        if not file1:
-            print "generateAffiliationData(%s,affiliation='employer')" % state
-            list_todo.append((state,'employer'))
-        if not file2:
-            print "generateAffiliationData(%s,affiliation='occupation')" % state
-            list_todo.append((state,'occupation'))
+
+        if (not file1) and (not file2):
+            list_todo.append((state,None))
+        else:
+            if not file1:
+                print "generateAffiliationData(%s,affiliation='employer')" % state
+                list_todo.append((state,'employer'))
+            if not file2:
+                print "generateAffiliationData(%s,affiliation='occupation')" % state
+                list_todo.append((state,'occupation'))
 
     return list_todo
 
@@ -106,7 +110,10 @@ def schedule_jobs(jobs):
 if __name__ == "__main__":
 
     jobs = get_todo_affiliation_jobs()
-    jobs = [('indiana','employer')]
+    #jobs = [('indiana','employer')]
+    #jobs = [('newyork', 'occupation')]
+    #print jobs
+    #quit()
     schedule_jobs(jobs)
     quit()
 

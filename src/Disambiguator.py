@@ -33,14 +33,14 @@ import numpy as np
 import pylab as pl
 from math import ceil,floor
 
-
+import resource
 
 
 
 
 
 class Disambiguator():
-    def __init__(self, list_of_records, vector_dimension, matching_mode="strict_address", num_procs=3):
+    def __init__(self, list_of_records, vector_dimension, matching_mode="strict_address", num_procs=1):
 
         self.list_of_records = list_of_records
         self.sort_list_of_records()
@@ -545,7 +545,7 @@ class Disambiguator():
         list_chunks = self.chunk_padded_list_of_records(num_procs, B)        
         
 
-
+        print_resource_usage("---------- Memory used before spawning children: ")
         for pid in range(num_procs):
             # print "compiling data for process ", pid
             # list_indices = chunkit_padded(range(n), pid, num_procs, B)
@@ -564,6 +564,9 @@ class Disambiguator():
             p.start()
             # print "started process ", pid
         
+
+
+
         # Receive outputs from processes
         for i, q in enumerate(list_queues):
             result = q.get()
@@ -595,6 +598,7 @@ class Disambiguator():
         print "\n\n"
       
       
+        print_resource_usage("---------- Memory used after children returned: ")
       
       
       
@@ -1423,6 +1427,9 @@ def generate_rand_list_of_vectors(N, dim):
 
 
 
+
+def print_resource_usage(msg):
+    print msg, resource.getrusage(resource.RUSAGE_SELF)
 
 
 
