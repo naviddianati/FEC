@@ -1460,9 +1460,9 @@ if __name__ == "__main__":
     #quit()
 
 
-#     print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
-    generateAffiliationData('delaware', affiliation=None, record_limit=(0, 5000), num_procs = 2)
-    quit()
+#   print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
+#   generateAffiliationData('delaware', affiliation=None, record_limit=(0, 5000), num_procs = 2)
+#   quit()
 #      
 #     print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
 #     generateAffiliationData('delaware', affiliation='employer', record_limit=(0, 500))
@@ -1475,7 +1475,7 @@ if __name__ == "__main__":
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     project = disambiguate_main('newyork',
-                       record_limit=(0,10000),
+                       record_limit=(0,5000000),
 
                        logstats=False,
                        #whereclause=" WHERE NAME LIKE '%COHEN%' ",
@@ -1485,6 +1485,7 @@ if __name__ == "__main__":
                        percent_employers = 5,
                        percent_occupations = 5)
 
+    project.D.save_identities_to_db()
     #process_last_names(project)
     #process_middle_names(project)
     
