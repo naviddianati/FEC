@@ -40,6 +40,7 @@ Strategy:
 '''
 # import nltk
 # establish and return a connection to the MySql database server
+# Import the module as a whole, so we can add global variables to its namespace for shared memory parallel processing
 
 from collections import OrderedDict
 import datetime
@@ -48,6 +49,7 @@ import igraph
 import json
 import multiprocessing 
 import os
+import pickle
 import pprint
 import random
 import re
@@ -57,14 +59,11 @@ import time
 
 from Affiliations import AffiliationAnalyzerUndirected
 from Database import FecRetriever
-
-# Import the module as a whole, so we can add global variables to its namespace for shared memory parallel processing
 import Disambiguator
-
 from Tokenizer import Tokenizer, TokenizerNgram
 import numpy as np
 import pandas as pd
-
+import resource
 
 def find_all_in_list(regex, str_list):
     ''' Given a list of strings, str_list and a regular expression, regex, return a dictionary with the
@@ -144,7 +143,7 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     The output of this method will be the data files which can be loaded by loadAffiliationNetwork().
     The comparison method used by Records here should be strict.
     '''
-def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 5000000), whereclause = ''):
+def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 5000000), whereclause=''):
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
@@ -394,8 +393,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     record_no = record_limit[1]
 
     project.putData('batch_id' , batch_id)
-
-    
+   
     time1 = time.time()
     
 #    list_tokenized_fields = ['NAME','FIRST_NAME', 'LAST_NAME', 'CONTRIBUTOR_ZIP', 'CONTRIBUTOR_STREET_1']
@@ -407,7 +405,6 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     all_fields = list_tokenized_fields + list_auxiliary_fields 
     project.putData('all_fields' , all_fields)
-
 
     # I BELIEVE THESE ARE UNNECCESSARY
     # Where in the final query_fields is the given identifier field?
@@ -426,7 +423,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     
-    
+    print_resource_usage('---------------- before retrieving data')
     retriever = FecRetriever(table_name=table_name,
                       query_fields=all_fields,
                       limit=(record_start, record_no),
@@ -436,7 +433,9 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
     
+    print_resource_usage('---------------- after retrieving data')
     list_of_records = retriever.getRecords()
+    print_resource_usage('---------------- after setting list_of_records')
     if not list_of_records:
         print "ERROR: list of records empty. Aborting..."
         quit()
@@ -454,6 +453,8 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     tokenizer.setRecords(list_of_records)
     tokenizer.setTokenizedFields(list_tokenized_fields)
     tokenizer.tokenize()
+    
+    print_resource_usage('---------------- after tokenizing')
     
     tokenizer.tokens.save_to_file(project["data_path"] + param_state + "-" + "disambiguation-" + batch_id + "-tokendata.pickle")
     list_of_records = tokenizer.getRecords()
@@ -488,7 +489,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
         project.log('WARNING', param_state + " OCCUPATION network not found.")
 
     
-    
+    print_resource_usage('---------------- after loading affiliation networks')
     
     
     
@@ -497,6 +498,8 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     project.list_of_records = list_of_records
+    print_resource_usage('---------------- after assigning list_of_records to project')
+    
     # dimension of input vectors
     dim = tokenizer.tokens.no_of_tokens
 
@@ -507,7 +510,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     # Set D's logstats on or off
     D.set_logstats(is_on=logstats)
-        
+    print_resource_usage('---------------- after defining Disambiguator')    
     
     
     # desired dimension (length) of hashes
@@ -529,15 +532,20 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     print 'Analyze...'
     t1 = time.time()
     # compute the hashes
-    D.compute_LSH_hash(hash_dim,num_procs = num_procs)
+    D.compute_LSH_hash(hash_dim, num_procs=num_procs)
+    print_resource_usage('---------------- after compute_LSH_hash')
+    
     D.save_LSH_hash(batch_id=batch_id)
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
+    print_resource_usage('---------------- After compute_similarity')
     
 #     project.save_data_textual(with_tokens=False, file_label="before")
 
     D.generate_identities()
-    D.refine_identities()
+    print_resource_usage('---------------- after generate_identities')
     
+    D.refine_identities()
+    print_resource_usage('---------------- after refine_identities')
     # If logstats was on, rename stats.txt to include param_state
     if logstats:
         try:
@@ -571,7 +579,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     project.dump_full_adjacency(file_label=param_state + "-" + "disambiguation")
     
-    
+    print_resource_usage('---------------- after saving output data.')
     
     
     return project
@@ -968,7 +976,7 @@ class Project(dict):
         print "writing full adjacency to file... "
         filename_edgelist = self["data_path"] + file_label + '-adjacency.edges'
         f = open(filename_edgelist, 'w')
-        for id,person in self.D.town.dict_persons.iteritems():
+        for id, person in self.D.town.dict_persons.iteritems():
             for record1 in person.set_of_records:
                 for record2 in person.set_of_records:
                     if record1 is not record2:
@@ -1058,9 +1066,9 @@ class Project(dict):
                     # new_row = record_as_list_tokenized + [r['N_first_name'], r['N_last_name'], r['N_middle_name']]
                     
                     # without normalized names
-                    new_row = record_as_list_tokenized #+ [r['N_address']]
+                    new_row = record_as_list_tokenized  # + [r['N_address']]
                     
-                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s, unicode) else s  for s in new_row ] + [r.id]+ [r['N_address']]+ [r['N_middle_name']]
+                    new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s, unicode) else s  for s in new_row ] + [r.id] + [r['N_address']] + [r['N_middle_name']]
                     new_block.append(new_row)
 
                     
@@ -1077,8 +1085,8 @@ class Project(dict):
                 
                 # Save a group of blocks to file
                 if person_counter % page_size == 0:
-                    df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id']+ ['N_middle_name'])
-                    #df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
+                    df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'] + ['N_middle_name'])
+                    # df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'])
                     df.set_index('id', inplace=True)
                     f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
                     f2.write(df.to_html().encode('ascii', 'ignore'))
@@ -1098,7 +1106,7 @@ class Project(dict):
             
             # if there's a fraction of a page left at the end, write that too. 
             if dataframe_data:
-                df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id']+ ['N_middle_name'])
+                df = pd.DataFrame(dataframe_data, columns=self["list_tokenized_fields"] + ['N_address'] + ['id'] + ['N_middle_name'])
                 f1.write(df.to_string(justify='left').encode('ascii', 'ignore'))
     
                 f2.write(df.to_html().encode('ascii', 'ignore'))
@@ -1235,7 +1243,7 @@ def worker(conn):
 
 def process_last_names(project):
     D = project.D
-    f = open('multipele_last_names.txt','w')
+    f = open('multipele_last_names.txt', 'w')
     counter = 0
     for person in D.set_of_persons:
         all_names = set()
@@ -1243,7 +1251,7 @@ def process_last_names(project):
             all_names.add(record['N_last_name'])
         if len(all_names) > 1:
             counter += 1
-            f.write(person.toString()+"\n")
+            f.write(person.toString() + "\n")
             print "_" * 80
     f.close()
     print "Total number of persons containing different last names: ", counter
@@ -1260,16 +1268,17 @@ def process_middle_names(project):
             dict_middle_names[record['N_middle_name']] += 1
         except KeyError:
             dict_middle_names[record['N_middle_name']] = 1
-    sorted_list = [(name,freq) for name,freq in dict_middle_names.iteritems()]
-    sorted_list.sort(key = lambda x: x[1])
+    sorted_list = [(name, freq) for name, freq in dict_middle_names.iteritems()]
+    sorted_list.sort(key=lambda x: x[1])
 
-    f = open('middle_name_freqs.txt','w')
+    f = open('middle_name_freqs.txt', 'w')
     for item in sorted_list:
         f.write('%s\t%d\n' % item)
     f.close()
         
             
-        
+def print_resource_usage(msg):
+    print msg, "\n      " , resource.getrusage(resource.RUSAGE_SELF).ru_maxrss        
 
 
 if __name__ == "__main__":
@@ -1288,18 +1297,18 @@ if __name__ == "__main__":
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     project = disambiguate_main('newyork',
-                       record_limit=(0,10000),
+                       record_limit=(0, 10000),
 
                        logstats=False,
-                       #whereclause=" WHERE NAME LIKE '%COHEN%' ",
-                       #whereclause=" WHERE NAME like '%AARONS%' ",
-                       #whereclause=" WHERE NAME like '%COHEN%' ",
-                       num_procs=12,
-                       percent_employers = 5,
-                       percent_occupations = 5)
+                       # whereclause=" WHERE NAME LIKE '%COHEN%' ",
+                       # whereclause=" WHERE NAME like '%AARONS%' ",
+                       # whereclause=" WHERE NAME like '%COHEN%' ",
+                       num_procs=1,
+                       percent_employers=5,
+                       percent_occupations=5)
 
-    #process_last_names(project)
-    #process_middle_names(project)
+    # process_last_names(project)
+    # process_middle_names(project)
     
 
     quit()
