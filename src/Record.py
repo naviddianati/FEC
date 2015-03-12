@@ -35,7 +35,7 @@ When can we use name frequency in record comparison?
 
 import json
 
-from Affiliations import bad_identifier
+from common import bad_identifier
 from Person import Person
 from Tokenizer import TokenData
 import editdist

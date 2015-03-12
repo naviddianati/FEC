@@ -442,219 +442,219 @@ def print_stats(list_of_records):
 
 
 
-
-#list_of_records = get_transactions()
-#print_stats(list_of_records)
-#dl_coordinates(list_of_records)
-#quit()
-
-
-
-''' Get transactions from the contributions_to_candidates table (PAS files)'''
-#list_of_records = get_transactions_PAS()
-#print len(list_of_records)
-#quit()
+if __name__ == "__main__":
+    #list_of_records = get_transactions()
+    #print_stats(list_of_records)
+    #dl_coordinates(list_of_records)
+    #quit()
 
 
 
-
-#plot_coordinates(load_coordinates())
-#quit()
-
-project = disambiguate( do_new = False)
+    ''' Get transactions from the contributions_to_candidates table (PAS files)'''
+    #list_of_records = get_transactions_PAS()
+    #print len(list_of_records)
+    #quit()
 
 
 
 
+    #plot_coordinates(load_coordinates())
+    #quit()
 
-
-# Updates records inside the project with inferred addresses
-infer_addresses(project)
-list_of_records = project.D.list_of_records
-list_of_records.sort(key = lambda r : r['TRANSACTION_DT'])
-#list_of_records.sort(key = lambda r : abs(r['TRANSACTION_AMT']))
-print [r['TRANSACTION_AMT'] for r in list_of_records][:100]
-print len([1 for r in list_of_records if r['TRANSACTION_AMT'] >200])
+    project = disambiguate( do_new = False)
 
 
 
 
 
-#list_of_records = get_transactions()
-#dl_coordinates(list_of_recorMTE
 
-
-print len(list_of_records)
-
-list_candidates = get_candidates()
-list_committees = get_committees()
-dict_addresses = get_dict_addresses(load_coordinates())
-
-# dict { CMTE_ID: 
-#            {'CAND_ID': '',
-#             'CMTE_PTY_AFFILIATION': ''}
-#        }
-dict_cmte = {}
-dict_parties = {"REP":"R","DEM":"D"}
-
-dict_cand_name = {}
-dict_cand_party = {}
-dict_cand_state = {}
-                               
-
-for r in list_candidates:
-    dict_cand_name[r['CAND_ID']] = r['CAND_NAME']
-    dict_cand_party[r['CAND_ID']] = r['CAND_PTY_AFFILIATION']
-    dict_cand_state[r['CAND_ID']] = r['CAND_OFFICE_ST']
-   
-dict_candidate_amounts = {CAND_ID:{'timeline': [0 for i in range(274)] ,
-                                   'state': None,
-                                   'party':None,
-                                   } for CAND_ID in dict_cand_name } 
- 
-
-
-
-counter = 0
-for r in list_committees:
-    if r['CAND_ID']:
-        counter += 1
-        #print counter,'\t', r['CAND_ID'], r['CMTE_ID'], dict_cand_name[r['CAND_ID']]
-        dict_cmte[r['CMTE_ID']] =  {'CAND_ID':r['CAND_ID'], 'CMTE_PTY_AFFILIATION':r['CMTE_PTY_AFFILIATION'] }
-    else:
-        dict_cmte[r['CMTE_ID']] =  {'CAND_ID':None, 'CMTE_PTY_AFFILIATION':r['CMTE_PTY_AFFILIATION'] }
-                
-
-
-counter = 0
-address_counter = 0
-counter_campaign_cont = 0
-counter_both = 0
-counter_negative_amount =0
-
-data = []
-data_candidates = []
-data_candidates_columns = ['recipient_ext_id','recipient_LastName','recipient_FirstName','recipient_MiddleName','recipient_state','recipient_party'] + range(1,275)
-
-for r in list_of_records:
-    counter += 1
-
-    ADDRESS = None
-    CAND_NAME = None
-    AMNT = None
-    AMNT = int(r['TRANSACTION_AMT'])
-    if int(AMNT) < 0 : counter_negative_amount += 1 
-    if AMNT < 200: continue
-
-    CMTE_PTY_AFFILIATION = None
-
-    try:
-        CAND_ID = dict_cmte[r['CMTE_ID']]['CAND_ID']
-    except:
-        CAND_ID = None
-
-
-    try:
-        CAND_NAME = dict_cand_name[dict_cmte[r['CMTE_ID']]['CAND_ID']]
-        counter_campaign_cont += 1
-    except KeyError:
-        pass
-
-    try:
-        CMTE_PTY_AFFILIATION = dict_cmte[r['CMTE_ID']]['CMTE_PTY_AFFILIATION']        
-    except KeyError:
-        CMTE_PTY_AFFILIATION = None
-    
-    try:
-        CAND_PTY_AFFILIATION = dict_cand_party[dict_cmte[r['CMTE_ID']]['CAND_ID']] 
-    except KeyError:
-        CAND_PTY_AFFILIATION = None
+    # Updates records inside the project with inferred addresses
+    infer_addresses(project)
+    list_of_records = project.D.list_of_records
+    list_of_records.sort(key = lambda r : r['TRANSACTION_DT'])
+    #list_of_records.sort(key = lambda r : abs(r['TRANSACTION_AMT']))
+    print [r['TRANSACTION_AMT'] for r in list_of_records][:100]
+    print len([1 for r in list_of_records if r['TRANSACTION_AMT'] >200])
 
 
 
 
 
-    try:
-        PARTY = dict_parties[CMTE_PTY_AFFILIATION]
-    except:
-        print "BAD PARTY: ",CMTE_PTY_AFFILIATION 
-        PARTY=""
+    #list_of_records = get_transactions()
+    #dl_coordinates(list_of_recorMTE
 
-    if not PARTY:
-        try:
-            PARTY = dict_parties[CAND_PTY_AFFILIATION]
-        except:
-            print "BAD PARTY: ",CAND_PTY_AFFILIATION 
-            PARTY=""
+
+    print len(list_of_records)
+
+    list_candidates = get_candidates()
+    list_committees = get_committees()
+    dict_addresses = get_dict_addresses(load_coordinates())
+
+    # dict { CMTE_ID: 
+    #            {'CAND_ID': '',
+    #             'CMTE_PTY_AFFILIATION': ''}
+    #        }
+    dict_cmte = {}
+    dict_parties = {"REP":"R","DEM":"D"}
+
+    dict_cand_name = {}
+    dict_cand_party = {}
+    dict_cand_state = {}
+                                   
+
+    for r in list_candidates:
+        dict_cand_name[r['CAND_ID']] = r['CAND_NAME']
+        dict_cand_party[r['CAND_ID']] = r['CAND_PTY_AFFILIATION']
+        dict_cand_state[r['CAND_ID']] = r['CAND_OFFICE_ST']
        
-    
-    DATE = r['TRANSACTION_DT']
-    ADDRESS = get_full_address(r) 
-    if ADDRESS:
-        coords = dict_addresses[ADDRESS]
-        address_counter += 1
-    else: 
-        coords = ""
+    dict_candidate_amounts = {CAND_ID:{'timeline': [0 for i in range(274)] ,
+                                       'state': None,
+                                       'party':None,
+                                       } for CAND_ID in dict_cand_name } 
+     
 
-    if ADDRESS and CAND_NAME:
-        counter_both += 1
 
-    if ADDRESS:
-        day_of_year = get_days_since('20140101',DATE)+1
+
+    counter = 0
+    for r in list_committees:
+        if r['CAND_ID']:
+            counter += 1
+            #print counter,'\t', r['CAND_ID'], r['CMTE_ID'], dict_cand_name[r['CAND_ID']]
+            dict_cmte[r['CMTE_ID']] =  {'CAND_ID':r['CAND_ID'], 'CMTE_PTY_AFFILIATION':r['CMTE_PTY_AFFILIATION'] }
+        else:
+            dict_cmte[r['CMTE_ID']] =  {'CAND_ID':None, 'CMTE_PTY_AFFILIATION':r['CMTE_PTY_AFFILIATION'] }
+                    
+
+
+    counter = 0
+    address_counter = 0
+    counter_campaign_cont = 0
+    counter_both = 0
+    counter_negative_amount =0
+
+    data = []
+    data_candidates = []
+    data_candidates_columns = ['recipient_ext_id','recipient_LastName','recipient_FirstName','recipient_MiddleName','recipient_state','recipient_party'] + range(1,275)
+
+    for r in list_of_records:
+        counter += 1
+
+        ADDRESS = None
+        CAND_NAME = None
+        AMNT = None
+        AMNT = int(r['TRANSACTION_AMT'])
+        if int(AMNT) < 0 : counter_negative_amount += 1 
+        if AMNT < 200: continue
+
+        CMTE_PTY_AFFILIATION = None
+
         try:
-            CAND_FIRST_NAME,CAND_LAST_NAME = normalize_name(CAND_NAME)
-            CAND_NAME_NORMALIZED = CAND_LAST_NAME+", "+CAND_FIRST_NAME
-        except: 
-            CAND_NAME_NORMALIZED = CAND_NAME
-
-        row = [day_of_year, coords[0],coords[1],AMNT, CAND_NAME_NORMALIZED ,PARTY]
-        data.append(row)
-        print row
-
-
-    if CAND_ID:
-        try:
-            dict_candidate_amounts[CAND_ID]['timeline'][day_of_year] += AMNT
-            dict_candidate_amounts[CAND_ID]['state'] = dict_cand_state[CAND_ID]
-            dict_candidate_amounts[CAND_ID]['party'] = PARTY
+            CAND_ID = dict_cmte[r['CMTE_ID']]['CAND_ID']
         except:
+            CAND_ID = None
+
+
+        try:
+            CAND_NAME = dict_cand_name[dict_cmte[r['CMTE_ID']]['CAND_ID']]
+            counter_campaign_cont += 1
+        except KeyError:
             pass
+
+        try:
+            CMTE_PTY_AFFILIATION = dict_cmte[r['CMTE_ID']]['CMTE_PTY_AFFILIATION']        
+        except KeyError:
+            CMTE_PTY_AFFILIATION = None
         
-
-df = pd.DataFrame(data, columns = ['day_of_year','lat','lon','amount','recipient_name','party'])
-print df
-
-print "Number of records with an address: ", address_counter
-print "Number of transactions to an official camopaign: ", counter_campaign_cont    
-print "Number of transactions with CAND_NAME and ADDRESS: ", counter_both
-print "Number of transactions with negative amount: ", counter_negative_amount 
-
-
-
-
-df.to_csv('boston_greater_congressional.csv',index_label='ID')
+        try:
+            CAND_PTY_AFFILIATION = dict_cand_party[dict_cmte[r['CMTE_ID']]['CAND_ID']] 
+        except KeyError:
+            CAND_PTY_AFFILIATION = None
 
 
 
 
 
+        try:
+            PARTY = dict_parties[CMTE_PTY_AFFILIATION]
+        except:
+            print "BAD PARTY: ",CMTE_PTY_AFFILIATION 
+            PARTY=""
+
+        if not PARTY:
+            try:
+                PARTY = dict_parties[CAND_PTY_AFFILIATION]
+            except:
+                print "BAD PARTY: ",CAND_PTY_AFFILIATION 
+                PARTY=""
+           
+        
+        DATE = r['TRANSACTION_DT']
+        ADDRESS = get_full_address(r) 
+        if ADDRESS:
+            coords = dict_addresses[ADDRESS]
+            address_counter += 1
+        else: 
+            coords = ""
+
+        if ADDRESS and CAND_NAME:
+            counter_both += 1
+
+        if ADDRESS:
+            day_of_year = get_days_since('20140101',DATE)+1
+            try:
+                CAND_FIRST_NAME,CAND_LAST_NAME = normalize_name(CAND_NAME)
+                CAND_NAME_NORMALIZED = CAND_LAST_NAME+", "+CAND_FIRST_NAME
+            except: 
+                CAND_NAME_NORMALIZED = CAND_NAME
+
+            row = [day_of_year, coords[0],coords[1],AMNT, CAND_NAME_NORMALIZED ,PARTY]
+            data.append(row)
+            print row
+
+
+        if CAND_ID:
+            try:
+                dict_candidate_amounts[CAND_ID]['timeline'][day_of_year] += AMNT
+                dict_candidate_amounts[CAND_ID]['state'] = dict_cand_state[CAND_ID]
+                dict_candidate_amounts[CAND_ID]['party'] = PARTY
+            except:
+                pass
+            
+
+    df = pd.DataFrame(data, columns = ['day_of_year','lat','lon','amount','recipient_name','party'])
+    print df
+
+    print "Number of records with an address: ", address_counter
+    print "Number of transactions to an official camopaign: ", counter_campaign_cont    
+    print "Number of transactions with CAND_NAME and ADDRESS: ", counter_both
+    print "Number of transactions with negative amount: ", counter_negative_amount 
+
+
+
+
+    df.to_csv('boston_greater_congressional.csv',index_label='ID')
 
 
 
 
 
-for CAND_ID in dict_candidate_amounts:
-    CAND_NAME = dict_cand_name[CAND_ID]
-    CAND_FIRST_NAME,CAND_LAST_NAME = normalize_name(CAND_NAME)
-    STATE = dict_candidate_amounts[CAND_ID]['state']
-    PARTY = dict_candidate_amounts[CAND_ID]['party'] 
-    if sum(dict_candidate_amounts[CAND_ID]['timeline']) ==0: continue
-    data_candidates.append([CAND_ID,CAND_LAST_NAME,CAND_FIRST_NAME,None,STATE,PARTY] + dict_candidate_amounts[CAND_ID]['timeline'])
 
-data_candidates.sort(key = lambda row: sum(row[6:]), reverse=True)
 
-df = pd.DataFrame(data_candidates, columns = data_candidates_columns) 
-df.to_csv('boston_amounts_congressional.csv',index=False)
+
+
+
+    for CAND_ID in dict_candidate_amounts:
+        CAND_NAME = dict_cand_name[CAND_ID]
+        CAND_FIRST_NAME,CAND_LAST_NAME = normalize_name(CAND_NAME)
+        STATE = dict_candidate_amounts[CAND_ID]['state']
+        PARTY = dict_candidate_amounts[CAND_ID]['party'] 
+        if sum(dict_candidate_amounts[CAND_ID]['timeline']) ==0: continue
+        data_candidates.append([CAND_ID,CAND_LAST_NAME,CAND_FIRST_NAME,None,STATE,PARTY] + dict_candidate_amounts[CAND_ID]['timeline'])
+
+    data_candidates.sort(key = lambda row: sum(row[6:]), reverse=True)
+
+    df = pd.DataFrame(data_candidates, columns = data_candidates_columns) 
+    df.to_csv('boston_amounts_congressional.csv',index=False)
 
 
 

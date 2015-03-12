@@ -13,6 +13,22 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import binom
+from Database import FecRetriever
+from common import *
+
+def get_committees():
+    ''' NOT COMPLETE'''
+
+    retriever = FecRetriever(table_name='committee_master',
+                      query_fields=['id','CMTE_ID','CAND_ID','CMTE_PTY_AFFILIATION'],
+                      limit=(0,100000000),
+                      list_order_by='',
+                      where_clause="")
+    retriever.retrieve()
+    
+    list_of_records = retriever.getRecords()
+    return list_of_records
+
 
 
 
@@ -35,7 +51,18 @@ class AffiliationAnalyzer(object):
         self.dict_string_2_name = {}
         self.dict_name_2_string = {}
         self.affiliation_adjacency = {}
+
+        # dict {affiliation_id: score}
         self.affiliation_score = {}
+
+        # dict {affiliation_id: party makeup} where party makeup is a 
+        # list such as [100,400,0] where the elements are the dollar
+        # amounts given to the Democratic party, Republican party and Others.
+        # This list will be jasonified before being exported to the .gml
+        # graph file.
+        self.affiliation_party_amount = {}
+
+
 #         self.affiliation_names = []
         self.affiliation_name_counter = 1
                 
@@ -46,7 +73,13 @@ class AffiliationAnalyzer(object):
         self.list_sample_affiliation_groups = []
         
         self.contributors_subgraphs = None
-        self.load_settings(file_label = state+"-"+"affiliations-")
+        self.load_settings(file_label = state + "-" + "affiliations-")
+
+        # dict of committe. The keys are CMTE_IDs and the values are 
+        # party codes CMTE_PTY_AFFILIATION'
+        self.dict_committees = {}
+        self.compile_committees()
+        
         
 #         batch_id = 88  # NY
 #         # batch_id = 89   # OH
@@ -58,8 +91,31 @@ class AffiliationAnalyzer(object):
 #         # batch_id = 94   # Vermont
 #         batch_id = 189  # NY
     
+    def compile_committees(self):
+        """
+        using get_committees(), create a  dict of committees
+           
+        """
+        list_committees = get_committees()
+        for r in list_committees:
+            self.dict_committees[r['CMTE_ID']] =  r['CMTE_PTY_AFFILIATION']
+ 
+
+        
     
-    
+    def get_party(self,CMTE_ID):
+        """
+        Return the party affiliation of the committee id.
+        0 for Democratic
+        1 for Republican
+        2 for Other.
+        """
+        try:
+            party_id = self.dict_committees[CMTE_ID]
+        except KeyError:
+            party_id = None
+        return party_id
+
     
     def show_histories_distribution (self):
         list_history_lengths = [len(g.vs) for g in self.contributors_subgraphs]
@@ -232,9 +288,9 @@ class AffiliationAnalyzer(object):
         
         # Set vertex sizes
         for v in G_affiliations.vs:
-        #     v['size'] = round(np.log(affiliation_score[v['name']])+10)
             v['size'] = np.sqrt(self.affiliation_score[v['name']])
-        
+            v['party'] = json.dumps(self.affiliation_party_amount[v['name']])
+
         G_affiliations.save(f=self.data_path + label + '-' + self.affiliation + '_graph.gml', format='gml')
         
         clustering = G_affiliations.components()
@@ -406,30 +462,6 @@ def link_pvalue(k1, k2, wab):
     pass
 
         
-def bad_identifier(identifier, type='employer'):    
-    if identifier == '': return True
-    if type == 'employer':
-        regex = r'\bNA\b|N\.A|employ|self|N\/A|\
-                |information request|retired|teacher\b|scientist\b|\
-                |applicable|not employed|none|\
-                |homemaker|requested|executive|educator\b|\
-                |attorney\b|physician|real estate|\
-                |student\b|unemployed|professor|refused|doctor|housewife|\
-                |at home|president|best effort|consultant\b|\
-                |email sent|letter sent|software engineer|CEO|founder|lawyer\b|\
-                |instructor\b|chairman\b'
-    elif type == 'occupation':
-        regex = r'unknown|requested|retired|none|retire|retited|ret\b|declined|N.A\b|refused|NA\b|employed|self'
-    elif type == "zip_code":
-        regex = r'[a-z]|[A-Z]'
-#     print identifier
-    if re.search(regex, identifier, flags=re.IGNORECASE): 
-        return True
-    else: 
-        return False
-    
-    
-    
     
     
     
@@ -803,20 +835,47 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
             timeline = []
             dict_temp_affiliations = {}
             for counter_v, v in enumerate(g.vs):
+                record_data = self.dict_record_nodes[str(v['name'])]['data']
                 affiliation_index = self.settings['field_2_index'][self.affiliation.upper()]
-#                 affiliation_index = 1 if self.affiliation == 'employer' else (6 if self.affiliation == 'occupation' else None)
-                affiliation_identifier = self.dict_record_nodes[str(v['name'])]['data'][affiliation_index]
+                affiliation_identifier = record_data[affiliation_index]
+
+
+                amount_index = self.settings['field_2_index']['TRANSACTION_AMT']
+                amount = record_data[amount_index]
+
+                committee_index = self.settings['field_2_index']['CMTE_ID']
+                committee_id = record_data[committee_index]
+
+                date_index = self.settings['field_2_index']['TRANSACTION_DT']
+                date = record_data['data'][date_index]
+
                 if bad_identifier(affiliation_identifier, type=self.affiliation): 
                     if self.debug: print affiliation_identifier
                     continue   
-                date_index = self.settings['field_2_index']['TRANSACTION_DT']
-                date = self.dict_record_nodes[str(v['name'])]['data'][date_index]
+
                 if affiliation_identifier not in self.dict_string_2_name : 
                     self.dict_string_2_name[affiliation_identifier] = str(self.affiliation_name_counter)
                     self.affiliation_name_counter += 1
                     self.dict_name_2_string[self.dict_string_2_name[affiliation_identifier]] = affiliation_identifier
         
                 affiliation_id = self.dict_string_2_name[affiliation_identifier]
+
+
+                # For each record we have to update the affiliation party statistics
+                # namely which party the donation was made to. 
+                
+                # Will be 0 for "D", 1 for "R", 2 for "Other"
+                party_id = get_party(committee_id)
+                
+                try:
+                    self.affiliation_party_amount[affiliation_id][party_id] += amount
+                except KeyError:
+                    self.affiliation_party_amount[affiliation_id] = [0,0,0]
+                    self.affiliation_party_amount[affiliation_id][party_id] += amount
+                    
+
+
+
                 
                 ''' every unique affiliation occurring in this timeline should be associated with the timeline's id '''
                 if affiliation_identifier not in dict_temp_affiliations:
@@ -915,7 +974,7 @@ class MigrationAnalyzerUndirected(AffiliationAnalyzerUndirected):
     graph. Here, in extract(), we add a weight of 1 to an edge if the two
     endpoint locations co-occur within a person's timeline.
     '''
-    
+
        
         
         
@@ -1037,7 +1096,7 @@ class MigrationAnalyzerUndirected(AffiliationAnalyzerUndirected):
 
 
 def main():
-    batch_id = 1897
+    batch_id = 2376
     '''analyst = AffiliationAnalyzer(batch_id=batch_id, affiliation="occupation")
     state = analyst.settings["state"]
     analyst.load_data()
@@ -1045,7 +1104,7 @@ def main():
     analyst.compute_affiliation_links()
     analyst.save_data(label=state)
     '''
-    analyst = AffiliationAnalyzerUndirected(batch_id=batch_id, affiliation="employer")
+    analyst = AffiliationAnalyzerUndirected(state='alabama', batch_id=batch_id, affiliation="employer")
     state = analyst.settings["state"]
     print state
     analyst.load_data()

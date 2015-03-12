@@ -4,13 +4,17 @@ from matplotlib import cm
 
 
 class mplPalette(ig.Palette):
-    def __init__(self,n,name='Set1'):
+    def __init__(self,n,name='Set1', reverse = False):
         ig.Palette.__init__(self,n)
         self.n = n
         self.matplotlib_palette = cm.get_cmap(name)
+        self.reverse = reverse
     # Accepts parameter vin [0,colornum]
     def _get(self,v):
-        x=1.0*v/self.n
+        if self.reverse:
+            x=1.-1.0*v/self.n
+        else:
+            x=1.0*v/self.n
         color_tmp = self.matplotlib_palette(x)
         color = (color_tmp[0],color_tmp[1],color_tmp[2])
     
