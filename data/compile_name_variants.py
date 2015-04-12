@@ -12,8 +12,8 @@ import json
 
 pp = pprint.PrettyPrinter(indent=4)
 
-f = open('../data/name-variants-raw.csv', 'r')
-fout = open('../data/name-variants.json','w')
+f = open('name-variants-raw.csv', 'r')
+fout = open('name-variants.json','w')
 
 content = f.readlines()
 

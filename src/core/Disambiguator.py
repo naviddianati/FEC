@@ -15,13 +15,15 @@
 import igraph
 import json
 from multiprocessing.process import Process
-from multiprocessing import Pool 
+from multiprocessing import Pool, Manager 
 from multiprocessing.queues import Queue
 from numpy import math
 import os
 import pprint
 import random
 import time
+import sys
+from cPickle import dumps,dump
 
 from Affiliations import AffiliationAnalyzer
 from Database import DatabaseManager
@@ -32,10 +34,12 @@ import editdist
 import numpy as np
 import pylab as pl
 from math import ceil,floor
-
+from states import dict_state_abbr
 import resource
-
-
+from memory_spike import *
+from core.hashes import *
+from common import *
+import copy
 
 
 
@@ -654,17 +658,51 @@ class Disambiguator():
         dimensions = self.input_dimensions
         self.hash_dim = hash_dim
 
+        manager = Manager()
         list_probe_vectors = [random_uniform_hyperspherical(dimensions) for i in range(self.hash_dim)]
+        #list_probe_vectors = manager.list(list_probe_vectors)
 
+            
+        # 1
+        #memory_spike(2)
+    
         # Pool of workers
         pool = Pool(processes = num_procs)
-        list_feature_vecs = [r.vector for r in self.list_of_records]
-        list_data = [{'id': i,
-                      'vecs':  chunkit_padded(list_feature_vecs, i, num_procs, overlap=0),
-                      'hash_dim':self.hash_dim,
-                      'probe_vectors':list_probe_vectors} for i in range(num_procs)]
         
-        results = pool.map(get_hashes, list_data)
+        list_feature_vecs = [copy.copy(r.vector) for r in self.list_of_records]
+        #list_feature_vecs = [r.vector for r in self.list_of_records]
+        '''list_data1 = [{'id': i,
+                      'vecs':  chunkit_padded(list_feature_vecs, i, num_procs, overlap=0),
+                      'hash_dim':self.hash_dim + 0,
+                      'probe_vectors':list_probe_vectors} for i in range(num_procs)]
+        '''
+        
+        list_data2 = [[{'id': i,
+                      'vecs':  chunkit_padded(list_feature_vecs, i, num_procs, overlap=0),
+                      'hash_dim':self.hash_dim + 0}
+                      ,list_probe_vectors] for i in range(num_procs)]
+        
+        
+       
+        # 2
+        #memory_spike(2)
+
+
+        #results = pool.map(get_hashes, list_data)
+
+        #print sum([sys.getsizeof(dumps(d)) for d in list_data1])
+        #print sum([sys.getsizeof(dumps(d)) for d in list_data2])
+        #print sys.getsizeof(dumps(list_probe_vectors))
+        #dump(list_feature_vecs,open('vectors-deleteme.pickle','w'))
+
+        print "firing up the pool"
+        results = pool.map(get_hashes, list_data2)
+        print "pool returned"
+        pool.close()
+        pool.terminate()
+        
+        # 3
+        #memory_spike(2)
         
         # Unreference large intermediate data lists
         list_feature_vecs = None
@@ -674,16 +712,14 @@ class Disambiguator():
         results.sort(key = lambda x: x[0])
 
         self.LSH_hash = []
-
         # Concatenate the blocks of hashes computed by child workers
         for id,hashes in results:     
             print hashes[0]
             self.LSH_hash += hashes
-
+    
         print "Number of LSH hashes: %d" % len(self.LSH_hash)
         print "Length of list_of_records: %d" % len(self.list_of_records)
 
-            
     
 
     def compute_LSH_hash(self, hash_dim,num_procs = 1):
@@ -766,6 +802,9 @@ class Disambiguator():
         print 'Initialize adjacency...'
         self.initialize_index_adjacency()
         print 'Done...'
+
+        # 4
+        #memory_spike(10)
         
         for i in range(m):
             
@@ -1085,30 +1124,49 @@ class Disambiguator():
         self.refine_identities_on_MIDDLENAME()
         
         print "Merging similar persons..." 
-        self.refine_identities_merge_similars(5)
+        # self.refine_identities_merge_similars(5)
         
                 
         
     def generator_identity_list(self):
-        ''' generate tuples: [(record_id, Person_id)].
-        person id is an integer that's unique among the persons in this D.'''
+        ''' 
+        generate tuples: [(record_id, Person_id)].
+        person id is an string unique string such as "NY-83472837" 
+        specifying the state and a unique integer id unique within this state.
+        '''
         list_persons = self.town.getAllPersons()
         list_persons.sort(key=lambda person: min([record['N_last_name'] for record in person.set_of_records]))
+
+        
+        try:    
+            state = self.project['state']
+        except:
+            print "Error: unable to access self.project['state']"
+            raise()
+    
+        try:        
+            state_tag = dict_state_abbr[state]
+        except:
+            print "Error: upable to access dict_state_abbr[state]"
+            raise()
+
         for i, person in enumerate(list_persons):
             for record in person.set_of_records:
-                yield (record.id, i)
+                identity = "%s-%d" % (state_tag,i) 
+                yield (record.id, identity )
                 
     
-    def save_identities_to_db(self):
+    def save_identities_to_db(self, overwrite = False):
         '''Export the calculated identities of the records to a database table called "identities".'''
         db_manager = DatabaseManager()    
 
-        db_manager.runQuery('DROP TABLE IF EXISTS identities;')
-        db_manager.runQuery('CREATE TABLE identities ( id INT PRIMARY KEY, identity INT);')
+        if overwrite:
+            db_manager.runQuery('DROP TABLE IF EXISTS identities;')
+            db_manager.runQuery('CREATE TABLE identities ( id INT PRIMARY KEY, identity VARCHAR(24));')
         
         for id_pair in self.generator_identity_list():
             print id_pair
-            result = db_manager.runQuery('INSERT INTO identities (id,identity)  VALUES (%d,%d);' % id_pair)
+            result = db_manager.runQuery('INSERT INTO identities (id,identity)  VALUES (%d,"%s");' % id_pair)
             print result
         db_manager.connection.commit()
         db_manager.connection.close()
@@ -1142,42 +1200,6 @@ def permute_inplace(X, Y):
 
         for key in death_row_keys:
             del Y[key]
-
-
-def get_hashes(data):
-    '''
-    Receive a chunk of the record vectors and compute their LSH hashes given
-    a list of probe vectors.
-
-    data is a dict.
-    data['id']: which chunk of data is being passed to this worker, integer
-    data['vecs']: a set of record feature vectors
-    data['hash_dim']: hash_dim
-    data['probe_vecs']: a list of hash_dim (all) probe vectors
-    '''
-    vecs = data['vecs']
-    hash_dim = data['hash_dim']
-    probe_vectors = data['probe_vectors']
-    pid = data['id']
-    print "Generating hashes in process %d" % pid
-    # Number of records being processed by this worker    
-    n = len(vecs)
-
-    LSH_hash = ['' for i in xrange(n)]
-
-    for k in range(hash_dim):
-        # random "probe" vector 
-        vec_tmp = probe_vectors[k]
-        
-        # convert to sparse form
-        vec = sparse_vector(vec_tmp)
-        vec_n = vec_norm(vec)
-        #for record, i in zip(self.list_of_records, range(N)):
-        for i, v in enumerate(vecs):
-            c = '1' if inner_product(v, vec) > 0 else '0'
-            LSH_hash[i] += c
-    return (pid,LSH_hash)
-
 
 
 
@@ -1345,91 +1367,6 @@ def argsort_list_of_dicts(seq, orderby):
 
 
 
-
-
-def argsort(seq):
-    ''' Generic argsort. returns the indices of the sorted sequence'''
-    # http://stackoverflow.com/questions/3071415/efficient-method-to-calculate-the-rank-vector-of-a-list-in-python
-    return sorted(range(len(seq)), key=seq.__getitem__)
-
-def shuffle_str(s):
-    ''' Shuffle string by converting to list, shuffling and converting back '''
-    l = list(s)
-    random.shuffle(l)
-    return ''.join(l)
-
-
-def sparse_vector(vec):
-    ''' This function converts a numpy 2d vector to a dictionary
-        where the key is the index of the vector element and the
-        value is the vector component corresponding to that coordinate '''
-    vec_sparse = {}
-    for i in range(len(vec)):
-        if vec[i] != 0:
-            vec_sparse[i] = vec[i]
-    return vec_sparse
-
-def vec_norm(vec):
-    ''' this function computes the 2-norm of a sparse vector.'''
-    total = 0
-    for ind in vec:
-        total += vec[ind] ** 2
-    return np.sqrt(total)
-
-def inner_product(vec_short, vec):
-    ''' This function computes the inner product of two sparse vectors.
-        It is assumed that the first argument is the shorter of the two.'''
-    ''' The inned_product function takes advantage of the sparse representation of the vectors
-        to significantly optimize the operation. The complexity of the inner product is independent
-        of dim, it only depends on the average number of "non-zero" elements in the vectors. ''' 
-    total = 0
-#     vec_keys = vec.keys() # SO EXPENSIVE!!!!
-    counter = 0
-    for ind in vec_short:
-        counter += 1
-#         if ind in vec: 
-#         print ind,vec_short,vec
-        total += vec_short[ind] * vec[ind]
-#     print counter
-    return total 
-    
-
-
-    
-# number of vectors
-
-def generate_rand_list_of_vectors(N, dim):
-    # Generate a random set of input vectors
-    list_of_vectors = []
-    i = 0
-    cluster_size = 0
-    vec_previous = []
-    while (i < N):
-        vec = {}
-        if cluster_size == 0:
-            cluster_size = round(abs(random.gauss(0, 1) * 5)) + 1
-        else: 
-            cluster_size -= 1
-        
-        # generate a random sparse vector 
-        if cluster_size != 0:
-            for j in vec_previous:
-                if random.random() < 0.3:
-                    vec[j] = 1
-        for j in range(25):
-            if random.random() < 0.05:
-                vec[random.randint(0, dim - 1)] = 1
-        if vec:
-            list_of_vectors.append(vec)
-            vec_previous = vec
-            i += 1
-    return list_of_vectors
-
-
-
-
-def print_resource_usage(msg):
-    print msg, resource.getrusage(resource.RUSAGE_SELF)
 
 
 

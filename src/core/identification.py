@@ -2,6 +2,10 @@
 Created on Oct 12, 2014
 
 @author: navid
+
+This script loads the specified columns for all records, concatenates 
+the columns for each record into a string, and determines whether these
+strings are unique.
 '''
 
 import hashlib

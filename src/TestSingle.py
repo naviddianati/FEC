@@ -1,11 +1,5 @@
 #! /usr/bin/python
 
-
-'''
-Created on Jul 29, 2014
-
-@author: navid
-'''
 '''
 Created on Jul 25, 2014
 

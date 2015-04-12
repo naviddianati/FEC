@@ -1,39 +1,11 @@
 '''
-Created on Jul 25, 2014
-
-@author: navid
 '''
 
 from copy import copy
 import pickle
 from main import *
 
-
-def two_state_test():
-    project1 = disambiguate_main('delaware', record_limit=(0, 5000))
-    
-    project1.D.tokenizer.tokenize_functions = None
-    project1.D.tokenizer.normalize_functions = None
-    project1.D.project = None
-        
-    project2 = disambiguate_main('oregon', record_limit=(0, 300))
-    
-    list_of_Ds = [project1.D, project2.D]
-    
-    D = Disambiguator.Disambiguator.getCompoundDisambiguator(list_of_Ds)
-    D.compute_LSH_hash(20)
-    D.save_LSH_hash(batch_id='9999')
-    D.compute_similarity(B1=40, m=20 , sigma1=None)
-    
-    D.generate_identities()
-    D.refine_identities()
-        
-    project1.D = D
-    project1.save_data_textual(file_label="compound")
-
-
-
-
+from core.states import get_state_order
 
 
 
@@ -50,16 +22,21 @@ def worker(conn):
         try:
             project = disambiguate_main(state, record_limit=(0, 5000000))
             
-            # WOW! The following attributes contain pointers to instance methods, and they can't be pickled! So I just unset them!
-            project.D.tokenizer.tokenize_functions = None
-            project.D.tokenizer.normalize_functions = None
-            project.D.project = None
+            try:
+                project.D.save_identities_to_db()
+            except Exception as e:
+                print "ERROR: ", e
+                raise 
 
-            
-            
-            list_results.append(project) 
+
+            # WOW! The following attributes contain pointers to instance methods, and they can't be pickled! So I just unset them!
+            #project.D.tokenizer.tokenize_functions = None
+            #project.D.tokenizer.normalize_functions = None
+            #project.D.project = None
+
+            #list_results.append(project) 
             print "="*70, "\n" + state + " done." + str(datetime.datetime.now()) + "\n" + "="*70 
-            time.sleep(random.randint(1, 10))
+            #time.sleep(random.randint(1, 10))
 
         except Exception as e:
             print "Could not disambiguate state ", state, ":   ", e
@@ -72,10 +49,8 @@ def worker(conn):
 
 
 if __name__ == "__main__":
-    
-
     # Whether to run new state batches or read from existing output files.
-    run_fresh_batches = False
+    run_fresh_batches = True
 
     # Total number of processes we can use in different stages. This specifies  both the number
     # of processes used for parallel processing of the different states, and the number of processes
@@ -84,11 +59,10 @@ if __name__ == "__main__":
 
 
     # Use custom list of states
-    list_states = ['delaware', 'maryland']
-    list_states = ['virginia', 'maryland']
-    list_states = ['california', 'texas', 'marshallislands', 'palau', 'georgia', 'newjersey']
-
-
+    #list_states = ['virginia', 'maryland']
+    #list_states = ['california', 'texas', 'marshallislands', 'palau', 'georgia', 'newjersey']
+    #list_states = ['alaska', 'delaware']
+    
     # Do the entire country
     list_states = []
 
@@ -98,6 +72,8 @@ if __name__ == "__main__":
     if not list_states:
         list_states = sorted(dict_state.values())
 
+    dict_state_order = get_state_order()
+    list_states.sort(key = lambda state: dict_state_order[state])
 
     set_states = set(list_states)
 
@@ -143,13 +119,25 @@ if __name__ == "__main__":
             p.join()
         
     
+
+
+
+
+
+
+    quit()
+
+
+
+
+
     # list containing the project objects returned by the processes
     list_results = []
     
 
 
     # Only load one of the batches
-    dict_states = {9:dict_states[9]}
+    # dict_states = {9:dict_states[9]}
 
 
     # Process the outputs

@@ -1,8 +1,12 @@
-from main_general import *
+from main import *
+from core.config import data_path
+
 
 def worker_generate_affiliation(conn):
-    ''' The worker function that performs affiliation computation for a list of 
-    (state,affiliaiton) tuples.'''
+    ''' 
+    The worker function that performs affiliation computation for a list of 
+    (state,affiliaiton) tuples.
+    '''
 
     data = conn.recv()
     #print data
@@ -27,10 +31,11 @@ def worker_generate_affiliation(conn):
 
 
 def get_todo_affiliation_jobs():
-    '''returns a list of tuples: [(state,affiliation)] of states that need
-        their affiliation network computed.'''
+    '''
+    returns a list of tuples: [(state,affiliation)] of states that need
+    their affiliation network computed.
+    '''
 
-    data_path = os.path.expanduser('~/data/FEC/')
 
     list_todo = []
 
@@ -58,7 +63,9 @@ def get_todo_affiliation_jobs():
 
 
 def schedule_jobs(jobs):
-    '''jobs is a list of tuples: [(state,affiliation)]'''
+    '''
+    jobs is a list of tuples: [(state,affiliation)]
+    '''
     if not jobs: return
 
     N =  len(jobs)

@@ -38,10 +38,8 @@ Strategy:
     2- The <state>_address and <state>_combined tables don't have all the FIRST_NAMEs and LAST_NAMEs so
         if I use these tables to get names, some records won't have names.
 '''
-# import nltk
-# establish and return a connection to the MySql database server
-# Import the module as a whole, so we can add global variables to its namespace for shared memory parallel processing
 
+import core.config as config
 from collections import OrderedDict
 import datetime
 import glob
@@ -53,14 +51,14 @@ import pickle
 import pprint
 import random
 import re
-from states import *
+from core.states import *
 import sys
 import time
 
-from Affiliations import AffiliationAnalyzerUndirected,MigrationAnalyzerUndirected
-from Database import FecRetriever
-import Disambiguator
-from Tokenizer import Tokenizer, TokenizerNgram
+from core.Affiliations import AffiliationAnalyzerUndirected,MigrationAnalyzerUndirected
+from core.Database import FecRetriever
+import core.Disambiguator as Disambiguator
+from core.Tokenizer import Tokenizer, TokenizerNgram
 import numpy as np
 import pandas as pd
 import resource
@@ -556,11 +554,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     if state:
         param_state = state
     else:
-        # TODO: this is the table name. Which table should be used for the final disambiguation?
-        # Answer: for the state level, <state>_combined. For the whole country, probably the union
-        # of all state tables.
-        
-        param_state = 'newyork_combined'
+        param_state = 'newyork'
     print "Analyzing data for state: ", param_state 
     
     table_name = param_state + "_combined"
@@ -620,6 +614,8 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     if not list_of_records:
         print "ERROR: list of records empty. Aborting..."
         quit()
+
+
     
 #     # A list(1) of lists(2)  where each list(2) corresponds to one of the records returned by MySQL
 #     # and it contains only the "identifier" fields of that record. This is the main piece of data processed by this program.
@@ -634,6 +630,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     tokenizer.setRecords(list_of_records)
     tokenizer.setTokenizedFields(list_tokenized_fields)
     tokenizer.tokenize()
+
     
     print_resource_usage('---------------- after tokenizing')
     
@@ -715,8 +712,11 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     # compute the hashes
     D.compute_LSH_hash(hash_dim, num_procs=num_procs)
     print_resource_usage('---------------- after compute_LSH_hash')
+
+    
     
     D.save_LSH_hash(batch_id=batch_id)
+
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     print_resource_usage('---------------- After compute_similarity')
     
@@ -1080,13 +1080,13 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
 class Project(dict):
     def __init__(self, batch_id):
         self["batch_id"] = batch_id
-        self["data_path"] = os.path.expanduser('~/data/FEC/')
+        self["data_path"] = config.data_path 
         self["logfilename"] = '../records/' + str(self["batch_id"]) + '.record'
         # self["logfile"] = open(self["logfilename"], 'w', 0)
         self["messages"] = []
         self["list_tokenized_fields"] = []
         self["list_auxiliary_fields"] = []
-    
+        self["state"]="" 
     
         
     def saveSettings(self, file_label=""):
@@ -1483,7 +1483,7 @@ if __name__ == "__main__":
 
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
-    project = disambiguate_main('newyork',
+    project = disambiguate_main('alaska',
                        record_limit=(0,5000000),
 
                        logstats=False,
@@ -1493,6 +1493,7 @@ if __name__ == "__main__":
                        num_procs=12,
                        percent_employers = 5,
                        percent_occupations = 5)
+    quit()
 
     project.D.save_identities_to_db()
     #process_last_names(project)

@@ -5,7 +5,6 @@ Created on Jun 26, 2014
 '''
 
 import datetime
-
 import MySQLdb as mdb
 from Record import Record
 

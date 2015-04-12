@@ -110,8 +110,17 @@ class AffiliationAnalyzer(object):
         1 for Republican
         2 for Other.
         """
+        
         try:
-            party_id = self.dict_committees[CMTE_ID]
+            party_str = self.dict_committees[CMTE_ID]
+            if party_str == "DEM":
+                party_id = 0
+            elif party_str == "REP":
+                party_id = 1
+            else:
+                party_id = 2
+            
+            
         except KeyError:
             party_id = None
         return party_id
@@ -847,7 +856,7 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
                 committee_id = record_data[committee_index]
 
                 date_index = self.settings['field_2_index']['TRANSACTION_DT']
-                date = record_data['data'][date_index]
+                date = record_data[date_index]
 
                 if bad_identifier(affiliation_identifier, type=self.affiliation): 
                     if self.debug: print affiliation_identifier
@@ -865,12 +874,11 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
                 # namely which party the donation was made to. 
                 
                 # Will be 0 for "D", 1 for "R", 2 for "Other"
-                party_id = get_party(committee_id)
+                party_id = self.get_party(committee_id)
                 
-                try:
-                    self.affiliation_party_amount[affiliation_id][party_id] += amount
-                except KeyError:
+                if affiliation_id not in self.affiliation_party_amount:
                     self.affiliation_party_amount[affiliation_id] = [0,0,0]
+                if party_id is not None:
                     self.affiliation_party_amount[affiliation_id][party_id] += amount
                     
 
@@ -1096,7 +1104,7 @@ class MigrationAnalyzerUndirected(AffiliationAnalyzerUndirected):
 
 
 def main():
-    batch_id = 2376
+    batch_id = 2398
     '''analyst = AffiliationAnalyzer(batch_id=batch_id, affiliation="occupation")
     state = analyst.settings["state"]
     analyst.load_data()
@@ -1104,7 +1112,8 @@ def main():
     analyst.compute_affiliation_links()
     analyst.save_data(label=state)
     '''
-    analyst = AffiliationAnalyzerUndirected(state='alabama', batch_id=batch_id, affiliation="employer")
+    #analyst = AffiliationAnalyzerUndirected(state='newyork', batch_id=batch_id, affiliation="employer")
+    analyst = AffiliationAnalyzerUndirected(state='newyork', batch_id=batch_id, affiliation="occupation")
     state = analyst.settings["state"]
     print state
     analyst.load_data()
