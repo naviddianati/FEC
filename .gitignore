@@ -10,5 +10,4 @@ tmp*
 *.log
 config/batches.list
 *.pickle
-*.csv
 output
