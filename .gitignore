@@ -1,14 +1,14 @@
-*.txt
+results/*.txt
 *.o*
 *.gephi
 *.gml
-./src/*.pdf
+src/*.pdf
 *.pyc
 *.record
 tmp*
 *.list
 *.log
-./config/batches.list
+config/batches.list
 *.pickle
 *.csv
 output
