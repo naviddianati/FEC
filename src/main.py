@@ -38,8 +38,12 @@ Strategy:
     2- The <state>_address and <state>_combined tables don't have all the FIRST_NAMEs and LAST_NAMEs so
         if I use these tables to get names, some records won't have names.
 '''
+# GLOBALS
+# String template for file containing token data for each
+# state. Example:
+# project["data_path"] + param_state + "-tokendata.pickle"
 
-import core.config as config
+import cPickle
 from collections import OrderedDict
 import datetime
 import glob
@@ -51,17 +55,27 @@ import pickle
 import pprint
 import random
 import re
-from core.states import *
 import sys
 import time
 
-from core.Affiliations import AffiliationAnalyzerUndirected,MigrationAnalyzerUndirected
+from core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUndirected
 from core.Database import FecRetriever
 import core.Disambiguator as Disambiguator
 from core.Tokenizer import Tokenizer, TokenizerNgram
+import core.config as config
+from core.states import *
 import numpy as np
 import pandas as pd
 import resource
+
+
+
+
+
+
+
+
+
 
 def find_all_in_list(regex, str_list):
     ''' Given a list of strings, str_list and a regular expression, regex, return a dictionary with the
@@ -132,7 +146,63 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     # metadata = json.load(open(data_path + label + '-' + affiliation + '-metadata.json'))
     return G
 
+
+
+
+def tokenize_records(list_of_records, project):
+    '''
+    Return a TokenDadta object for list_of_records, and
+    update each record in list_of_records by adding to it
+    a vector attribute and associating the TokenData instance
+    to the record. 
+    If a file containing the pickled TokenData instance already
+    exists, load it.
+    Also, make sure that the vectors are available in a file
+    for later use. 
+    If either file doesn't exist, start a new Tokenizer and 
+    compute and export both.
+    At the end of this function, both the tokendata and the
+    vectors will exist in pickled format in files. 
+    '''
+    tokendata_file = config.tokendata_file_template % ( project['state'])
+    vectors_file = config.vectors_file_template % ( project['state'])
     
+    
+    try:
+        tokenizer = TokenizerNgram()
+        project.tokenizer = tokenizer
+        tokenizer.project = project
+        tokenizer.setRecords(list_of_records)
+        tokenizer.setTokenizedFields(project['list_tokenized_fields'])
+        
+        tokenizer.load_from_file()
+        
+        # Just make sure the vectors are also there.
+        if os.stat(vectors_file).st_size == 0:
+            print "vectors file not found."
+            raise
+        list_of_records = tokenizer.getRecords()
+    
+    except:
+                
+        tokenizer = TokenizerNgram()
+        project.tokenizer = tokenizer
+        tokenizer.project = project
+        tokenizer.setRecords(list_of_records)
+        tokenizer.setTokenizedFields(project['list_tokenized_fields'])
+        
+        
+        print "Tokenizing records..."
+        tokenizer.tokenize()
+        
+        print "Saving token data to file..."
+        tokenizer.tokens.save_to_file(tokendata_file)
+        list_of_records = tokenizer.getRecords()
+
+    return tokenizer.tokens, list_of_records
+        
+
+
 
 
 ''' One version of main().
@@ -237,16 +307,11 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
 #     list_of_records_auxiliary = [[record[index] for index in index_auxiliary_fields] for record in tmp_list]  
     
     
-    tokenizer = TokenizerNgram()
-    project.tokenizer = tokenizer
-    tokenizer.setRecords(list_of_records)
-    tokenizer.setTokenizedFields(list_tokenized_fields)
-    tokenizer.tokenize()
     
-    tokenizer.tokens.save_to_file(project["data_path"] + param_state + "-" + "affiliations-" + batch_id + "-tokendata.pickle")
-    list_of_records = tokenizer.getRecords()
-    print len(tokenizer.tokens.token_2_index.keys())
     
+
+    
+    tokendata, list_of_records = tokenize_records(list_of_records, project)
     
     ''' HERE WE DON'T LOAD AFFILIATION DATA BECAUSE THAT'S WHAT WE WANT TO PRODUCE! '''
 
@@ -255,7 +320,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
 #     project.list_of_records = list_of_records
     
     # dimension of input vectors
-    dim = tokenizer.tokens.no_of_tokens
+    dim = tokendata.no_of_tokens
 
     D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode="strict_address", num_procs = num_procs)
     project.D = D
@@ -277,8 +342,8 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     print 'Analyze...'
     t1 = time.time()
     # compute the hashes
-    D.compute_LSH_hash(hash_dim)
-    D.save_LSH_hash(batch_id=batch_id)
+    D.get_LSH_hash(hash_dim)
+    
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     
     # D.show_sample_adjacency()
@@ -434,16 +499,7 @@ def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000
 #     # Same as above, except each list(2) consists of the auxiliary columns of the record returned by MySQL.
 #     list_of_records_auxiliary = [[record[index] for index in index_auxiliary_fields] for record in tmp_list]  
     
-    
-    tokenizer = TokenizerNgram()
-    project.tokenizer = tokenizer
-    tokenizer.setRecords(list_of_records)
-    tokenizer.setTokenizedFields(list_tokenized_fields)
-    tokenizer.tokenize()
-    
-    tokenizer.tokens.save_to_file(project["data_path"] + param_state + "-" + "affiliations-" + batch_id + "-tokendata.pickle")
-    list_of_records = tokenizer.getRecords()
-    print len(tokenizer.tokens.token_2_index.keys())
+    tokendata = tokenize_records(list_of_records, project)
     
     
 
@@ -452,7 +508,7 @@ def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000
 #     project.list_of_records = list_of_records
     
     # dimension of input vectors
-    dim = tokenizer.tokens.no_of_tokens
+    dim = tokendata.no_of_tokens
 
     D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode="strict_affiliation", num_procs = num_procs)
     project.D = D
@@ -474,8 +530,7 @@ def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000
     print 'Analyze...'
     t1 = time.time()
     # compute the hashes
-    D.compute_LSH_hash(hash_dim)
-    D.save_LSH_hash(batch_id=batch_id)
+    D.get_LSH_hash(hash_dim)
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     
     # D.show_sample_adjacency()
@@ -625,26 +680,18 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 #     list_of_records_auxiliary = [[record[index] for index in index_auxiliary_fields] for record in tmp_list]  
     
     
-    tokenizer = TokenizerNgram()
-    project.tokenizer = tokenizer
-    tokenizer.setRecords(list_of_records)
-    tokenizer.setTokenizedFields(list_tokenized_fields)
-    tokenizer.tokenize()
+    
+    # Get tokendata and make sure vectors are exported to file.
+    tokendata,list_of_records = tokenize_records(list_of_records, project)
+
 
     
-    print_resource_usage('---------------- after tokenizing')
-    
-    tokenizer.tokens.save_to_file(project["data_path"] + param_state + "-" + "disambiguation-" + batch_id + "-tokendata.pickle")
-    list_of_records = tokenizer.getRecords()
-    print "Number of records: ", len(list_of_records) 
-
-    
-    ''' Load affiliation graph data.
-        These graph objects also contain a dictionary G.dict_string_2_ind
-        for faster vertex access based on affiliation string.
-
-        For affiliation data to exist, one must have previously executed
-      When used via self.compare(), a positive value is
+    '''
+    Load affiliation graph data.
+    These graph objects also contain a dictionary G.dict_string_2_ind
+    for faster vertex access based on affiliation string.
+    For affiliation data to exist, one must have previously executed
+    When used via self.compare(), a positive value is
     interpreted as True.   Affiliations on the <state>_addresses data.
     '''
     
@@ -672,17 +719,16 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     
-    print len(tokenizer.tokens.token_2_index.keys())
     
     
     project.list_of_records = list_of_records
     print_resource_usage('---------------- after assigning list_of_records to project')
     
     # dimension of input vectors
-    dim = tokenizer.tokens.no_of_tokens
+    dim = tokendata.no_of_tokens
 
     D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode=method_id, num_procs=num_procs)
-    D.tokenizer = tokenizer
+#     D.tokenizer = tokenizer
     project.D = D
     D.project = project
     
@@ -710,12 +756,12 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     print 'Analyze...'
     t1 = time.time()
     # compute the hashes
-    D.compute_LSH_hash(hash_dim, num_procs=num_procs)
-    print_resource_usage('---------------- after compute_LSH_hash')
+    D.get_LSH_hash(hash_dim, num_procs=num_procs)
+    print_resource_usage('---------------- after get_LSH_hash')
 
     
     
-    D.save_LSH_hash(batch_id=batch_id)
+
 
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     print_resource_usage('---------------- After compute_similarity')
@@ -1027,7 +1073,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     print 'Analyze...'
     t1 = time.time()
     # compute the hashes
-    D.compute_LSH_hash(hash_dim)
+    D.get_LSH_hash(hash_dim)
     D.save_LSH_hash(batch_id=batch_id)
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     
@@ -1490,7 +1536,7 @@ if __name__ == "__main__":
                        #whereclause=" WHERE NAME LIKE '%COHEN%' ",
                        #whereclause=" WHERE NAME like '%AARONS%' ",
                        #whereclause=" WHERE NAME like '%COHEN%' ",
-                       num_procs=12,
+                       num_procs=1,
                        percent_employers = 5,
                        percent_occupations = 5)
     quit()

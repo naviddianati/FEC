@@ -3,6 +3,7 @@ Created on Jul 1, 2014
 
 @author: navid
 '''
+import cPickle
 '''
 TODO:
     The address tokenizer fails in the case of PO BOX addresses.
@@ -17,7 +18,7 @@ from nameparser import HumanName
 
 from address import AddressParser
 from nltk.util import ngrams
-
+import core.config as config
 
 class Tokenizer():
     ''' This class receives a list of records (perhaps retrieved from a MySQL query). The fields are divided between "identifier" fieldsz
@@ -29,8 +30,6 @@ class Tokenizer():
         QUESTION: How do we use the auxiliary fields as well?'''
    
         
-        
-       
         
     def __init__(self):
         self.list_of_records = []
@@ -57,6 +56,14 @@ class Tokenizer():
                                    'CONTRIBUTOR_STREET_1':self._get_tokens_STREET,
                                    'OCCUPATION': self._get_tokens_OCCUPATION,
                                    'EMPLOYER': self._get_tokens_EMPLOYER}
+        
+        self.normalized_attrs = ['N_address',
+                                 'N_first_name',
+                                 'N_last_name',
+                                 'N_middle_name',
+                                 'N_zipcode',
+                                 'N_employer',
+                                 'N_occupation']
        
 #         # Used when NAME is retrieved from MySQL query, not FIRST_NAME and LAST_NAME
 #         self.token_identifiers = {'NAME':[1, 2, 3],
@@ -67,7 +74,18 @@ class Tokenizer():
                             
         self.ap = AddressParser()
 #         self.query = ''
-        self.data_path = os.path.expanduser('~/data/FEC/')
+      
+        
+        # List of records associated with this Tokenizer.
+        self.list_of_records
+        
+        # Project instance containing data
+        self.project = None
+        
+        
+        
+        
+        
 
     # Uses nameparser
     def _normalize_NAME(self, record):
@@ -384,10 +402,12 @@ class Tokenizer():
                 
 
 
-    ''' updates self.tokens.normalized_token_counts by tracking/updating the frequency of the
-        normalized tokens belonging to the given record.
-    ''' 
+     
     def update_normalized_token_counts(self, record):
+        '''
+        Update self.tokens.normalized_token_counts by tracking/updating the frequency of the
+        normalized tokens belonging to the given record.
+        '''
         last_name = " ".join(record['N_last_name'])
         first_name = " ".join(record['N_first_name'])
         
@@ -407,19 +427,54 @@ class Tokenizer():
         except KeyError:
             self.tokens.normalized_token_counts[(token_identifier, first_name)] = 1
             
+    
+    def load_from_file(self):
+        '''
+        Load the TokenData object and the normalized
+        record attributes from file.
+        '''
+        tokendata_file = config.tokendata_file_template % ( self.project['state'])
+        normalized_attributes_file = config.normalized_attributes_file_template % ( self.project['state'])
+        
+
+        # Attempt to load tokendata from file
+        f = open(tokendata_file)
+        tokendata = cPickle.load(f)
+        self.tokens = tokendata
+        f.close()
+        
+        f = open(normalized_attributes_file)
+        dict_normalized_attributes = cPickle.load(f)
+        f.close()
+        
+        
+        for record in self.list_of_records:
+            record.tokendata = tokendata
             
+            # attach the normalized attributes to each record
+            for attr in self.normalized_attrs:
+                record[attr] = dict_normalized_attributes[record.id][attr]
+                
+        self.all_token_sorted = sorted(self.tokens.token_counts, key=self.tokens.token_counts.get, reverse=0)
+
         
         
     def tokenize(self):
         if not self.list_tokenized_fields:
             raise Exception("ERROR: Specify the fields to be tokenized.")
         
+        # The dict of record vectors. It will be computed here and 
+        # exported to a file. When needed later, it should be loaded
+        # from that file.
+        dict_vectors = {}
+        
         for record in self.list_of_records:
             
             # s_plit is a list of tuples: [(1,'sdfsadf'),(2,'ewre'),...]     
             s_split = self._get_tokens(record, self.list_tokenized_fields)
+            
             # A dictionary {token_index: (0 or 1)} showing which tokens exist in the given record
-            record.vector = {}
+            vector = {}
             
             self.update_normalized_token_counts(record)
             
@@ -432,7 +487,40 @@ class Tokenizer():
                     self.tokens.index_2_token[self.tokens.no_of_tokens] = token
                     self.tokens.token_counts[token] = 1
                     self.tokens.no_of_tokens += 1
-                record.vector[self.tokens.token_2_index[token]] = 1
+                vector[self.tokens.token_2_index[token]] = 1
+            dict_vectors[record.id] = vector
+
+        # Export tokendata to file.
+        tokendata_file = config.tokendata_file_template % (self.project['state'])
+        self.tokens.save_to_file(tokendata_file)
+        
+        # Export computed vectors to file
+        vectors_file = config.vectors_file_template % (self.project['state'])
+        try:
+            f = open(vectors_file,'w')
+            cPickle.dump(dict_vectors,f)
+            
+            f.close()
+        except:
+            os.remove(vectors_file)
+            raise
+        dict_vectors = None
+        
+        
+        # Export the normalized attributes to file
+        normalized_attributes_file = config.normalized_attributes_file_template % (self.project['state'])
+        try:
+            f = open(normalized_attributes_file,'w')
+            dict_normalized_attributes = {r.id:
+                                            {attr:r[attr] for attr in self.normalized_attrs} 
+                                            for r in self.list_of_records}
+            cPickle.dump(dict_normalized_attributes,f)
+            f.close()
+        except:
+            os.remove(normalized_attributes_file)
+            raise
+        dict_normalized_attributes = None
+        
                 
         self.all_token_sorted = sorted(self.tokens.token_counts, key=self.tokens.token_counts.get, reverse=0)
 #         for token in self.all_token_sorted:
@@ -441,7 +529,7 @@ class Tokenizer():
 #         pp.pprint(self.list_of_records_identifier)
 #         quit()
 
-        # set "self" as the Tokenizer object associated with each record
+        # set "self.toknes" as the TokenData object associated with each record
         for record in self.list_of_records:
             record.tokendata = self.tokens
 

@@ -40,6 +40,8 @@ from memory_spike import *
 from core.hashes import *
 from common import *
 import copy
+import cPickle
+import core.config as config
 
 
 
@@ -103,6 +105,10 @@ class Disambiguator():
             self.set_logstats(True)
             
         self.num_procs = num_procs
+        
+        # List of record vectors. Needed only when freshly
+        # computing the LSH_hashes
+        self.list_of_vectors = None
         
 
 
@@ -609,7 +615,7 @@ class Disambiguator():
       
     def __compute_LSH_hash_single_proc(self, hash_dim):
         ''' Input:
-                list_of_vectors:    list of vectors. Each vector is a dictionary {vector coordinate index, value}
+                
                 hash_dim:    dimension of the generated hash.
 
             Output:
@@ -722,25 +728,78 @@ class Disambiguator():
 
     
 
-    def compute_LSH_hash(self, hash_dim,num_procs = 1):
+    def __load_LSH_hashes_from_file(self):
         '''
-        Decide which method to use based on num_procs.
+        Load the list of hashes from file. Raise exception if fail.
+        Also raise if the hashes found in file have lenght different
+        from self.hash_dim
         '''
-        if num_procs == 1:
-            self.__compute_LSH_hash_single_proc(hash_dim)
-        if num_procs > 1:
-            self.__compute_LSH_hash_multi_proc(hash_dim, num_procs)
-            
+        hash_file = config.hashes_file_template % self.project['state']
+        f = open(hash_file)
+        dict_hashes = cPickle.load(f)
+        for r_id, hash in dict_hashes.iteritems():
+            if len(hash) != self.hash_dim:
+                raise Exception('Hashes found in file have different dimension than specified hash_dim. Recomputing hashes.')
+            break
+        self.LSH_hash = [dict_hashes[r.id] for r in self.list_of_records]
+    
+    
+    def __load_record_vectors_from_file(self):
+        '''
+        Load record vectors from file if exists.
+        '''
+        vectors_file = config.vectors_file_template % self.project['state']
+        f = open(vectors_file)
+        dict_vectors = cPickle.load(f)
+        f.close()
+        self.list_of_vectors = [dict_vectors[r.id] for r in self.list_of_records]
+        
+    
+    def get_LSH_hash(self, hash_dim, num_procs = 1):
+        '''
+        Compute hashes. If they already exist in a file, load it.
+        Otherwise, load record vectors from file and compute the
+        hashes from them. If that fails, then raise.
+        '''
+        
+        # Expected hash dim
+        self.hash_dim = hash_dim
+        
+        try:        
+            # Load hashes from file if found
+            self.__load_LSH_hashes_from_file()
+            print "LSH hashes loaded from file."
+        except Exception as e:
+            print e
+            try:
+                # Otherwise, load the record vectors from file
+                # and compute the hashes from the vectors
+                self.__load_record_vectors_from_file()
+                
+                if num_procs == 1:
+                    self.__compute_LSH_hash_single_proc(hash_dim)
+                if num_procs > 1:
+                    self.__compute_LSH_hash_multi_proc(hash_dim, num_procs)
+                self.__save_LSH_hash()
+            except:
+                print "ERROR: unable load record vectors from file and compute LSH hashes."
+                raise
+                    
             
 
         
-    def save_LSH_hash(self, filename=None, batch_id=0):
-        if not filename: filename = '../results/' + batch_id + '-LSH_hash.txt'
-        f = open(filename, 'w')
-        for s in  self.LSH_hash:
-            f.write(s + "\n")
+    def __save_LSH_hash(self):
+        '''
+        Save a dict of hashes to file: {r.id: hash for r in list_of_records}
+        It is expected that self.list_of_records and self.LSH_hash are aligned.
+        '''
+        hash_file = config.hashes_file_template % self.project['state']
+        f = open(hash_file, 'w')
+        dict_hashes = {r.id: self.LSH_hash[i] for i,r in enumerate(self.list_of_records)}
+        cPickle.dump(dict_hashes,f)
         f.close()
-        print "Lsh_hash save to file " + filename;
+
+
         
     def initialize_index_adjacency(self):
         ''' This function creates an empty self.index_adjacency dictionary and then populates it initially as follows:
