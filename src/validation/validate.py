@@ -122,7 +122,6 @@ if __name__ == "__main__":
     
     # Maps id to identity
     dict_ids_full = {x[0]: x[1] for x in list_ids_full}
-    # print "dict_ids_full: ", dict_ids_full
 
     # dictionary mapping identity to list of associated ids
     dict_identities_full = {}

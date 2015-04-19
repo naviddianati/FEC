@@ -48,7 +48,7 @@ def worker(conn):
 
 
 
-if __name__ == "__main__":
+def run_main():
     # Whether to run new state batches or read from existing output files.
     run_fresh_batches = True
 
@@ -121,12 +121,11 @@ if __name__ == "__main__":
     
 
 
+    return
 
 
 
-
-    quit()
-
+    
 
 
 
@@ -216,3 +215,10 @@ if __name__ == "__main__":
         
 
  
+
+
+
+
+if __name__ == "__main__":
+    run_main()
+
