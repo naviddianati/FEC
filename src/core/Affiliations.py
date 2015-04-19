@@ -766,7 +766,11 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
         
         
     def compute_affiliation_links(self):
-        '''Overrides the original'''
+        '''
+        Compute self.dict_likelihoods using self.affiliation_adjacency.
+        The former assigns a likelihood to each edge, i.e, each (id0,id1) tuple.
+        Note that since self.
+        '''
      
         
         self.dict_likelihoods = {}

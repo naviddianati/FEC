@@ -640,8 +640,8 @@ class Disambiguator():
             # convert to sparse form
             vec = sparse_vector(vec_tmp)
             vec_n = vec_norm(vec)
-            for record, i in zip(self.list_of_records, range(N)):
-                v = record.vector
+            for i,record in enumerate(self.list_of_records):
+                v = self.list_of_vectors[i]
                 c = '1' if inner_product(v, vec) > 0 else '0'
     #             c = 1 if inner_product(v, vec) / vec_n / vec_norm(v) > 0.0001 else 0
                 LSH_hash[i] += c
@@ -809,6 +809,9 @@ class Disambiguator():
         with multiple transactions per person. '''
         self.index_adjacency = {} 
         i = 0
+        print "len of list_of_records: ", len(self.list_of_records)
+        
+
         while i < len(self.list_of_records):
             self.index_adjacency[i] = set()
             j = i + 1
