@@ -24,3 +24,7 @@ hashes_file_template = data_path + "%s-hashes.pickle"
 # File containing a dictionary of the normalized attributes
 # of the records: {r.id: {attr_name:attr_value}}
 normalized_attributes_file_template = data_path + "%s-normalized_attributes.pickle"
+
+
+# File containing the edge list of related records
+match_buffer_file_template = data_path + "%s-match_buffer.pickle"

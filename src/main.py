@@ -760,7 +760,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     D.get_LSH_hash(hash_dim, num_procs=num_procs)
     print_resource_usage('---------------- after get_LSH_hash')
     
-    return project
+#     return project
 
 
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
@@ -1516,8 +1516,8 @@ if __name__ == "__main__":
 
 
 #   print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
-    generateAffiliationData('delaware', affiliation=None, record_limit=(0, 500000), num_procs = 1)
-    quit()
+#     generateAffiliationData('delaware', affiliation=None, record_limit=(0, 500000), num_procs = 1)
+#     quit()
 #      
 #     print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
 #     generateAffiliationData('delaware', affiliation='employer', record_limit=(0, 500))
@@ -1529,7 +1529,7 @@ if __name__ == "__main__":
 
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
-    project = disambiguate_main('alaska',
+    project = disambiguate_main('delaware',
                        record_limit=(0,5000000),
 
                        logstats=False,

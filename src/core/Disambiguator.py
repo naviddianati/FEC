@@ -448,7 +448,7 @@ class Disambiguator():
         # number of hash strings in list_of_hashes
         n = len(hashes)
         
-        for s, i in zip(list_of_hashes_sorted, range(n)):
+        for i,s in enumerate(list_of_hashes_sorted):
             
             # for entry s, find the B nearest entries in the list
             j_low , j_high = max(0, i - B / 2), min(i + B / 2, n - 1)
@@ -473,8 +473,11 @@ class Disambiguator():
                 # New implementation: comparison is done via instance function of the Record class
                 # Comparison (matching) mode is passed to the Record's compare method.
                 verdict, result = record1.compare(record2, mode=self.matching_mode)
+                
                 if record1['N_first_name'] == 'RICHARD' and record2['N_first_name']== "ROBERT" and verdict > 0:
                     print record1.toString(),'--',record2.toString(), verdict, result
+                
+                
                 if verdict > 0:
                     self.match_count += 1
                     self.index_adjacency[sort_indices[i]].add(sort_indices[j])
@@ -847,6 +850,21 @@ class Disambiguator():
                 self.index_adjacency_edgelist.append((index, neighbor))
     
     
+    def __export_match_buffer(self):
+        '''
+        Save the match buffer to a file. This will be basically 
+        an edge list (r_id0, r_id1).
+        '''
+        f = open(config.match_buffer_file_template * self.project['state'],'w')
+        
+        print "Saving match buffer to file..."
+        for id0,id1 in self.new_match_buffer:
+            f.write('%d %d\n' % (id0,id1))
+        f.close()
+        print "Done saving match buffer to file."
+            
+    
+    
     def compute_similarity(self, B1=30, m=100, sigma1=0.2):                
         # permutate the hash strings m times
         # then create dictionary of B nearest neighbors with distance threshold sigma = 0.7
@@ -884,6 +902,9 @@ class Disambiguator():
                 self.project.log('Suffling hash list...', str(i))
 #         self.compute_edgelist()
         print "index_adjacency matrix computed!"
+        
+        # Save the match buffer to file
+        self.__export_match_buffer()
             
     
     
@@ -1185,7 +1206,7 @@ class Disambiguator():
     def refine_identities(self):
         self.refine_identities_on_MIDDLENAME()
         
-        print "Merging similar persons..." 
+#         print "Merging similar persons..." 
         # self.refine_identities_merge_similars(5)
         
                 
