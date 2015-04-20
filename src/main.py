@@ -1170,9 +1170,11 @@ class Project(dict):
         
       
 
-    ''' Take the adjacency matrix resulting from the Disambiguator object,
-    and write it to file in edgelist (.edges) and .json formats '''
     def save_graph_to_file(self, list_of_nodes=[], file_label=""):
+        '''
+        Take the adjacency matrix resulting from the Disambiguator object,
+        and write it to file in edgelist (.edges) and .json formats 
+        '''
         filename_json = self["data_path"] + file_label + self["batch_id"] + '-adjacency.json'
         filename_edgelist = self["data_path"] + file_label + self["batch_id"] + '-adjacency.edges'
         f_json = open(filename_json, 'w') 
@@ -1190,12 +1192,6 @@ class Project(dict):
         f_json.close()
         f_edgelist.close()
 
-#     def save_graph_to_file(self, list_of_nodes=[]):
-#         if  not self.D.index_adjacency: return 
-#         if not list_of_nodes: list_of_nodes = range(len(self.list_of_records))
-#         nmin = list_of_nodes[0]
-#         for node1 in list_of_nodes:
-#             for node2 in self.D.index_adjacency[node1]:
     
     
     # Computes the full adjacency matrix from the D.set_of_persons and dumps it to a text file as edgelist
@@ -1361,6 +1357,9 @@ class Project(dict):
             # Save the adjacency matrix to file in both edgelist and json formats
             self.save_graph_to_file(file_label=file_label)
             
+            print "Skip saving textual version of data..."
+            return
+            
             filename1 = self["data_path"] + file_label + self["batch_id"] + '-adj_text_identifiers.json'
             filename2 = self["data_path"] + file_label + self["batch_id"] + '-adj_text_auxiliary.json'
             filename3 = self["data_path"] + file_label + self["batch_id"] + '-list_of_nodes.json'
@@ -1516,8 +1515,8 @@ if __name__ == "__main__":
 
 
 #   print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
-#     generateAffiliationData('delaware', affiliation=None, record_limit=(0, 500000), num_procs = 1)
-#     quit()
+    generateAffiliationData('delaware', affiliation=None, record_limit=(0, 500000), num_procs = 2)
+    quit()
 #      
 #     print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
 #     generateAffiliationData('delaware', affiliation='employer', record_limit=(0, 500))
