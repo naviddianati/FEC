@@ -30,10 +30,11 @@ def worker_generate_affiliation(conn):
 
 
 
-def get_todo_affiliation_jobs():
+def get_todo_affiliation_jobs(overwrite=False):
     '''
     returns a list of tuples: [(state,affiliation)] of states that need
     their affiliation network computed.
+    @param overwrite: whether or not to overwrite existing files.
     '''
 
 
@@ -41,6 +42,10 @@ def get_todo_affiliation_jobs():
 
     list_states = sorted(dict_state.values())
     for state in list_states:
+        if overwrite:
+            list_todo.append((state,None))
+            continue
+            
         file1 =  glob.glob(data_path+state+"*employer_graph.gml")
         file2 =  glob.glob(data_path+state+"*occupation_graph.gml")
 
@@ -116,7 +121,7 @@ def schedule_jobs(jobs):
 
 if __name__ == "__main__":
 
-    jobs = get_todo_affiliation_jobs()
+    jobs = get_todo_affiliation_jobs(overwrite=True)
     #jobs = [('indiana','employer')]
     #jobs = [('newyork', 'occupation')]
     #print jobs
