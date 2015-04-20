@@ -114,7 +114,7 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     TODO: allow filtering based on value of an edge (or vertex) parameter
     '''
             
-    def prune(G, field='confidence', percent=5):
+    def prune(G, field='significance', percent=5):
         '''
         Remove all but the top X percent of the edges with respect to the value of their field.
         '''
@@ -134,7 +134,7 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
         print filename
         G = igraph.Graph.Read_GML(filename)
         
-        G = prune(G, field='confidence', percent=percent)
+        G = prune(G, field='significance', percent=percent)
         
         dict_string_2_ind = {v['label']:v.index for v in G.vs}
         G.dict_string_2_ind = dict_string_2_ind
@@ -183,7 +183,8 @@ def tokenize_records(list_of_records, project):
             raise
         list_of_records = tokenizer.getRecords()
     
-    except:
+    except Exception as e:
+        print str(e)
                 
         tokenizer = TokenizerNgram()
         project.tokenizer = tokenizer
@@ -1515,8 +1516,8 @@ if __name__ == "__main__":
 
 
 #   print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
-#   generateAffiliationData('delaware', affiliation=None, record_limit=(0, 5000), num_procs = 2)
-#   quit()
+    generateAffiliationData('delaware', affiliation=None, record_limit=(0, 500000), num_procs = 1)
+    quit()
 #      
 #     print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5
 #     generateAffiliationData('delaware', affiliation='employer', record_limit=(0, 500))

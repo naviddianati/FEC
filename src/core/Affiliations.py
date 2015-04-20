@@ -15,6 +15,7 @@ import numpy as np
 from scipy.stats import binom
 from Database import FecRetriever
 from common import *
+from core import filters
 
 def get_committees():
     ''' NOT COMPLETE'''
@@ -75,21 +76,25 @@ class AffiliationAnalyzer(object):
         self.contributors_subgraphs = None
         self.load_settings(file_label = state + "-" + "affiliations-")
 
-        # dict of committe. The keys are CMTE_IDs and the values are 
-        # party codes CMTE_PTY_AFFILIATION'
-        self.dict_committees = {}
-        self.compile_committees()
         
         
-#         batch_id = 88  # NY
-#         # batch_id = 89   # OH
-#         batch_id = 90  # Delaware
-#         batch_id = 91  # Missouri
-#         batch_id = 83  # Alaska
-#         # batch_id = 92  # Massachussetes
-#         # batch_id = 93   # Nevada
-#         # batch_id = 94   # Vermont
-#         batch_id = 189  # NY
+        # Retrieve party affiliation data
+        try:
+            # dict of committe. The keys are CMTE_IDs and the values are 
+            # party codes CMTE_PTY_AFFILIATION'
+            self.dict_committees = {}
+            self.compile_committees()
+        except:   
+            self.dict_committees = None
+        
+        
+        # The graph of affiliation similarities. An igraph.Graph instance.
+        # A weighted undirected simple graph. Nodes are affiliations, edges indicate
+        # co-occurrence. The weight of the linke between two affiliations
+        # counts the number of times one followed the other in a timeline.
+        self.G_affiliations = None
+        
+
     
     def compile_committees(self):
         """
@@ -110,6 +115,10 @@ class AffiliationAnalyzer(object):
         1 for Republican
         2 for Other.
         """
+        
+        # If committee info could not be retrieved, return None
+        if self.dict_committees is None:
+            return None
         
         try:
             party_str = self.dict_committees[CMTE_ID]
@@ -275,34 +284,27 @@ class AffiliationAnalyzer(object):
             label = self.batch_id
         
         
-        # Generate the graph of linked affiliation names
-        tmp_adj = [(link[0], link[1], self.affiliation_adjacency[link], -self.dict_likelihoods[link]) for link in self.affiliation_adjacency if link[0] != link[1]]
-        print "number of links to save ", len(tmp_adj) 
+       
         
-        # Apparently, when a graph is generated from an edge list like this where each edge is an tuple (ind1,ind2), 
-        # the resulting graph will assign ind1 and ind2 to the 'name' attribute of the generated vertices. Their index on the
-        # other hand, is apparently generated randomly
-        G_affiliations = igraph.Graph.TupleList(edges=tmp_adj, edge_attrs=["weight", "confidence"])
-        
-        for v in G_affiliations.vs:
+        for v in self.G_affiliations.vs:
             v['name'] = str(v['name'])
         
-        dd = G_affiliations.degree_distribution()
+        dd = self.G_affiliations.degree_distribution()
         # print np.sum(dd)
         print dd.n, np.sum(self.affiliation_adjacency.values())
         
         # Set the vertex labels
-        for v in G_affiliations.vs:
+        for v in self.G_affiliations.vs:
             v['label'] = self.dict_name_2_string[v['name']].encode('utf-8')
         
         # Set vertex sizes
-        for v in G_affiliations.vs:
+        for v in self.G_affiliations.vs:
             v['size'] = np.sqrt(self.affiliation_score[v['name']])
             v['party'] = json.dumps(self.affiliation_party_amount[v['name']])
 
-        G_affiliations.save(f=self.data_path + label + '-' + self.affiliation + '_graph.gml', format='gml')
+        self.G_affiliations.save(f=self.data_path + label + '-' + self.affiliation + '_graph.gml', format='gml')
         
-        clustering = G_affiliations.components()
+        clustering = self.G_affiliations.components()
         
         subgraphs = sorted(clustering.subgraphs(), key=lambda g:len(g.vs), reverse=True)
         for g, i in zip(subgraphs[1:5], range(1, 5)):
@@ -498,63 +500,32 @@ def link_pvalue(k1, k2, wab):
     
     
 class AffiliationAnalyzerDirected(AffiliationAnalyzer):
-    
-
-
-    def pvalue(self, m, ku, kv, q):
-        '''The pvalue according to a random undirected weighted graph null model'''      
-        f = binom(q, ku * kv * 1.0 / q / q)
-        return 1 - f.cdf(m - 1), f
-    
-    
-        
+           
         
         
     def compute_affiliation_links(self):
         '''Overrides the original'''
-     
+        '''
+        TODO: This is still identical to the undirected case. Must be updated.
+        '''
         
-        self.dict_likelihoods = {}
-        total_degree = sum(self.affiliation_score.values())    
-        T0 = 0.2
-        print "Number of links", len(self.affiliation_adjacency)
-        count = 0
-        for link in self.affiliation_adjacency:
-            print "count: ", count
-            count += 1        
-            ind0, ind1 = link[0], link[1]
-            if ind0 == ind1:
-                print "SELF!"
-                continue
-            # weights between nodes
-            uv = self.affiliation_adjacency[(ind0, ind1)]
-            
-            # The reverse edge may not exist
-            try:
-                vu = self.affiliation_adjacency[(ind1, ind0)]
-            except KeyError:
-                vu = 0
-            
-            # Self-edge weights
-            uu, vv = self.affiliation_adjacency[(ind0, ind0)], self.affiliation_adjacency[(ind1, ind1)]
-            
-            ku, kv = self.affiliation_score[ind0], self.affiliation_score[ind1]
-                       
-            # Incomplete directed edge likelihood
-            loglikelihood = self.loglikelihood(uu, vv, uv, vu, ku, kv, T0, total_degree)
-            
-            # simple undirected edge pvalue
-            loglikelihood = self.logpvalue(uv + vu, ku, kv, total_degree / 2.0)
-            
-            
-            
-            self.dict_likelihoods[link] = loglikelihood
-
-            if self.debug:            
-                print link, "%d/%d   %d/%d" % (uv , ku, vu , kv) , '    ', '%0.2f' % (loglikelihood)
-                print '          %s | %s' % (self.dict_name_2_string[ind0], self.dict_name_2_string[ind1])
-                print "______________________________________________________________________________________________"
+        raise('ERROR: Directed version not implemented yet')
         
+        # Generate the graph of linked affiliation names
+        tmp_adj = [(link[0], link[1], self.affiliation_adjacency[link]) for link in self.affiliation_adjacency if link[0] != link[1]]
+        print "number of links to save ", len(tmp_adj) 
+        
+        # Apparently, when a graph is generated from an edge list like this where each edge is an tuple (ind1,ind2), 
+        # the resulting graph will assign ind1 and ind2 to the 'name' attribute of the generated vertices. Their index on the
+        # other hand, is apparently generated randomly
+        self.G_affiliations = igraph.Graph.TupleList(edges=tmp_adj, edge_attrs=["weight"])
+        
+        # simplify the graph. Remove self-edges, combine multi-edges
+        # by summing their weights.
+        self.G_affiliations.simplify(combine_edges = sum)
+        
+        # Compute edge significances. Adds a 'significance' attribute to the edges.
+        filters.compute_significance(self.G_affiliations)
         
         
     def extract(self):         
@@ -706,65 +677,11 @@ class AffiliationAnalyzerDirected(AffiliationAnalyzer):
 
 
 
-
-
-
-
-
-
     
     
 class AffiliationAnalyzerUndirected(AffiliationAnalyzer): 
-    def pvalue_old(self, m, ku, kv, q):
-        '''
-        The pvalue according to a random undirected weighted graph null model.
-        Extreme is defined as any value with probability less than the observed.
-        '''      
-        f = binom(q, ku * kv * 1.0 / q / q)
-        
-        n0 = m
-        N = q
+   
 
-        pn0 = f.pmf(n0)
-        if f.pmf(n0 + 1) > pn0:
-            n = n0 + 1
-            while (f.pmf(n) > pn0) and (n < N):
-                n += 1
-            # if moving right and up, we hit N
-            right_half = 0 if n == N else (1 - f.cdf(n - 1)) 
-            print n, n0
-            return f.cdf(n0) + right_half 
-    
-        elif f.pmf(n0 - 1) > pn0:
-            n = n0 - 1
-            while (f.pmf(n) > pn0) and (n > 0):
-                n -= 1
-            # If moving left and up, we hit zero
-            left_half = 0 if n == 0 else f.cdf(n)
-            print n, n0
-            return left_half + (1 - f.cdf(n0 - 1)) 
-
-        else:
-            # n0 has the maximum pmf
-            return 1.0
-        
-    
-    def pvalue(self, m, ku, kv, q):
-        ''' 
-          "Extreme" is defined as any value greater than m.
-        '''
-        f = binom(q, ku * kv * 1.0 / q / q)
-        return 1-f.cdf(m-1)
-       
-    
-    
-    def logpvalue(self, m, ku, kv, q):
-        pv = self.pvalue(m, ku, kv, q)
-        return np.log(pv)
-    
-        
-        
-        
     def compute_affiliation_links(self):
         '''
         Compute self.dict_likelihoods using self.affiliation_adjacency.
@@ -772,50 +689,25 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
         Note that since self.
         '''
      
+        # Generate the graph of linked affiliation names
+        tmp_adj = [(link[0], link[1], self.affiliation_adjacency[link]) for link in self.affiliation_adjacency if link[0] != link[1]]
+        print "number of links to save ", len(tmp_adj) 
         
-        self.dict_likelihoods = {}
-        total_degree = sum(self.affiliation_score.values())    
-        T0 = 0.2
-        print "Number of links", len(self.affiliation_adjacency)
-        count = 0
-        for link in self.affiliation_adjacency:
-            print "count: ", count
-            count += 1        
-            ind0, ind1 = link[0], link[1]
-            if ind0 == ind1:
-                print "SELF!"
-                continue
-            # weights between nodes
-            uv = self.affiliation_adjacency[(ind0, ind1)]
-            
-            # The reverse edge may not exist
-            try:
-                vu = self.affiliation_adjacency[(ind1, ind0)]
-            except KeyError:
-                vu = 0
-            
-            # Self-edge weights
-            uu, vv = self.affiliation_adjacency[(ind0, ind0)], self.affiliation_adjacency[(ind1, ind1)]
-            
-            ku, kv = self.affiliation_score[ind0], self.affiliation_score[ind1]
-                       
-            # Incomplete directed edge likelihood
-
-            
-            # simple undirected edge pvalue
-            loglikelihood = self.logpvalue(uv + vu, ku, kv, total_degree / 2.0)
-            
-            
-            
-            self.dict_likelihoods[link] = loglikelihood
-
-            if self.debug:            
-                print link, "%d/%d   %d/%d" % (uv , ku, vu , kv) , '    ', '%0.2f' % (loglikelihood)
-                print '          %s | %s' % (self.dict_name_2_string[ind0], self.dict_name_2_string[ind1])
-                print "______________________________________________________________________________________________"
+        # Apparently, when a graph is generated from an edge list like this where each edge is an tuple (ind1,ind2), 
+        # the resulting graph will assign ind1 and ind2 to the 'name' attribute of the generated vertices. Their index on the
+        # other hand, is apparently generated randomly
+        self.G_affiliations = igraph.Graph.TupleList(edges=tmp_adj, edge_attrs=["weight"])
+        
+        # simplify the graph. Remove self-edges, combine multi-edges
+        # by summing their weights.
+        self.G_affiliations.simplify(combine_edges = sum)
+        
+        # Compute edge significances. Adds a 'significance' attribute to the edges.
+        filters.compute_significance(self.G_affiliations)
         
         
         
+    
     def extract(self):         
         '''Override
         Computes the adjacency matrix between affiliation identifiers.
@@ -979,6 +871,15 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
             The dictionary dict_affiliation_to_timelines assigns to each affiliation id a list of id's of all timelines containing it
         '''
                  
+   
+   
+   
+   
+   
+   
+   
+   
+   
     
 class MigrationAnalyzerUndirected(AffiliationAnalyzerUndirected): 
     '''
