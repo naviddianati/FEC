@@ -11,19 +11,10 @@
     index_2_token and token_2_index can be used.
     matching_mode can be "strict_address" or "strict_affiliation" or "thorough"
     ''' 
-
-import igraph
-import json
+from utils import *
 from multiprocessing.process import Process
 from multiprocessing import Pool, Manager 
 from multiprocessing.queues import Queue
-from numpy import math
-import os
-import pprint
-import random
-import time
-import sys
-from cPickle import dumps,dump
 
 from Affiliations import AffiliationAnalyzer
 from Database import DatabaseManager
@@ -31,7 +22,6 @@ from Person import Person
 from Tokenizer import TokenData, Tokenizer
 from Town import Town
 import editdist
-import numpy as np
 import pylab as pl
 from math import ceil,floor
 from states import dict_state_abbr
@@ -40,7 +30,6 @@ from memory_spike import *
 from core.hashes import *
 from common import *
 import copy
-import cPickle
 import core.config as config
 
 
@@ -110,13 +99,41 @@ class Disambiguator():
         # computing the LSH_hashes
         self.list_of_vectors = None
         
+        # File object where pairwise comparison results will
+        # be exported. Each line is a json object.
+        # Use self.set_log_comparisons to initialize
+        self.file_comparison_results = None
+        
+        # Whether or not to export pairwise record comparison results.
+        self.do_log_comparisons = True
+        
+        
+        
 
+    def set_log_comparisons(self):
+        '''
+        Initialize attributes necessary for logging the results of
+        all pairwise record comparisons. self.project must be already
+        defined and must contain 'state' key.
+        '''
+        try:
+            state = self.project['state']
+        except:
+            raise Exception ("self.project not set.")
+             
+        comp_filename = config.comparisons_file_template % state
+        self.file_comparison_results = open(comp_filename,'w')
+        self.do_log_comparisons = True
+        
+        
 
     
     def sort_list_of_records(self, orderby='id'):
         '''
-        sord the records in place by their id (other field(s)). The default ordering is by r.id which makes it easier to reconstruct list_of_records from a partitioning of it.
-        Usefull mainly for multi-processing.
+        sord the records in place by their id (other field(s)). The
+        default ordering is by r.id which makes it easier to reconstruct 
+        list_of_records from a partitioning of it. Usefull mainly for 
+        multi-processing.
         '''
         if orderby == 'id':
             self.list_of_records.sort(key=lambda r: r.id)
@@ -127,7 +144,9 @@ class Disambiguator():
             
                 
     def set_logstats(self, is_on=True):
-        ''' initialize instance attributes needed to log record link statistics'''
+        ''' 
+        Initialize instance attributes needed to log record link statistics.
+        '''
         self.do_stats = is_on
         
         if self.do_stats:
@@ -287,7 +306,9 @@ class Disambiguator():
     
     
     def logstats(self, record1, record2, verdict, result):
-        ''' Log statistics for the two compared records.'''
+        '''
+        Log statistics for the two compared records.
+        '''
         if not self.do_stats: return
         if self.logstats_count == 0:
             self.logstats_header = sorted(result.keys())
@@ -304,7 +325,7 @@ class Disambiguator():
             if record1['N_last_name'] == record2['N_last_name']:  
                 try:
                     pvalue_lastname = self.get_name_pvalue(record1, which='lastname') 
-                    pvalue_lastname = math.log(pvalue_lastname)
+                    pvalue_lastname = np.math.log(pvalue_lastname)
                 except TypeError:
                     # one of the pvalues is None
                     pvalue_lastname = 'NONE'
@@ -315,7 +336,7 @@ class Disambiguator():
             if record1['N_first_name'] == record2['N_first_name']:  
                 try:
                     pvalue_firstname = self.get_name_pvalue(record1, which='firstname') 
-                    pvalue_firstname = math.log(pvalue_firstname)
+                    pvalue_firstname = np.math.log(pvalue_firstname)
                 except TypeError:
                     # one of the pvalues is None
                     pvalue_firstname = 'NONE'
@@ -375,6 +396,8 @@ class Disambiguator():
 
 
 
+
+
     def __reconstruct_list_of_records(self, list_chunks, overlap):
         '''
         Reconstruct self.list_of_records by concatenating the values of the dictionaries in list_chunks.
@@ -425,17 +448,32 @@ class Disambiguator():
             self.__update_nearest_neighbors_multi_proc(B, hashes, allow_repeats, num_procs)
         
     
+    def __export_comparison(self, record1, record2, verdict, result):
+        '''
+        Export the results of a pairwise record comparison to 
+        a file.
+        '''
+        data = [record1.id, record2.id, verdict, result]
+        s = json.dumps(data, sort_keys = True)
+        self.file_comparison_results.write(s+"\n")
+    
+    
     def __update_nearest_neighbors_single_proc(self, B, hashes=None, allow_repeats=False):
-        ''' given a list of strings or hashes, this function computes the nearest
-            neighbors of each string among the list.
-
-            Input:
-                hashes: a list of strings of same length. The default is self.LSH_hashes: the strings comprise 0 and 1
-                    pass non-default hashes to perform the updating using a custom ordering of the records.
-                B: an even integer. The number of adjacent strings to check for proximity for each string
-
-            Output: dictionary of indices. For each key (string index), the value is a list of indices
-                    of all its nearest neighbors
+        '''
+        Given a list of strings or hashes, this function finds
+        the nearest neighbors of each string among the list. Use
+        only one process.
+        
+        @param B: an even integer. The number of adjacent strings 
+            to check for proximity for each string.
+        @param hashes: a list of strings of same length. The default
+             is self.LSH_hashes: the strings comprise 0 and 1. pass 
+             non-default hashes to perform the updating using a custom
+             ordering of the records.
+        @param allow_repeats: Boolean. whether to compare record pairs
+            that have been compared before.
+        @return: dictionary of indices. For each key (string index), 
+            the value is a list of indices of all its nearest neighbors.
         '''
         
         if hashes is None:
@@ -486,47 +524,59 @@ class Disambiguator():
                 # compute some statistics about the records
                 if self.do_stats:
                     self.logstats(record1, record2, verdict, result)
+                
+                # Export the result of this comparison to file.
+                if self.do_log_comparisons:
+                    if (verdict == 0 and result['n'] > 1 and  result['e'] > 1 and result['o'] > 1):
+                        print record1.toString()
+                        print record2.toString()
+                        print "="*120
+                        self.__export_comparison(record1,record2,verdict,result)
                     
- 
-
-
 
 
 
     def __update_nearest_neighbors_multi_proc(self, B, hashes=None, allow_repeats=False, num_procs=None):
-        ''' given a list of strings or hashes, this function computes the nearest
-            neighbors of each string among the list.
-
-            Input:
-                hashes: a list of strings of same length. The default is self.LSH_hashes: the strings comprise 0 and 1
-                    pass non-default hashes to perform the updating using a custom ordering of the records.
-                B: an even integer. The number of adjacent strings to check for proximity for each string
-                num_procs: number of processes to use for this operation.
-
-            Output: dictionary of indices. For each key (string index), the value is a list of indices
-                    of all its nearest neighbors
         '''
-        '''
-            data['pid']: process id
-            data['queue']: queue for communication with parent process
-            data['matching_mode']: same as self.matching_mode
-            data['do_stats']: whether to log stats. same as self.do_stats
-            data['index_adjacency']: a sub-dictionary of the full index_adjacency with entries for records relevant to this process.
-            data['sort_indices']`
-            data['list_indices']: list of indices for the chunk assigned to the child.
-            data['B']
-            data['allow_repeats']
-            data['D_id']: id of the Disambiguator instance that is spawning the child process. This is necessary so that the child worker
-                can call processManager and retrieve a reference to the Disambiguator instance that actually spawned it, as a global variable.
+        Given a list of strings or hashes, this function finds
+        the nearest neighbors of each string among the list. Use
+        multiple processes.
+        
+        @param B: an even integer. The number of adjacent strings 
+            to check for proximity for each string.
+        @param hashes: a list of strings of same length. The default
+             is self.LSH_hashes: the strings comprise 0 and 1. pass 
+             non-default hashes to perform the updating using a custom
+             ordering of the records.
+        @param allow_repeats: Boolean. whether to compare record pairs
+            that have been compared before.
+        @param num_procs: number of processes to use.
+        
+        @return: dictionary of indices. For each key (string index), 
+            the value is a list of indices of all its nearest neighbors.
+        
+        
+        Data passed to worker functions: 
+        
+        data['pid']: process id
+        data['queue']: queue for communication with parent process
+        data['matching_mode']: same as self.matching_mode
+        data['do_stats']: whether to log stats. same as self.do_stats
+        data['index_adjacency']: a sub-dictionary of the full index_adjacency with entries for records relevant to this process.
+        data['sort_indices']`
+        data['list_indices']: list of indices for the chunk assigned to the child.
+        data['B']
+        data['allow_repeats']
+        data['D_id']: id of the Disambiguator instance that is spawning the child process. This is necessary so that the child worker
+            can call processManager and retrieve a reference to the Disambiguator instance that actually spawned it, as a global variable.
 
-            NOTE: the largest piece of data needed by the child processes is self.list_of_records. I no longer pass this to each child
-                separately, as it almost doubles the memory used. Instead, I will try to make the disambiguator instance D visible to
-                all children as a global variable. They will only read this variable, so the system won't make any copies of it. This
-                will hopefully reduce memory usage substantially.
+        NOTE: the largest piece of data needed by the child processes is self.list_of_records. I no longer pass this to each child
+            separately, as it almost doubles the memory used. Instead, I will try to make the disambiguator instance D visible to
+            all children as a global variable. They will only read this variable, so the system won't make any copies of it. This
+            will hopefully reduce memory usage substantially.
 
-            NOTE: Passing lisrt_of_records to child processes as a global variable isn't going to work. The global namespace will still
-                be COPIED to each of the child processes.
-
+        NOTE: Passing lisrt_of_records to child processes as a global variable isn't going to work. The global namespace will still
+            be COPIED to each of the child processes.
         '''
   
  
@@ -841,6 +891,11 @@ class Disambiguator():
             
     # Convert self.index_adjacency to an edgelist
     def compute_edgelist(self):
+        '''
+        Compute the edgelist of the graph of linked records.
+        Uses self.index_adjacency.
+        Sets self.index_adjacency_edgelist.        
+        '''
 
         # place self-links 
         self.index_adjacency_edgelist = [(i, i) for i in self.index_adjacency] 
@@ -855,7 +910,7 @@ class Disambiguator():
         Save the match buffer to a file. This will be basically 
         an edge list (r_id0, r_id1).
         '''
-        f = open(config.match_buffer_file_template * self.project['state'],'w')
+        f = open(config.match_buffer_file_template % self.project['state'],'w')
         
         print "Saving match buffer to file..."
         for id0,id1 in self.new_match_buffer:
@@ -863,6 +918,21 @@ class Disambiguator():
         f.close()
         print "Done saving match buffer to file."
             
+    
+    
+    def __post_compute_similarity(self):
+        '''
+        Tie loose ends after finishing self.compute_similarity
+        '''
+        
+        # Save the match buffer to file
+        self.__export_match_buffer()
+        
+        # Close the comparisons file.
+        try:
+            self.file_comparison_results.close()
+        except Exception as e:
+            print str(e)
     
     
     def compute_similarity(self, B1=30, m=100, sigma1=0.2):                
@@ -873,11 +943,11 @@ class Disambiguator():
         print "B=", B1
         print "Computing index_adjacency matrix"
         print "sigma = ", sigma1
-#         self.index_adjacency = self.get_nearest_neighbors(B, sigma)
-        n = len(self.LSH_hash)
         
+        # Initialize logging the pairwise comparison results.
+        if self.do_log_comparisons:
+            self.set_log_comparisons()
         
-
         # Generate an index_adjacency dictionary and initially populate it with links between records that are identical
         print 'Initialize adjacency...'
         self.initialize_index_adjacency()
@@ -895,16 +965,14 @@ class Disambiguator():
             shuffle_list_of_str(self.LSH_hash)
             print 'Shuffling list of hashes and computing nearest neighbors' + str(i)
 
-#             adjacency_new = self.get_nearest_neighbors(B=B1, sigma=sigma1)        
-#             self.__update_dict(self.adjacency, adjacency_new)
-            
             if self.project:
                 self.project.log('Suffling hash list...', str(i))
-#         self.compute_edgelist()
         print "index_adjacency matrix computed!"
         
-        # Save the match buffer to file
-        self.__export_match_buffer()
+        # Tie some loose ends when done
+        self.__post_compute_similarity()
+        
+        
             
     
     
@@ -914,9 +982,11 @@ class Disambiguator():
         pp.pprint(self.index_adjacency)
 
 
-    def show_sample_index_adjacency(self):
-        ''' Show a random sample of far-off-diagonal elements of the adjaceqncy matrix and
-        the content of the corresponding vectors. ''' 
+    def print_sample_index_adjacency(self):
+        '''
+        Print a random sample of far-off-diagonal elements of the 
+        adjaceqncy matrix and the content of the corresponding vectors. 
+        ''' 
         counter = 0
         if not self.index_adjacency: return
         N = len(self.list_of_records)
@@ -938,16 +1008,21 @@ class Disambiguator():
 
 
 
-    ''' Generate Person objects from the records and the index_adjacency matrix
-        The main product is self.town
-        TODO: Generate each person's set of possible neighbors'''
     def generate_identities(self):
+        ''' 
+        Generate Person objects from the records and the index_adjacency
+        matrix. The main product is self.town
+        TODO: Generate each person's set of possible neighbors
+        '''
+
+        
         self.compute_edgelist()
     
         G = igraph.Graph.TupleList(edges=self.index_adjacency_edgelist)
         clustering = G.components()
 
-        # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
+        # List of subgraphs. Each subgraph is assumed to 
+        # contain nodes (records) belonging to a separate individual
         persons_subgraphs = clustering.subgraphs()
         persons_subgraphs.sort(key=lambda g: min([int(v['name']) for v in g.vs]))
 
@@ -964,7 +1039,7 @@ class Disambiguator():
             
             for v in sorted(g.vs, key=lambda v:int(v['name'])):
                 index = int(v['name'])
-                r = self.list_of_records [index]
+                r = self.list_of_records[index]
                 person.addRecord(r)
                 
 
@@ -1018,8 +1093,10 @@ class Disambiguator():
         print ("="*70 + "\n") * 3
     
     
-    # Return a list of persons with multiple states in their timeline
     def get_set_of_persons_multistate(self):
+        '''
+        Return a list of persons with multiple states in their timeline
+        '''
         list_persons = []
         for id, person in self.town.dict_persons.iteritems():
             set_states = person.get_distinct_attribute('STATE')

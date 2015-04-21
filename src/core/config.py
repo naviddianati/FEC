@@ -28,3 +28,6 @@ normalized_attributes_file_template = data_path + "%s-normalized_attributes.pick
 
 # File containing the edge list of related records
 match_buffer_file_template = data_path + "%s-match_buffer.pickle"
+
+# File containing the results of all pairwise record comparisons
+comparisons_file_template = data_path + "%s-record_comparisons.json.txt"

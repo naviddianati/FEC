@@ -118,7 +118,7 @@ class Record(dict):
     return a short string summarizing the record
     '''
     def toString(self):
-        s = self['NAME']
+        s = "%s\t%s\t%s\t%s" % (self['NAME'], self['ZIP_CODE'], self['EMPLOYER'], self['OCCUPATION'])
         return s
     
 #     @staticmethod
@@ -126,13 +126,13 @@ class Record(dict):
 #         return Record._is_close_enough(record1.vector, record2.vector) 
 #     
 
-    '''
-    Returns an integer. Your code must interpret it by itself!
-    Positive values are True while others are False.
-    Negative numbers can be used to indicate strict irreconcilability.
-    '''
-    def compare(self, otherRecord, mode="strict_address"):
         
+    def compare(self, otherRecord, mode="strict_address"):
+        '''
+        Returns an integer. Your code must interpret it by itself!
+        Positive values are True while others are False.
+        Negative numbers can be used to indicate strict irreconcilability.
+        '''
         
         if mode == "strict_address":
             return self._compare_STRICT_ADDRESS(self, otherRecord) 
@@ -502,24 +502,64 @@ class Record(dict):
        
 
 
+
+
+
     def _compare_THOROUGH(self, r1, r2, method_id=None):
         '''
-        Returns an integer and a dictionary. One can use this function directly to get additional information about
-        the nature of the relationship. For instance, this function can return negative numbers to
-        indicate irreconcilable difference.
+        Returns an integer and a dictionary. One can use this function 
+        directly to get additional information about the nature of the 
+        relationship between the records. For instance, this function can
+        return negative numbers to indicate irreconcilable difference.
 
-        The "result" dictionary returns the details of the sub-comparisons, namely, the return values of the
-        name, occupation and employer comparison functions used to reach the verdict.
+        The "result" dictionary returns the details of the sub-comparisons,
+        namely, the return values of the name, occupation and employer 
+        comparison functions used to reach the verdict.
+
+        result = {
+                'o':  # occupation
+                       0: they both exist but are unrelated
+                       1: at least one doesn't have the field
+                       2: connected in the affiliations network
+                       3: exactly the same but not "bad_identifier"
+                'e':  # employer
+                       0: they both exist but are unrelated
+                       1: at least one doesn't have the field, or there is no 
+                          affiliation graph that contains both.
+                       2: connected in the affiliations network or 
+                          employer1/2 == occupation2/1 or otherwise so
+                          close that they are considered the same.
+                       3: exactly the same, but not 'bad_identifier'
+                'n':  # name
+                       0: names are not related
+                       1: uncertain: at least one last name doesn't exist
+                       2: names are similar, but we can't verify if they are
+                          variants or misspelling. Let verdict functions decide. 
+                          (useful when addresses are exactly identical)
+                       3: names are identical
+                'a':  # address
+                       0: addresses are not the same
+                       1: addresses are the same
+                's':  # state
+                       0: states different
+                       1: states the same
+                'c':  # city
+                       0: cities are different
+                       1: cities are the same
+                 }
+
+
 
         TODO:
-        1- (DONE) full middlenames and middlename initials aren't matched correctly
-        2- (DONE) CITY misspellings aren't detected. Pay attention to zipcode in this case. Maybe if zipcodes are the same,
-            treat as if cities are the same.
-        3- When city and zipcode are slightly different but affiliations are the same, should accept.
-            When affiliaiton score is 1, dig deeper!
+        1- (DONE) full middlenames and middlename initials aren't 
+            matched correctly
+        2- (DONE) CITY misspellings aren't detected. Pay attention to 
+            zipcode in this case. Maybe if zipcodes are the same, treat
+            as if cities are the same.
+        3- When city and zipcode are slightly different but affiliations
+            are the same, should accept. When affiliaiton score is 1, dig deeper!
         4- In general, employer string distance should also be taken into account.
         4- if cities are different but employers are identical, then accept
-
         '''
 #         Record.debug = True if   r1['N_first_name'] == r2['N_first_name'] == "MARKUS" and r1['N_last_name'] == r2['N_last_name'] == "AAKKO" else False
 #         Record.debug = True  if r1['N_first_name'] != r2['N_first_name']  else False;  
@@ -583,7 +623,7 @@ class Record(dict):
                         (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
                                             self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
                         result['e'], result['o'], result['n'] = c_e, c_o, c_n
-
+                        result['a'] = 0
                         # Return Record.LARGE_NEGATIVE if middle names are different
                         if c_n < 0: return Record.LARGE_NEGATIVE, result
 
@@ -653,11 +693,15 @@ class Record(dict):
     
     
     
-    '''Returns a number:
+        
+    def compare_zipcodes(self, r1, r2):
+        '''
+        Returns a number:
         0: zipcodes are different
         1: at least one doesn't have a zipcode
-        2: zip codes are the same.'''
-    def compare_zipcodes(self, r1, r2):
+        2: zip codes are the same.
+        '''
+        
         if not r1['ZIP_CODE'] or not r2["ZIP_CODE"]:
             if Record.debug: print "One ZIP_CODE doesn't exist"
             return 1
@@ -671,10 +715,10 @@ class Record(dict):
     def compare_occupations(self, r1, r2):
         '''
         Returns a number:
-            0: they both exist but are unrelated
-            1: at least one doesn't have the field
-            2: connected in the affiliations network
-            3: exactly the same but not "bad_identifier"
+        0: they both exist but are unrelated
+        1: at least one doesn't have the field
+        2: connected in the affiliations network
+        3: exactly the same but not "bad_identifier"
         '''
         try:
             occupation1 = r1['OCCUPATION']
@@ -744,10 +788,11 @@ class Record(dict):
     def compare_employers(self, r1, r2):
         '''
         Returns a number:
-            0: they both exist but are unrelated
-            1: at least one doesn't have the field, or there is no affiliation graph that contains both
-            2: connected in the affiliations network or employer1/2 == occupation2/1
-            3: exactly the same, but not "bad_identifier"
+        0: they both exist but are unrelated
+        1: at least one doesn't have the field, or there is no affiliation graph that contains both
+        2: connected in the affiliations network or employer1/2 == occupation2/1 or 
+            otherwise so close that they are considered the same.
+        3: exactly the same, but not "bad_identifier"
         '''
         try:
             employer1 = r1['EMPLOYER']
@@ -814,7 +859,7 @@ class Record(dict):
                 return 2
             else:                
                 # String distances not close enough
-                if Record.debug: print "employers are not adjacent"
+                if Record.debug: print "employers are not adjacent in graph, and strings aren't close."
                 return 0
             
             
@@ -967,11 +1012,11 @@ class Record(dict):
         except KeyError:
             return 
         
-        self['TRANSSCTION_DT'] = self.get_date
+        self['TRANSACTION_DT'] = self.get_date
 
     def get_date(self):
         try:
-            d = self['TRANSSCTION_DT']
+            d = self['TRANSACTION_DT']
         except KeyError:
             return ''
                 
@@ -980,12 +1025,14 @@ class Record(dict):
         
                     
     def updateTokenData(self, newtokendata):
-        ''' newtokendata is a TokenData object and is assumed to be a superset of self.tokendata. That is,
-        every token or normalized token that exists in self.tokendata, also exists in newtokendata, but perhaps
-        together with some additional tokens, and with different indexing.
-        The main task here is to recompute the record's vector using the indexes of the newtokendata.
-        Then, self.tokendata is replaced with newtokendata.'''
-        pass
+        ''' 
+        newtokendata is a TokenData object and is assumed to be
+        a superset of self.tokendata. That is, every token or 
+        normalized token that exists in self.tokendata, also exists
+        in newtokendata, but perhaps together with some additional
+        tokens, and with different indexing. The main task here is
+        to recompute the record's vector using the indexes of the 
+        newtokendata. Then, self.tokendata is replaced with newtokendata.'''
         vector = {}
         
         
