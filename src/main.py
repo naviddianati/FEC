@@ -684,6 +684,13 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     # Get tokendata and make sure vectors are exported to file.
     tokendata,list_of_records = tokenize_records(list_of_records, project)
+    
+
+
+
+
+
+
 
 
     
@@ -795,7 +802,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
         
     print 'Saving adjacency matrix to file...'
     print 'Printing list of identifiers and text of adjacency matrix to file...'
-#     project.save_data(with_tokens=False)
+    project.save_data(with_tokens=False)
     project.save_data_textual(with_tokens=False, file_label=param_state + "-" + "disambiguation-")
     print 'Done...'
     
@@ -1357,15 +1364,12 @@ class Project(dict):
             # Save the adjacency matrix to file in both edgelist and json formats
             self.save_graph_to_file(file_label=file_label)
             
-            print "Skip saving textual version of data..."
-            return
             
             filename1 = self["data_path"] + file_label + self["batch_id"] + '-adj_text_identifiers.json'
             filename2 = self["data_path"] + file_label + self["batch_id"] + '-adj_text_auxiliary.json'
             filename3 = self["data_path"] + file_label + self["batch_id"] + '-list_of_nodes.json'
             if self.D and self.D.index_adjacency:
-    #             separator = '----------------------------------------------------------------------------------------------------------------------'
-                separator = '______________________________________________________________________________________________________________________'
+                separator = '-' * 120
                 pp = pprint.PrettyPrinter(indent=4)
 #                 pp.pprint(self.D.index_adjacency)
     
@@ -1380,26 +1384,27 @@ class Project(dict):
                 file3 = open(filename3, 'w')
                 dict_all3 = {}
                 
-                list_tokens = []
-                for i in save_range:
-                    list_tokens.append(self.tokenizer._get_tokens(self.D.list_of_records [i], self["list_tokenized_fields"]))
+
+
+
+                if with_tokens:
+                    list_tokens = []
+                    for i in save_range:
+                        list_tokens.append(self.tokenizer._get_tokens(self.D.list_of_records [i], self["list_tokenized_fields"]))
                     
                 for i in save_range:
-
-                    tmp_tokens = list_tokens[i]
-                    tokens_str = [str(x) for x in tmp_tokens]
-                    tokens = {x[0]:x[1] for x in tmp_tokens} 
                     
                     record_as_list_tokenized = [self.D.list_of_records [i][field] for field in sorted(self["list_tokenized_fields"])]
                     record_as_list_auxiliary = [self.D.list_of_records [i][field] for field in sorted(self["list_auxiliary_fields"])]
 
-#                     dict_all3[i] = {'ident':record_as_list_tokenized, 'aux':record_as_list_auxiliary, 'ident_tokens':tokens}
-                    # print self["all_fields"][0]
-                    dict_all3[i] = {'data':[self.D.list_of_records[i][field] for field in self["all_fields"]],
-                                             'ident_tokens':tokens}
-                    
+                    dict_all3[i] = {'data':[self.D.list_of_records[i][field] for field in self["all_fields"]]}
 
                     if with_tokens:
+                        tmp_tokens = list_tokens[i]
+                        tokens_str = [str(x) for x in tmp_tokens]
+                        tokens = {x[0]:x[1] for x in tmp_tokens} 
+                        dict_all3[i]['ident_tokens'] = tokens
+                    
                         s1 = "%d %s        %s\n" % (i, record_as_list_tokenized , '|'.join(tokens_str))
                     else:
                         s1 = "%d %s\n" % (i, record_as_list_tokenized)
@@ -1408,16 +1413,14 @@ class Project(dict):
                     file1.write(separator + '\n' + s1)   
                     file2.write(separator + '\n' + s2)
                     for j in sorted(self.D.index_adjacency[i], key=lambda k:self.D.list_of_records [k]['TRANSACTION_DT']):
-#                         record_as_list_tokenized__2 = [self.list_of_records[j][field] for field in sorted(self.list_of_records[j].keys())]
                         record_as_list_tokenized__2 = [self.D.list_of_records [j][field] for field in sorted(self["list_tokenized_fields"])]
                         record_as_list_auxiliary__2 = [self.D.list_of_records [j][field] for field in sorted(self["list_auxiliary_fields"])]
                         
-                        tmp_tokens = [str(x) for x in list_tokens[j]]
-
-                        tokens_str = [str(x) for x in tmp_tokens]
-                        tokens = {x[0]:x[1] for x in tmp_tokens} 
                         
                         if with_tokens:
+                            tmp_tokens = [str(x) for x in list_tokens[j]]
+                            tokens_str = [str(x) for x in tmp_tokens]
+                            tokens = {x[0]:x[1] for x in tmp_tokens} 
                             s1 = "    %d %s        %s\n" % (j, record_as_list_tokenized__2 , '|'.join(tokens_str))
                         else:
                             s1 = "    %d %s\n" % (j, record_as_list_tokenized__2)
@@ -1515,7 +1518,7 @@ if __name__ == "__main__":
 
 
 #   print "AFFILATION: OCCUPATION\n" + "_"*80 + "\n"*5 
-    generateAffiliationData('delaware', affiliation=None, record_limit=(0, 500000), num_procs = 2)
+    generateAffiliationData('delaware', affiliation=None, record_limit=(0, 500000), num_procs = 5)
     quit()
 #      
 #     print "AFFILATION: EMPLOYER\n" + "_"*80 + "\n"*5

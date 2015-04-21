@@ -12,3 +12,4 @@ config/batches.list
 *.pickle
 
 output
+*.swp
