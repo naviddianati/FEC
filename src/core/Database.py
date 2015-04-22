@@ -25,7 +25,7 @@ class DatabaseManager:
         con = None
         con = mdb.connect(host='localhost',  # hostname
                            user='navid',  # username                
-                           passwd='YOURMYSQLPASSWORD',  # password
+                           passwd='YOURMYSQLPASSWORD',  # passwor
                            db='FEC',  # database 
                            use_unicode=True,
                            charset="utf8"

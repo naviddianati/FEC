@@ -448,14 +448,23 @@ class Disambiguator():
             self.__update_nearest_neighbors_multi_proc(B, hashes, allow_repeats, num_procs)
         
     
-    def __export_comparison(self, record1, record2, verdict, result):
+    def __export_comparison(self, comparison_data):
         '''
         Export the results of a pairwise record comparison to 
         a file.
+        @param comparison_data: a list of tuples of the form (record1, record2, verdict, result).
         '''
-        data = [record1.id, record2.id, verdict, result]
-        s = json.dumps(data, sort_keys = True)
-        self.file_comparison_results.write(s+"\n")
+        
+        for record1, record2, verdict, result in comparison_data:
+            data = [record1.id, record2.id, verdict, result]
+            s = json.dumps(data, sort_keys = True)
+            s1 = record1.toString()
+            s2 = record2.toString()
+            
+            self.file_comparison_results.write(s+"\n")
+            self.file_comparison_results.write(s1+"\n")
+            self.file_comparison_results.write(s2+"\n")
+            self.file_comparison_results.write("="*120+"\n")
     
     
     def __update_nearest_neighbors_single_proc(self, B, hashes=None, allow_repeats=False):
@@ -527,11 +536,11 @@ class Disambiguator():
                 
                 # Export the result of this comparison to file.
                 if self.do_log_comparisons:
-                    if (verdict == 0 and result['n'] > 1 and  result['e'] > 1 and result['o'] > 1):
+                    if (verdict == 0 and result['n'] > 1):# and  result['e'] > 1 and result['o'] > 1):
                         print record1.toString()
                         print record2.toString()
                         print "="*120
-                        self.__export_comparison(record1,record2,verdict,result)
+                        self.__export_comparison([(record1,record2,verdict,result)])
                     
 
 
@@ -620,7 +629,8 @@ class Disambiguator():
                     "index_adjacency":{sort_indices[j]: self.index_adjacency[sort_indices[j]] for j, dummy in list_chunks[pid].iteritems()},
                     "sort_indices":sort_indices,
                     "B":B,
-                    "allow_repeats":allow_repeats}
+                    "allow_repeats":allow_repeats,
+                    "do_log_comparisons" : self.do_log_comparisons }
             p = Process(target=find_nearest_neighbors, args=[data])
             list_procs.append(p)
             list_queues.append(data['queue'])
@@ -647,7 +657,7 @@ class Disambiguator():
             
             self.match_count += result['match_count']
 
-
+            self.__export_comparison(result['comparison_results'])
         
         # join processes
         for p in list_procs:
@@ -1406,12 +1416,14 @@ def find_nearest_neighbors(data):
     do_stats = data['do_stats']
     index_adjacency = data['index_adjacency']
     dict_of_records = data['dict_of_records']
+    do_log_comparisons = data['do_log_comparisons']
 
     n = len(dict_of_records)
     
     output = {'match_count':0,
               'new_match_buffer':set(),
-              'index_adjacency':index_adjacency}
+              'index_adjacency':index_adjacency,
+              'comparison_results':[]}
 
     # i_min, i_max = min(list_indices), max(list_indices)
     
@@ -1458,6 +1470,16 @@ def find_nearest_neighbors(data):
                 output['match_count'] += 1
                 output['index_adjacency'][sort_indices[i]].add(sort_indices[j])
                 output['new_match_buffer'].add((sort_indices[i], sort_indices[j]))
+
+
+
+            # Export the result of this comparison to file.
+            if do_log_comparisons:
+                if (verdict == 0 and result['n'] > 1 and  result['e'] > 1 and result['o'] > 1):
+                    print record1.toString()
+                    print record2.toString()
+                    print "="*120
+                    output['comparison_results'].append((record1,record2,verdict,result))
             
             # compute some statistics about the records
             # Forget about logstats for now
@@ -1466,8 +1488,6 @@ def find_nearest_neighbors(data):
     data['queue'].put(output)
     
       
-
-
 
 def chunkit_padded(list_input, i, num_chunks, overlap=0):
     '''

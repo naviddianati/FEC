@@ -1180,7 +1180,7 @@ if __name__ == "__main__":
                        # whereclause=" WHERE NAME LIKE '%COHEN%' ",
                        # whereclause=" WHERE NAME like '%AARONS%' ",
                        # whereclause=" WHERE NAME like '%COHEN%' ",
-                       num_procs=1,
+                       num_procs=12,
                        percent_employers=50,
                        percent_occupations=50)
     quit()
