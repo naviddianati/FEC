@@ -19,6 +19,10 @@ from nameparser import HumanName
 from address import AddressParser
 from nltk.util import ngrams
 import core.config as config
+from multiprocessing import Manager
+from utils import *
+
+
 
 class Tokenizer():
     ''' This class receives a list of records (perhaps retrieved from a MySQL query). The fields are divided between "identifier" fieldsz
@@ -82,6 +86,8 @@ class Tokenizer():
         # Project instance containing data
         self.project = None
         
+        # Dictionary {r_id: r's vector}
+        self.dict_vectors = {}
         
         
         
@@ -457,16 +463,97 @@ class Tokenizer():
                 
         self.all_token_sorted = sorted(self.tokens.token_counts, key=self.tokens.token_counts.get, reverse=0)
 
+    
+            
+
+        
+    def tokenize(self, num_procs = 1, export_vectors = True, export_normalized_attributes = True, export_tokendata = True):
+        '''
+        Tokenize the records using either one process or multiple processes.
+        @param num_procs: number of processes to use.
+        @param export_vectors: whether to export the feature vectors to file.
+        '''
+        if num_procs == 1:
+            self.__tokenize_single_proc(export_vectors, export_normalized_attributes,export_tokendata)
+        elif num_procs > 1:
+            self.__tokenize_multi_proc(num_procs, export_vectors, export_normalized_attributes,export_tokendata) 
+        
+    
+    
+    def __tokenize_multi_proc(self, num_procs, export_vectors, export_normalized_attributes, export_tokendata):
+        '''
+        Divide the list_of_records into equal chunks. Send the chunks to a 
+        standalone method. In that method, multiple tokenizer instances will
+        be created, and each data chunk assigned to one of them. Each tokenizer
+        will then tokenize in a separate process and the results are comgined.
+        This includes updating the record vectors held by each tokenizer. The
+        combined results will then be returned to this method for saving and
+        post processing.
+        '''
+        from utils import  chunks_replace
+        list_of_list_records = chunks_replace(self.list_of_records, num_procs)
+        
+        self.dict_vectors, self.list_of_records, self.tokens = tokenize_multiple_lists_of_records(list_of_list_records, self.__class__ , self.project)
         
         
-    def tokenize(self):
+        
+        if export_tokendata:
+            # Export tokendata to file.
+            tokendata_file = config.tokendata_file_template % (self.project['state'])
+            self.tokens.save_to_file(tokendata_file)
+        
+        if export_vectors:
+            # Export computed vectors to file
+            vectors_file = config.vectors_file_template % (self.project['state'])
+            try:
+                f = open(vectors_file,'w')
+                cPickle.dump(self.dict_vectors,f)
+                
+                f.close()
+            except:
+                os.remove(vectors_file)
+                raise
+            self.dict_vectors.clear()
+            
+        if export_normalized_attributes:
+            # Export the normalized attributes to file
+            normalized_attributes_file = config.normalized_attributes_file_template % (self.project['state'])
+            try:
+                f = open(normalized_attributes_file,'w')
+                dict_normalized_attributes = {r.id:
+                                                {attr:r[attr] for attr in self.normalized_attrs} 
+                                                for r in self.list_of_records}
+                cPickle.dump(dict_normalized_attributes,f)
+                f.close()
+            except:
+                os.remove(normalized_attributes_file)
+                raise
+            dict_normalized_attributes = None
+            
+                
+        self.all_token_sorted = sorted(self.tokens.token_counts, key=self.tokens.token_counts.get, reverse=0)
+#         for token in self.all_token_sorted:
+#             print token, self.tokens.token_counts[token],'---------'
+        print "Total number of tokens identified: ", len(self.tokens.token_counts)
+#         pp.pprint(self.list_of_records_identifier)
+#         quit()
+
+        # set "self.toknes" as the TokenData object associated with each record
+        for record in self.list_of_records:
+            record.tokendata = self.tokens
+        
+            
+        
+        
+        
+    def __tokenize_single_proc(self, export_vectors, export_normalized_attributes,export_tokendata):
         if not self.list_tokenized_fields:
             raise Exception("ERROR: Specify the fields to be tokenized.")
         
         # The dict of record vectors. It will be computed here and 
         # exported to a file. When needed later, it should be loaded
         # from that file.
-        dict_vectors = {}
+        self.dict_vectors = {}
         
         for record in self.list_of_records:
             
@@ -488,39 +575,42 @@ class Tokenizer():
                     self.tokens.token_counts[token] = 1
                     self.tokens.no_of_tokens += 1
                 vector[self.tokens.token_2_index[token]] = 1
-            dict_vectors[record.id] = vector
-
-        # Export tokendata to file.
-        tokendata_file = config.tokendata_file_template % (self.project['state'])
-        self.tokens.save_to_file(tokendata_file)
+            self.dict_vectors[record.id] = vector
+     
+        if export_tokendata:
+            # Export tokendata to file.
+            tokendata_file = config.tokendata_file_template % (self.project['state'])
+            self.tokens.save_to_file(tokendata_file)
         
-        # Export computed vectors to file
-        vectors_file = config.vectors_file_template % (self.project['state'])
-        try:
-            f = open(vectors_file,'w')
-            cPickle.dump(dict_vectors,f)
+        if export_vectors:
+            # Export computed vectors to file
+            vectors_file = config.vectors_file_template % (self.project['state'])
+            try:
+                f = open(vectors_file,'w')
+                cPickle.dump(self.dict_vectors,f)
+                
+                f.close()
+            except:
+                os.remove(vectors_file)
+                raise
+            self.dict_vectors.clear()
             
-            f.close()
-        except:
-            os.remove(vectors_file)
-            raise
-        dict_vectors = None
         
-        
-        # Export the normalized attributes to file
-        normalized_attributes_file = config.normalized_attributes_file_template % (self.project['state'])
-        try:
-            f = open(normalized_attributes_file,'w')
-            dict_normalized_attributes = {r.id:
-                                            {attr:r[attr] for attr in self.normalized_attrs} 
-                                            for r in self.list_of_records}
-            cPickle.dump(dict_normalized_attributes,f)
-            f.close()
-        except:
-            os.remove(normalized_attributes_file)
-            raise
-        dict_normalized_attributes = None
-        
+        if export_normalized_attributes:
+            # Export the normalized attributes to file
+            normalized_attributes_file = config.normalized_attributes_file_template % (self.project['state'])
+            try:
+                f = open(normalized_attributes_file,'w')
+                dict_normalized_attributes = {r.id:
+                                                {attr:r[attr] for attr in self.normalized_attrs} 
+                                                for r in self.list_of_records}
+                cPickle.dump(dict_normalized_attributes,f)
+                f.close()
+            except:
+                os.remove(normalized_attributes_file)
+                raise
+            dict_normalized_attributes = None
+            
                 
         self.all_token_sorted = sorted(self.tokens.token_counts, key=self.tokens.token_counts.get, reverse=0)
 #         for token in self.all_token_sorted:
@@ -757,7 +847,7 @@ class TokenData():
         
         # compute token_counts
         for token in T_new.token_2_index:
-            count = 0
+            count = 0       
             for T in list_of_tokendata:
                 try:
                     count += T.token_counts[token]
@@ -781,13 +871,138 @@ class TokenData():
             
         
     
-    
-        
-        
-        
-        
-        
+
+
         
         
         
    
+
+
+
+
+
+
+
+
+
+
+
+
+import Project
+
+
+def worker_tokenizer_list_of_records(data):
+    '''
+    Worker function that receives a dict of records, creates a new TokenizerClass 
+    instance and tokenizes the records. Then it returns the dict_of_vectors to
+    be combined with other similar objects from other workers.
+    '''
+    list_of_records, fields, TokenizerClass = data
+    print "--------", TokenizerClass
+    
+    tokenizer = TokenizerClass()
+    
+    print "tokenizer initialized"
+    project = Project.Project(1)
+    print "project initialized"
+    project.tokenizer = tokenizer
+    tokenizer.project = project
+    tokenizer.setRecords(list_of_records)
+    tokenizer.setTokenizedFields(fields)
+    
+    
+    print "Tokenizing records..."
+    tokenizer.tokenize(num_procs = 1, export_vectors = False, export_normalized_attributes = False, export_tokendata = False)
+    
+    print "Saving token data to file..."
+#     tokenizer.tokens.save_to_file(tokendata_file)
+#     list_of_records = tokenizer.getRecords()
+    return tokenizer.getRecords(), tokenizer.dict_vectors, tokenizer.tokens
+
+    
+
+def tokenize_multiple_lists_of_records(list_of_list_records, TokenizerClass, project):
+    '''
+    Receive multiple chunks of the tokenizer's list_of_records, instantiate a new
+    TokenizerClass for each and tokenize the chunks in separate processes, then combine
+    and update their record vectors and other attributes.
+    @param list_of_list_records: a list where each element is a contiguous chunk of 
+        list_of_records where list_of_records is that of the original tokenizer that
+        calls this method in order to tokenize with multiple processes.
+    '''
+    num_procs = len(list_of_list_records)
+    list_data = []
+    
+#     for item in list_of_list_records:
+#         print [r.id for r in item]
+#         
+#     print "=" * 120
+
+    for i in range(len(list_of_list_records)):
+        list_data.append((list_of_list_records[0], project['list_tokenized_fields'] ,TokenizerClass))
+        del list_of_list_records[0]
+    pool = multiprocessing.Pool(processes = num_procs)
+    result = pool.map(worker_tokenizer_list_of_records, list_data)
+    
+    list_of_list_records = [item[0] for item in result]
+    list_dict_vectors = [item[1] for item in result]
+    list_tokendata = [item[2] for item in result]
+
+    # combine results
+    compound_tokendata = TokenData.getCompoundTokenData(list_tokendata)
+    compound_dict_vectors = {}
+    compound_list_of_records = []
+    
+    # concatenate the new list_of_records objects, and delete each
+    # list_of_record from list_of_list_records.
+    for i in range(len(list_of_list_records)):       
+        compound_list_of_records += list_of_list_records[0]
+        del list_of_list_records[0]
+    
+    #update vectors
+    for chunk_id, dict_vectors in enumerate(list_dict_vectors):
+        old_tokendata = list_tokendata[chunk_id]
+        for r_id, old_vector in dict_vectors.iteritems():
+            vector = {}
+            # translate self.vector
+            for index_old in old_vector:
+                index_new = compound_tokendata.token_2_index[old_tokendata.index_2_token[index_old]]
+                vector[index_new] = 1
+             
+            compound_dict_vectors[r_id] = vector
+
+    
+#     print compound_tokendata.index_2_token        
+#     for i, r in enumerate(compound_list_of_records):
+#         print r.id, compound_dict_vectors[r.id]
+#     print "=" * 120
+    print "total number of records:", len(compound_list_of_records)
+    return compound_dict_vectors, compound_list_of_records, compound_tokendata
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

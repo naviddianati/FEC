@@ -536,7 +536,7 @@ class Disambiguator():
                 
                 # Export the result of this comparison to file.
                 if self.do_log_comparisons:
-                    if (verdict == 0 and result['n'] > 1):# and  result['e'] > 1 and result['o'] > 1):
+                    if (verdict == 0 and result['n'] > 1 and  result['e'] > 1 and result['o'] > 1):
                         print record1.toString()
                         print record2.toString()
                         print "="*120

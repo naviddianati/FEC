@@ -203,7 +203,7 @@ class Record(dict):
         
         # If either has no address, require firstname and last name to be identical and also middle name if both have it.
         # WHY DID I DO THIS?! MAKES NO SENSE!!!!!
-        #if not r1['N_address'] or not  r2['N_address']:
+        # if not r1['N_address'] or not  r2['N_address']:
         #    identical = (r1['N_last_name'] == r2['N_last_name']) \
         #                and (r1['N_first_name'] == r2['N_first_name']) \
         #                and ((r1['N_middle_name'] == r2['N_middle_name']) \
@@ -214,7 +214,7 @@ class Record(dict):
         # Both records MUST have addresses
         if not r1['N_address'] or not  r2['N_address']:
             identical = False
-            return identical,None
+            return identical, None
             
 
         
@@ -480,25 +480,25 @@ class Record(dict):
         ''' If states are different '''
         # All are the same
         if method_id is None:
-            return (c_e >= 2 or c_o >= 2) and (c_n ==3 )
+            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
         elif method_id == 1:
-            return (c_e >= 2 or c_o >= 2) and (c_n ==3 )
+            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
         elif method_id == 2:
-            return (c_e >= 2 or c_o >= 2) and (c_n ==3 )
+            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
         elif method_id == 4:
-            return (c_e >= 2 or c_o >= 2) and (c_n ==3 )
+            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
         elif method_id == 3:
-            return (c_e >= 2 or c_o >= 2) and (c_n ==3 )
+            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
         elif method_id == 4:
-            return (c_e >= 2 or c_o >= 2) and (c_n ==3 )
+            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
         elif method_id == 5:
-            return (c_e >= 2 or c_o >= 2) and (c_n ==3 )
+            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
         elif method_id == 6:
-            return (c_e >= 2 or c_o >= 2) and (c_n ==3 )
+            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
         elif method_id == 7:
-            return (c_e >= 2 or c_o >= 2) and (c_n ==3 )
+            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
         elif method_id == 8:
-            return (c_e >= 2 or c_o >= 2) and (c_n ==3 )
+            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
        
 
 
@@ -507,13 +507,13 @@ class Record(dict):
 
     def _compare_THOROUGH(self, r1, r2, method_id=None):
         '''
-        Returns an integer and a dictionary. One can use this function 
-        directly to get additional information about the nature of the 
+        Returns an integer and a dictionary. One can use this function
+        directly to get additional information about the nature of the
         relationship between the records. For instance, this function can
         return negative numbers to indicate irreconcilable difference.
 
         The "result" dictionary returns the details of the sub-comparisons,
-        namely, the return values of the name, occupation and employer 
+        namely, the return values of the name, occupation and employer
         comparison functions used to reach the verdict.
 
         result = {
@@ -524,9 +524,9 @@ class Record(dict):
                        3: exactly the same but not "bad_identifier"
                 'e':  # employer
                        0: they both exist but are unrelated
-                       1: at least one doesn't have the field, or there is no 
+                       1: at least one doesn't have the field, or there is no
                           affiliation graph that contains both.
-                       2: connected in the affiliations network or 
+                       2: connected in the affiliations network or
                           employer1/2 == occupation2/1 or otherwise so
                           close that they are considered the same.
                        3: exactly the same, but not 'bad_identifier'
@@ -534,7 +534,7 @@ class Record(dict):
                        0: names are not related
                        1: uncertain: at least one last name doesn't exist
                        2: names are similar, but we can't verify if they are
-                          variants or misspelling. Let verdict functions decide. 
+                          variants or misspelling. Let verdict functions decide.
                           (useful when addresses are exactly identical)
                        3: names are identical
                 'a':  # address
@@ -551,9 +551,9 @@ class Record(dict):
 
 
         TODO:
-        1- (DONE) full middlenames and middlename initials aren't 
+        1- (DONE) full middlenames and middlename initials aren't
             matched correctly
-        2- (DONE) CITY misspellings aren't detected. Pay attention to 
+        2- (DONE) CITY misspellings aren't detected. Pay attention to
             zipcode in this case. Maybe if zipcodes are the same, treat
             as if cities are the same.
         3- When city and zipcode are slightly different but affiliations
@@ -597,12 +597,12 @@ class Record(dict):
     
         
         if r1['STATE'] == r2['STATE']:
-            result['s'] = 1
+            result['s'] = (1, None)
             
             # If cities are the same or if zipcodes are the same
             # if zipcodes are the same, then treat as if cities are the same
             if r1['CITY'] == r2['CITY'] or self.compare_zipcodes(r1, r2) == 2:
-                result['c'] = 1
+                result['c'] = (1, None)
             
                 # If both have addresses
                 if r1['N_address'] and r2['N_address']:
@@ -610,11 +610,11 @@ class Record(dict):
                     # If addresses are the same
                     # TODO: need finer comparison of addresses
                     if r1['N_address'] == r2['N_address']:
-                        result['a'] = 1
+                        result['a'] = (1, None)
                         c_n = self.compare_names(r1, r2)
                         result['n'] = c_n
                         # TODO: if states are the same and addresses are the same
-                        return (c_n >= 2), result
+                        return (c_n[0] >= 2), result
                     
                     # If addresses aren't the same
                     else:
@@ -623,9 +623,9 @@ class Record(dict):
                         (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
                                             self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
                         result['e'], result['o'], result['n'] = c_e, c_o, c_n
-                        result['a'] = 0
+                        result['a'] = (0, None)
                         # Return Record.LARGE_NEGATIVE if middle names are different
-                        if c_n < 0: return Record.LARGE_NEGATIVE, result
+                        if c_n[0] < 0: return Record.LARGE_NEGATIVE, result
 
                         # What if zipcodes are different?
                         if c_z:
@@ -644,10 +644,10 @@ class Record(dict):
                                             self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
                     result['e'], result['o'], result['n'] = c_e, c_o, c_n
                     # Return Record.LARGE_NEGATIVE if middle names are different
-                    if c_n < 0: return Record.LARGE_NEGATIVE, result
+                    if c_n[0] < 0: return Record.LARGE_NEGATIVE, result
                     
                     # if zip codes are the same, then relax the affiliation condition a bit
-                    if c_z == 2:
+                    if c_z[0] == 2:
                         return self._verdict_addressNA_zipY(c_n, c_e, c_o, method_id=method_id), result
                     else:
                         # If at least one doesn't have an address and zipcodes are different
@@ -659,13 +659,13 @@ class Record(dict):
                 # if cities are different
                 # Accept if affiliations are clearly connected and names are exactly the same
                 # TODO: check for timeline consistency
-                result['c'], result['a'] = 0, 0
+                result['c'], result['a'] = (0, None), (0, None)
                 (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
                                             self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
                 
                 result['e'], result['o'], result['n'] = c_e, c_o, c_n
                 # Return LARGE_NEGATIVE if middle names are different
-                if c_n < 0: return Record.LARGE_NEGATIVE, result
+                if c_n[0] < 0: return Record.LARGE_NEGATIVE, result
                 return self._verdict_cityN(c_n, c_e, c_o, method_id=method_id), result
                 
 
@@ -679,13 +679,13 @@ class Record(dict):
             # 4- Name token frequency should be taken into account. 
             # 5- Check for timeline consistency: Requires the Person objects
             
-            result['s'], result['c'], result['a'] = 0, 0, 0
+            result['s'], result['c'], result['a'] = (0, None), (0, None), (0, None)
             (c_e, c_o, c_n, c_z) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
                                     self.compare_names(r1, r2), self.compare_zipcodes(r1, r2)
             result['e'], result['o'], result['n'] = c_e, c_o, c_n
             
             # Return LARGE_NEGATIVE if middle names are different
-            if c_n < 0: return Record.LARGE_NEGATIVE, result
+            if c_n[0] < 0: return Record.LARGE_NEGATIVE, result
             
             # Actually, we will relax the conditions at this point. Cross-state consistency will be resolved on the Person level.
             return self._verdict_stateN(c_n, c_e, c_o, method_id=method_id), result
@@ -704,11 +704,11 @@ class Record(dict):
         
         if not r1['ZIP_CODE'] or not r2["ZIP_CODE"]:
             if Record.debug: print "One ZIP_CODE doesn't exist"
-            return 1
+            return (1, None)
         if r1['ZIP_CODE'][:5] == r2["ZIP_CODE"][:5]:
-            return 2
+            return (2, None)
         else:
-            return 0
+            return (0, None)
              
     
     
@@ -724,22 +724,22 @@ class Record(dict):
             occupation1 = r1['OCCUPATION']
         except KeyError:
             if Record.debug: print "no occupation field found"
-            return 1
+            return (1, None)
         
         try:
             occupation2 = r2['OCCUPATION']
         except KeyError:
             if Record.debug: print "no occupation field found"
-            return 1
+            return (1, None)
         
 #         print occupation1, occupation2
         
         if bad_identifier(occupation1, type="occupation") or bad_identifier(occupation2, type="occupation"):
-            return 1
+            return (1, None)
         
         if occupation1 == occupation2:
             if Record.debug: print "occupations are the same" 
-            return 3
+            return (3, None)
         else:
             found_both = False
             for G_occupation in self.list_G_occupation:
@@ -752,11 +752,14 @@ class Record(dict):
                     continue
                 
                 
-                # Check if the occupation identifiers are adjacent in the affiliations graph
-                if G_occupation.get_eid(ind1, ind2, directed=False, error=False) != -1:
+                # Check if the employer identifiers are adjacent in the affiliations graph
+                e_id = G_occupation.get_eid(ind1, ind2, directed=False, error=False)
+                if e_id != -1:
+                    significance = G_occupation.es[e_id]['significance']                     
+                    # They are adjacent in at least one affiliation graph
                     if Record.debug: print "-------------", occupation1, occupation2
-                    return 2
-              
+                    if Record.debug: print "ADJACENT"
+                    return (2, significance)
             
             
             # Either there was no graph that contained both
@@ -764,20 +767,20 @@ class Record(dict):
             
             # If case 1
             if not found_both:
-                return 1
+                return (1, None)
             
             
             # Not adjacent. Check if strings are close
             if editdist.distance(occupation1, occupation2) < max(len(occupation1), len(occupation2)) * Record.occupation_str_tolerance:
                 # Strings are close enough even though not linked on the affiliation graph
-                return 2
+                return (2, None)
             # Check if one's employer is mistakenly reported as its occupation
             elif occupation1 == r2['EMPLOYER'] or occupation2 == r1['EMPLOYER']:
-                return 2
+                return (2, None)
             else:
                 # String distances not close enough
                 if Record.debug: print "occupations are different and not adjacent"
-                return 0
+                return (0, None)
         
       
                 
@@ -790,7 +793,7 @@ class Record(dict):
         Returns a number:
         0: they both exist but are unrelated
         1: at least one doesn't have the field, or there is no affiliation graph that contains both
-        2: connected in the affiliations network or employer1/2 == occupation2/1 or 
+        2: connected in the affiliations network or employer1/2 == occupation2/1 or
             otherwise so close that they are considered the same.
         3: exactly the same, but not "bad_identifier"
         '''
@@ -798,19 +801,19 @@ class Record(dict):
             employer1 = r1['EMPLOYER']
         except KeyError:
             if Record.debug: print "no employer field found"
-            return 1
+            return (1, None)
         
         try:
             employer2 = r2['EMPLOYER']
         except KeyError:
             if Record.debug: print "no employer field found"
-            return 1
+            return (1, None)
         
         
 #         print employer1,employer2
         
         if bad_identifier(employer1, type="employer") or bad_identifier(employer2, type="employer"):
-            return 1
+            return (1, None)
 
 
 
@@ -819,7 +822,7 @@ class Record(dict):
         
         if employer1 == employer2:
             if Record.debug: print "employers are the same"
-            return 3
+            return (3, None)
         else:
             found_both = False
             
@@ -834,12 +837,13 @@ class Record(dict):
                     continue
                 
                 # Check if the employer identifiers are adjacent in the affiliations graph
-                if G_employer.get_eid(ind1, ind2, directed=False, error=False) != -1:
-                    
+                e_id = G_employer.get_eid(ind1, ind2, directed=False, error=False)
+                if e_id != -1:
+                    significance = G_employer.es[e_id]['significance']                     
                     # They are adjacent in at least one affiliation graph
                     if Record.debug: print "-------------", employer1, employer2
                     if Record.debug: print "ADJACENT"
-                    return 2
+                    return (2, significance)
                     
                
             # Either there was no graph that contained both
@@ -847,20 +851,20 @@ class Record(dict):
             
             # If case 1
             if not found_both:
-                return 1
+                return (1, None)
         
             # Not adjacent. Check if strings are close
             if editdist.distance(employer1, employer2) < max(len(employer1), len(employer2)) * Record.employer_str_tolerance:
                 # Strings are close enough even though not linked on the affiliation graph
-                return 2
+                return (2, None)
             
             # Check if one's employer is mistakenly reported as its occupation
             elif employer1 == r2['OCCUPATION'] or employer2 == r1['OCCUPATION']:
-                return 2
+                return (2, None)
             else:                
                 # String distances not close enough
                 if Record.debug: print "employers are not adjacent in graph, and strings aren't close."
-                return 0
+                return (0, None)
             
             
             
@@ -876,15 +880,15 @@ class Record(dict):
         1: uncertain: at least one last name doesn't exist
         2: names are similar, but we can't verify if they are variants or misspelling. Let verdict functions decide. (useful when addresses are exactly identical)
         3: names are identical
-        
-        NOTE: you can't ever treat the output as a boolean in if statements: if (-1000) is True, if(0) is False. 
+
+        NOTE: you can't ever treat the output as a boolean in if statements: if (-1000) is True, if(0) is False.
         '''
-        identical = 3
+        identical = (3, None)
         # if both have middlenames, they should be the same
         if r1['N_middle_name'] and r2['N_middle_name']:
             if r1['N_middle_name'][0] != r2['N_middle_name'][0]: 
                 if Record.debug: print "middle names are different"
-                identical = Record.LARGE_NEGATIVE
+                identical = (Record.LARGE_NEGATIVE, None)
                 return identical
         
 #         # if 1 doesn't have a middle name but 2 does, then 2 is not the "parent" of 1
@@ -897,7 +901,7 @@ class Record(dict):
         if not r1['N_last_name'] or not r2['N_last_name']: 
             if Record.debug:
                 print "one of the last names doesn't exist"
-            identical = 1 
+            identical = (1, None) 
             return identical      
         
         # Compute edit distance of last names
@@ -912,18 +916,18 @@ class Record(dict):
             
             if f1 <= TokenData.RARE_FREQUENCY or f2 <= TokenData.RARE_FREQUENCY:
                 # They are very similar and at least one is rare. Must be misspelling. Accept
-                identical = 3
+                identical = (3, None)
             else:
                 # Don't reject out of hand. Simply report that they are different byt not too different.
                 # Useful when records are otherwise very similar, e.g., have identical addresses. 
-                identical = 2
-                #return identical
+                identical = (2, None)
+                # return identical
 
         
         # Both have last names and they are too different. Reject
         else:
             if  distance >= 3:
-                identical = False
+                identical = (0, None)
                 return identical
 
         # if first names don't overlap, then check if they are variants. If not, fail
@@ -961,14 +965,14 @@ class Record(dict):
                 if Record.debug: 
                     print "first names ARE variants of each other"
                     print "VARIANTS:    ", firstname1, "-------------", firstname2
-                identical = 3
+                identical = (3, None)
             else:
                 # If first names are different and neither is a variant of the other
                 if Record.debug: print "first names aren't variants of each other"
                 
                 # If neither one is a misspelling, reject
                 if firstname1  in self.tokendata.set_all_names and firstname2  in self.tokendata.set_all_names:
-                    identical = False
+                    identical = (0, None)
                     return identical
                 else:
                     # if at least one seems to be misspelled, (doesn't exists in list of all names)
@@ -977,13 +981,15 @@ class Record(dict):
                     if len(firstname1) == 1 or len(firstname2) == 1:
                         try:
                             if firstname1[0] == firstname2[0]:
-                                identical = 2
+                                identical = (2, None)
                             else:
-                                identical = False
+                                identical = (0, None)
                                 return  identical
                         except IndexError:
                             # If one first name is empty
-                            identical *= 1    
+#                             identical *= 1
+                            pass # equivalent?
+    
                         
                     # check edit distances.
                     # If the two names are different by only one edit and at least one of them is too rare, then we 
@@ -996,11 +1002,12 @@ class Record(dict):
                         
                         # Accept if one of the names is very rare
                         if f1 <= TokenData.RARE_FREQUENCY or f2 <= TokenData.RARE_FREQUENCY:
-                            identical *= 1
+#                             identical *= 1
+                            pass # equivalent?
                         else:
-                            identical = 2
+                            identical = (2, None)
                             # print "EQUIVALENT:    ", firstname1, "-------------", firstname2
-                    else: identical = False
+                    else: identical = (0, None)
                         
 
         return identical
@@ -1025,23 +1032,25 @@ class Record(dict):
         
                     
     def updateTokenData(self, newtokendata):
-        ''' 
+        '''
+        TODO: records no longer hold their own vectors. So the vectors
+        will have to be updated separately.
+        
         newtokendata is a TokenData object and is assumed to be
-        a superset of self.tokendata. That is, every token or 
+        a superset of self.tokendata. That is, every token or
         normalized token that exists in self.tokendata, also exists
         in newtokendata, but perhaps together with some additional
         tokens, and with different indexing. The main task here is
-        to recompute the record's vector using the indexes of the 
+        to recompute the record's vector using the indexes of the
         newtokendata. Then, self.tokendata is replaced with newtokendata.'''
-        vector = {}
         
-        
-        # translate self.vector
-        for index_old in self.vector:
-            index_new = newtokendata.token_2_index[self.tokendata.index_2_token[index_old]]
-            vector[index_new] = 1
-        
-        self.vector = vector
+#         vector = {}
+#         # translate self.vector
+#         for index_old in self.vector:
+#             index_new = newtokendata.token_2_index[self.tokendata.index_2_token[index_old]]
+#             vector[index_new] = 1
+#         
+#         self.vector = vector
         self.tokendata = newtokendata
         
                     

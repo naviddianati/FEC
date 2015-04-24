@@ -128,27 +128,26 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
 
 
 
-def tokenize_records(list_of_records, project):
+def tokenize_records(list_of_records, project, TokenizerClass):
     '''
-    Return a TokenDadta object for list_of_records, and
-    update each record in list_of_records by adding to it
-    a vector attribute and associating the TokenData instance
-    to the record.
-    If a file containing the pickled TokenData instance already
-    exists, load it.
-    Also, make sure that the vectors are available in a file
-    for later use.
-    If either file doesn't exist, start a new Tokenizer and
-    compute and export both.
-    At the end of this function, both the tokendata and the
-    vectors will exist in pickled format in files.
+    Return a TokenDadta object for list_of_records, and update each 
+    record in list_of_records by adding to it a vector attribute and 
+    associating the TokenData instance to the record. If a file 
+    containing the pickled TokenData instance already exists, load it.
+    Also, make sure that the vectors are available in a file for later
+    use. If either file doesn't exist, start a new Tokenizer and
+    compute and export both. At the end of this function, both the 
+    tokendata and the vectors will exist in pickled format in files.
+    
+    @param TokenizerClass: The Tokenizer class used. It can be 
+        TokenizerNgram, Tokenizer, etc.
     '''
     tokendata_file = config.tokendata_file_template % (project['state'])
     vectors_file = config.vectors_file_template % (project['state'])
     
     
     try:
-        tokenizer = TokenizerNgram()
+        tokenizer = TokenizerClass()
         project.tokenizer = tokenizer
         tokenizer.project = project
         tokenizer.setRecords(list_of_records)
@@ -165,7 +164,7 @@ def tokenize_records(list_of_records, project):
     except Exception as e:
         print str(e)
                 
-        tokenizer = TokenizerNgram()
+        tokenizer = TokenizerClass()
         project.tokenizer = tokenizer
         tokenizer.project = project
         tokenizer.setRecords(list_of_records)
@@ -182,6 +181,84 @@ def tokenize_records(list_of_records, project):
     return tokenizer.tokens, list_of_records
         
 
+
+def compute_uniform_hashes_all_states( record_limit=(0, 5000000), whereclause='', num_procs=3):
+    '''
+    For all states, compute LSH hashes from the same set of
+    probe vectors. Use coarse feature vectors for this purpose.
+    That is, take words as tokens not unigrams and bigrams. The
+    goal is to be able to quickly and easily detect identical names,
+    employers, etc. across different states.  
+    '''
+    
+    pass
+
+
+
+def tokenize_all_states_uniform( record_limit=(0, 20000000)):
+    '''
+    Worker function that can compute the tokens and coarse feature vectors
+    for a given state. Can be used as a child process worker by a parent
+    process for parallel processing.
+    '''
+    batch_id = get_next_batch_id()
+    project = Project.Project(batch_id=batch_id)
+    
+    project.putData('state' , 'USA')
+
+
+    
+    record_start,record_no = record_limit   
+
+    project.putData('batch_id' , batch_id)
+    
+    list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+    project.putData("list_tokenized_fields", list_tokenized_fields)
+    
+    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
+    project.putData("list_auxiliary_fields", list_auxiliary_fields)
+    
+    all_fields = list_tokenized_fields + list_auxiliary_fields 
+    project.putData('all_fields' , all_fields)
+    
+    # dictionaries indicating the index numbers associated with all fields
+    index_2_field = { all_fields.index(s):s for s in all_fields}
+    project.putData("index_2_field", index_2_field)
+    
+    field_2_index = { s:all_fields.index(s) for s in all_fields}
+    project.putData("field_2_index", field_2_index)
+    
+    whereclause = " WHERE ENTITY_TP='IND' "
+    
+    list_of_records = []
+    
+    
+    for param_state in get_states_sorted():
+        table_name = param_state + "_combined"
+        retriever = FecRetriever(table_name=table_name,
+                          query_fields=all_fields,
+                          limit=(record_start, record_no),
+                          list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE", "CMTE_ID"],
+                          where_clause=whereclause)
+        retriever.retrieve()
+    #     project.putData("query", retriever.getQuery())
+        print "number of records for state ", param_state,": ", len(retriever.list_of_records)
+        
+        list_of_records += retriever.getRecords()
+        
+    # Make sure tokens and feature vectors are generated and save to file.    
+    TokenizerClass = Tokenizer
+    tokenizer = TokenizerClass()
+    project.tokenizer = tokenizer
+    tokenizer.project = project
+    tokenizer.setRecords(list_of_records)
+    tokenizer.setTokenizedFields(project['list_tokenized_fields'])
+    
+        
+    print "Tokenizing records..."
+    tokenizer.tokenize(num_procs = 2)
+    quit()
+    
 
 
 
@@ -296,7 +373,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     
 
     
-    tokendata, list_of_records = tokenize_records(list_of_records, project)
+    tokendata, list_of_records = tokenize_records(list_of_records, project, TokenizerNgram)
     
     ''' HERE WE DON'T LOAD AFFILIATION DATA BECAUSE THAT'S WHAT WE WANT TO PRODUCE! '''
 
@@ -484,7 +561,7 @@ def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000
 #     # Same as above, except each list(2) consists of the auxiliary columns of the record returned by MySQL.
 #     list_of_records_auxiliary = [[record[index] for index in index_auxiliary_fields] for record in tmp_list]  
     
-    tokendata = tokenize_records(list_of_records, project)
+    tokendata = tokenize_records(list_of_records, project, TokenizerNgram)
     
     
 
@@ -667,7 +744,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     # Get tokendata and make sure vectors are exported to file.
-    tokendata, list_of_records = tokenize_records(list_of_records, project)
+    tokendata, list_of_records = tokenize_records(list_of_records, project, TokenizerNgram)
     
 
 
@@ -1170,12 +1247,13 @@ if __name__ == "__main__":
 #     generateAffiliationData('massachusetts', affiliation=None, record_limit=(0, 5000000))
 #     quit()
     
-
+    tokenize_all_states_uniform()    
+    quit()
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     project = disambiguate_main('delaware',
                        record_limit=(0, 5000000),
-
+                       
                        logstats=False,
                        # whereclause=" WHERE NAME LIKE '%COHEN%' ",
                        # whereclause=" WHERE NAME like '%AARONS%' ",
