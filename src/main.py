@@ -49,7 +49,7 @@ from core import Project
 from core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUndirected
 from core.Database import FecRetriever
 import core.Disambiguator as Disambiguator
-from core.Tokenizer import Tokenizer, TokenizerNgram
+from core.Tokenizer import Tokenizer, TokenizerNgram, TokenData
 import core.config as config
 from core.states import *
 from core.utils import *
@@ -194,9 +194,87 @@ def compute_uniform_hashes_all_states( record_limit=(0, 5000000), whereclause=''
     pass
 
 
+def combine_state_tokens():
+    '''
+    Read all tokendata objects for different states and combine them.
+    Then read every state feature vector file and update it according
+    to the compound tokendata, and write all of them to a file.
+    '''
+    def update_vectors(dict_vectors,compoundtokendata, old_tokendata):
+        '''
+        for every r_id: r_vector pair in dict_vectors, update translate the vector
+        from old_tokendata to compoundtokendata.
+        '''
+        compound_dict_vectors = {}
+        for r_id, old_vector in dict_vectors.iteritems():
+            vector = {}
+            # translate self.vector
+            for index_old in old_vector:
+                index_new = compoundtokendata.token_2_index[old_tokendata.index_2_token[index_old]]
+                vector[index_new] = 1
+            compound_dict_vectors[r_id] = vector
+        return compound_dict_vectors
+    
+    filelabel = "USA"
+    
+    # list of tokendata objects
+    list_tokendata = []
+    print " combining tokendata objects..."
+    for param_state in get_states_sorted():
+        print "processing state: ", param_state
+        file_tokens = config.tokendata_file_template % param_state
+        f = open(file_tokens)
+        list_tokendata.append(cPickle.load(f))
+    compoundtokendata = TokenData.getCompoundTokenData(list_tokendata)
+    del list_tokendata[:]
+    print "Done combining state tokendata objects."
+    
+    
+    # Save compound tokendata to file
+    file_tokens = config.tokendata_file_template % filelabel
+    f = open(file_tokens,'w')
+    cPickle.dump(compoundtokendata,f)
+    f.close()
+    
+    
+    
+    # Load feature vector files for all states one at a time and
+    # update the vectors.
+    dict_vectors_all = {}
+    print "Updating feature vectors..."
+    for param_state in get_states_sorted():
+        print "processing state: ", param_state
+        file_vectors = config.vectors_file_template % param_state
+        f = open(file_vectors)
+        dict_vectors = cPickle.load(f)
+        f.close()
+        
+        file_tokens = config.tokendata_file_template % param_state
+        f = open(file_tokens)
+        old_tokendata = cPickle.load(f)
+        f.close()
+        
+        dict_vectors = update_vectors(dict_vectors,compoundtokendata, old_tokendata)
+        dict_vectors_all.update(dict_vectors)
+    print "Done updating feature vectors."
+        
+    # Export computed vectors to file
+    vectors_file = config.vectors_file_template % filelabel
+    try:
+        f = open(vectors_file,'w')
+        cPickle.dump(dict_vectors_all,f)
+        f.close()
+    except:
+        os.remove(vectors_file)
+        raise
 
+        
+        
+    
 def tokenize_all_states_uniform( record_limit=(0, 20000000)):
     '''
+    BASICALLY USELESS, because tokenizing all states together comsumes
+    way too much memory and it's multiprocessing's fauls I think.
     Worker function that can compute the tokens and coarse feature vectors
     for a given state. Can be used as a child process worker by a parent
     process for parallel processing.
@@ -1248,8 +1326,11 @@ if __name__ == "__main__":
 #     generateAffiliationData('massachusetts', affiliation=None, record_limit=(0, 5000000))
 #     quit()
     
-    tokenize_all_states_uniform()    
+    combine_state_tokens()
     quit()
+    
+#     tokenize_all_states_uniform()    
+#     quit()
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     project = disambiguate_main('delaware',
