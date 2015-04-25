@@ -233,7 +233,7 @@ def tokenize_all_states_uniform( record_limit=(0, 20000000)):
     list_of_records = []
     
     
-    for param_state in get_states_sorted():
+    for param_state in get_states_sorted()[:1]:
         table_name = param_state + "_combined"
         retriever = FecRetriever(table_name=table_name,
                           query_fields=all_fields,
@@ -245,6 +245,7 @@ def tokenize_all_states_uniform( record_limit=(0, 20000000)):
         print "number of records for state ", param_state,": ", len(retriever.list_of_records)
         
         list_of_records += retriever.getRecords()
+        retriever = None
         
     # Make sure tokens and feature vectors are generated and save to file.    
     TokenizerClass = Tokenizer
@@ -256,7 +257,7 @@ def tokenize_all_states_uniform( record_limit=(0, 20000000)):
     
         
     print "Tokenizing records..."
-    tokenizer.tokenize(num_procs = 2)
+    tokenizer.tokenize(num_procs = 12)
     quit()
     
 

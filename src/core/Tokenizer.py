@@ -491,8 +491,11 @@ class Tokenizer():
         post processing.
         '''
         from utils import  chunks_replace
+        print "splitting list of records..."
         list_of_list_records = chunks_replace(self.list_of_records, num_procs)
-        
+        print "done splitting list of records..."
+
+        print "calling tokenizer_multiple_lists_of_records..."        
         self.dict_vectors, self.list_of_records, self.tokens = tokenize_multiple_lists_of_records(list_of_list_records, self.__class__ , self.project)
         
         
@@ -520,9 +523,16 @@ class Tokenizer():
             normalized_attributes_file = config.normalized_attributes_file_template % (self.project['state'])
             try:
                 f = open(normalized_attributes_file,'w')
-                dict_normalized_attributes = {r.id:
-                                                {attr:r[attr] for attr in self.normalized_attrs} 
-                                                for r in self.list_of_records}
+                dict_normalized_attributes = {}
+                for r in self.list_of_records:
+                    dict_normalized_attributes[r.id] = {}
+                    for attr in self.normalized_attrs:
+                        try:
+                            dict_normalized_attributes[r.id][attr] = r[attr]
+                        except KeyError:
+                            dict_normalized_attributes[r.id][attr] = None
+
+
                 cPickle.dump(dict_normalized_attributes,f)
                 f.close()
             except:
@@ -898,6 +908,9 @@ def worker_tokenizer_list_of_records(data):
     instance and tokenizes the records. Then it returns the dict_of_vectors to
     be combined with other similar objects from other workers.
     '''
+    
+    time.sleep(20)
+    return
     list_of_records, fields, TokenizerClass = data
     print "--------", TokenizerClass
     
@@ -931,17 +944,29 @@ def tokenize_multiple_lists_of_records(list_of_list_records, TokenizerClass, pro
         list_of_records where list_of_records is that of the original tokenizer that
         calls this method in order to tokenize with multiple processes.
     '''
+    import gc
     num_procs = len(list_of_list_records)
     list_data = []
-    
+    manager = multiprocessing.Manager() 
 #     for item in list_of_list_records:
 #         print [r.id for r in item]
 #         
+
+
 #     print "=" * 120
 
+    myrecord =  list_of_list_records[0][0]
+    print "preparing data packages for child processes..."
     for i in range(len(list_of_list_records)):
+        print "---- data for process ", i
+        #list_data.append((manager.list(list_of_list_records[0]), project['list_tokenized_fields'] ,TokenizerClass))
         list_data.append((list_of_list_records[0], project['list_tokenized_fields'] ,TokenizerClass))
+        #del list_of_list_records[0][:]
         del list_of_list_records[0]
+
+    
+    
+    print "starting the pool..."
     pool = multiprocessing.Pool(processes = num_procs)
     result = pool.map(worker_tokenizer_list_of_records, list_data)
     
@@ -958,7 +983,9 @@ def tokenize_multiple_lists_of_records(list_of_list_records, TokenizerClass, pro
     # list_of_record from list_of_list_records.
     for i in range(len(list_of_list_records)):       
         compound_list_of_records += list_of_list_records[0]
+        del list_of_list_records[0][:]
         del list_of_list_records[0]
+        
     
     #update vectors
     for chunk_id, dict_vectors in enumerate(list_dict_vectors):
