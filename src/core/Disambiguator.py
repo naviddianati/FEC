@@ -689,9 +689,10 @@ class Disambiguator():
         self.hash_dim = hash_dim
         
         # Number of vectors
-        N = len(self.list_of_records)
+        N = len(self.dict_vectors)
         
-        LSH_hash = ['' for i in range(N)]
+#         LSH_hash = ['' for i in range(N)]
+        self.dict_hashes = {r_id:'' for r_id in self.dict_vectors}
         
         # generate hash_dim random probe vectors and compute 
         # their inner products with each of the input vectors.
@@ -703,13 +704,12 @@ class Disambiguator():
             # convert to sparse form
             vec = sparse_vector(vec_tmp)
             vec_n = vec_norm(vec)
-            for i,record in enumerate(self.list_of_records):
-                v = self.list_of_vectors[i]
+            for r_id, v  in self.dict_vectors.iteritems():
                 c = '1' if inner_product(v, vec) > 0 else '0'
     #             c = 1 if inner_product(v, vec) / vec_n / vec_norm(v) > 0.0001 else 0
-                LSH_hash[i] += c
+                self.dict_hashes[r_id] += c
 #         return LSH_hash
-        self.LSH_hash = LSH_hash
+#         self.LSH_hash = LSH_hash
     
     def __compute_LSH_hash_multi_proc(self, hash_dim, num_procs):
         ''' Input:
@@ -738,16 +738,11 @@ class Disambiguator():
         # Pool of workers
         pool = Pool(processes = num_procs)
         
-        list_feature_vecs = [copy.copy(r.vector) for r in self.list_of_records]
-        #list_feature_vecs = [r.vector for r in self.list_of_records]
-        '''list_data1 = [{'id': i,
-                      'vecs':  chunkit_padded(list_feature_vecs, i, num_procs, overlap=0),
-                      'hash_dim':self.hash_dim + 0,
-                      'probe_vectors':list_probe_vectors} for i in range(num_procs)]
-        '''
+        # A list containig chunks of the self.dict_vectors dictionary
+        list_of_dict_vector_chunks = chunk_dict(self.dict_vectors,num_procs)
         
         list_data2 = [[{'id': i,
-                      'vecs':  chunkit_padded(list_feature_vecs, i, num_procs, overlap=0),
+                      'vecs':  list_of_dict_vector_chunks[i],
                       'hash_dim':self.hash_dim + 0}
                       ,list_probe_vectors] for i in range(num_procs)]
         
@@ -780,14 +775,12 @@ class Disambiguator():
         # Sort results by process id
         results.sort(key = lambda x: x[0])
 
-        self.LSH_hash = []
+        self.dict_hashes = {}
         # Concatenate the blocks of hashes computed by child workers
-        for id,hashes in results:     
-            print hashes[0]
-            self.LSH_hash += hashes
+        for id,dict_hashes in results:     
+            self.dict_hashes.update(dict_hashes)
     
-        print "Number of LSH hashes: %d" % len(self.LSH_hash)
-        print "Length of list_of_records: %d" % len(self.list_of_records)
+        print "Number of LSH hashes: %d" % len(self.dict_hashes)
 
     
 
@@ -804,6 +797,9 @@ class Disambiguator():
             if len(hash) != self.hash_dim:
                 raise Exception('Hashes found in file have different dimension than specified hash_dim. Recomputing hashes.')
             break
+        
+        if not self.list_of_records:
+            raise Exception("Error: in order to load self.LSH_hash properly, you must specify self.list_of_records first.")
         self.LSH_hash = [dict_hashes[r.id] for r in self.list_of_records]
     
     
@@ -813,14 +809,29 @@ class Disambiguator():
         '''
         vectors_file = config.vectors_file_template % self.project['state']
         f = open(vectors_file)
-        dict_vectors = cPickle.load(f)
+        self.dict_vectors = cPickle.load(f)
         f.close()
-        self.list_of_vectors = [dict_vectors[r.id] for r in self.list_of_records]
+#         self.list_of_vectors = [dict_vectors[r.id] for r in self.list_of_records]
         
     
+
+    def compute_hashes(self, hash_dim, num_procs):
+        '''
+        Load record vectors from file and compute self.dict_hashes and
+        save this dictionary to file.
+        '''
+        self.__load_record_vectors_from_file()
+        if num_procs == 1:
+            self.__compute_LSH_hash_single_proc(hash_dim)
+        if num_procs > 1:
+            self.__compute_LSH_hash_multi_proc(hash_dim, num_procs)
+        self.__save_LSH_hash()
+        
+        
+
     def get_LSH_hash(self, hash_dim, num_procs = 1):
         '''
-        Compute hashes. If they already exist in a file, load it.
+        Load hashes. If they already exist in a file, load it.
         Otherwise, load record vectors from file and compute the
         hashes from them. If that fails, then raise.
         '''
@@ -837,13 +848,8 @@ class Disambiguator():
             try:
                 # Otherwise, load the record vectors from file
                 # and compute the hashes from the vectors
-                self.__load_record_vectors_from_file()
-                
-                if num_procs == 1:
-                    self.__compute_LSH_hash_single_proc(hash_dim)
-                if num_procs > 1:
-                    self.__compute_LSH_hash_multi_proc(hash_dim, num_procs)
-                self.__save_LSH_hash()
+                self.compute_hashes(hash_dim, num_procs)
+                self.get_LSH_hash(hash_dim, num_procs)
             except:
                 print "ERROR: unable load record vectors from file and compute LSH hashes."
                 raise
@@ -858,8 +864,8 @@ class Disambiguator():
         '''
         hash_file = config.hashes_file_template % self.project['state']
         f = open(hash_file, 'w')
-        dict_hashes = {r.id: self.LSH_hash[i] for i,r in enumerate(self.list_of_records)}
-        cPickle.dump(dict_hashes,f)
+#         self.dict_hashes = {r.id: self.LSH_hash[i] for i,r in enumerate(self.list_of_records)}
+        cPickle.dump(self.dict_hashes,f)
         f.close()
 
 
@@ -1547,11 +1553,25 @@ def argsort_list_of_dicts(seq, orderby):
 
 
 
-
+def chunk_dict(dictionary,num_chunks):
+    '''
+    Split the dictionary into num_chunks roughly equal sub-dictionaries
+    and return a list containing these sub-dictionaries.
+    '''
+    list_dicts = [{} for i in range(num_chunks)]
+    counter = 0
+    for key,value in dictionary.iteritems():
+        list_dicts[counter % num_chunks][key] = value
+        counter += 1
+    return list_dicts
+        
 
 
 
 if __name__=="__main__":
+    d = {i:i for i in range(30)}
+    print chunk_dict(d,4)
+    quit()
     
     num_chunks = 12
     set_items = set()

@@ -182,7 +182,7 @@ def tokenize_records(list_of_records, project, TokenizerClass):
         
 
 
-def compute_uniform_hashes_all_states( record_limit=(0, 5000000), whereclause='', num_procs=3):
+def compute_uniform_hashes_all_states( num_procs = 1):
     '''
     For all states, compute LSH hashes from the same set of
     probe vectors. Use coarse feature vectors for this purpose.
@@ -190,7 +190,43 @@ def compute_uniform_hashes_all_states( record_limit=(0, 5000000), whereclause=''
     goal is to be able to quickly and easily detect identical names,
     employers, etc. across different states.  
     '''
+    batch_id = get_next_batch_id()
+    project = Project.Project(batch_id=batch_id)
+    project.putData('state' , 'USA')
     
+    filelabel = "USA"
+    file_tokens = config.tokendata_file_template % filelabel
+    f = open(file_tokens)
+    tokendata = cPickle.load(f)
+    f.close()
+    
+    ''' HERE WE DON'T LOAD AFFILIATION DATA BECAUSE THAT'S WHAT WE WANT TO PRODUCE! '''
+
+    
+    # Unnecessary
+#     project.list_of_records = list_of_records
+    
+    # dimension of input vectors
+    dim = tokendata.no_of_tokens
+
+    D = Disambiguator.Disambiguator(list_of_records = [], dim, matching_mode="strict_address", num_procs=num_procs)
+    project.D = D
+    D.project = project
+    
+    
+    # desired dimension (length) of hashes
+    hash_dim = 20
+    project.putData('hash_dim' , str(hash_dim))
+
+    # In D, how many neighbors to examine?
+    B = 40
+        
+    print 'Generating the LSH hashes'
+    
+    # compute the hashes
+    D.compute_hashes(hash_dim, num_procs)
+    
+    print "Done computing hashes."
     pass
 
 

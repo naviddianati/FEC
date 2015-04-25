@@ -19,18 +19,17 @@ def get_hashes(data):
     '''
 
 
-    vecs = data[0]['vecs']
+    dict_vectors = data[0]['vecs']
     hash_dim = data[0]['hash_dim']
     probe_vectors = data[1]
     pid = data[0]['id']
     print "Generating hashes in process %d" % pid
     # Number of records being processed by this worker    
-    n = len(vecs)
+    n = len(dict_vectors)
 
-    LSH_hash = ['' for i in xrange(n)]
-
+#     LSH_hash = ['' for i in xrange(n)]
+    dict_hashes = {r_id:'' for r_id in dict_vectors}
     print "length of probe_vectors:", len(probe_vectors)
-    print probe_vectors[:4]
 
     for k in range(hash_dim):
         # random "probe" vector 
@@ -40,10 +39,10 @@ def get_hashes(data):
         vec = sparse_vector(vec_tmp)
         vec_n = vec_norm(vec)
         #for record, i in zip(self.list_of_records, range(N)):
-        for i, v in enumerate(vecs):
+        for r_id, v in dict_vectors.iteritems():
             c = '1' if inner_product(v, vec) > 0 else '0'
-            LSH_hash[i] += c
-    return (pid,LSH_hash)
+            dict_hashes[r_id] += c
+    return (pid,dict_hashes)
 
 
 if __name__ == "__main__":
