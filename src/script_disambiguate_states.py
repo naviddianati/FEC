@@ -28,24 +28,8 @@ def worker(conn):
                 print "ERROR: ", e
                 raise 
 
-
-            # WOW! The following attributes contain pointers to instance methods, and they can't be pickled! So I just unset them!
-            #project.D.tokenizer.tokenize_functions = None
-            #project.D.tokenizer.normalize_functions = None
-            #project.D.project = None
-
-            #list_results.append(project) 
-            print "="*70, "\n" + state + " done." + str(datetime.datetime.now()) + "\n" + "="*70 
-            #time.sleep(random.randint(1, 10))
-
         except Exception as e:
             print "Could not disambiguate state ", state, ":   ", e
-    f = open('states_batch_-' + proc_name + ".pickle", 'w')
-    pickle.dump(list_results, f)
-    f.close()
-
-
-
 
 
 def run_main():
@@ -173,7 +157,7 @@ def run_main():
     num_D_before = [len(D.set_of_persons), len(D.list_of_records)]
     
     print "Computing hashes"
-    D.get_LSH_hash(20)
+    D.get_LSH_hashes(20)
     print "Hashes computed"    
     
     D.save_LSH_hash(batch_id='9999')

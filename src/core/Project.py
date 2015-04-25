@@ -10,7 +10,7 @@ class Project(dict):
         self["messages"] = []
         self["list_tokenized_fields"] = []
         self["list_auxiliary_fields"] = []
-        self["state"]="" 
+        self["state"] = "" 
     
         
     def saveSettings(self, file_label=""):
@@ -51,7 +51,7 @@ class Project(dict):
     def save_graph_to_file(self, list_of_nodes=[], file_label=""):
         '''
         Take the adjacency matrix resulting from the Disambiguator object,
-        and write it to file in edgelist (.edges) and .json formats 
+        and write it to file in edgelist (.edges) and .json formats
         '''
         filename_json = self["data_path"] + file_label + self["batch_id"] + '-adjacency.json'
         filename_edgelist = self["data_path"] + file_label + self["batch_id"] + '-adjacency.edges'
@@ -92,8 +92,8 @@ class Project(dict):
     
     
     def set_list_of_records_auxiliary(self, tmp_list):
-        ''' 
-        This functions sets the list of auxiliary records 
+        '''
+        This functions sets the list of auxiliary records
         associated with the items in list_of_records_identifier.
         '''
         self.list_of_records_auxiliary = tmp_list

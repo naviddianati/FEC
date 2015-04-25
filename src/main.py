@@ -5,6 +5,7 @@
 # My explanation is that lots of records that have unique identifier pairs in the <state> table, 
 # occur multiple times in the contributor_addresses table, and therefore don't appear in its unique
 # version, namely contributor_addresses_unique.
+import init
 ''' TODO:
     1- (DONE: <state>_combined) We need a new table that combines <state> and <state>_addresses as follows:
         The table structure is like <state>_addresses, but it contains all the records found in <state>.
@@ -72,17 +73,6 @@ def find_all_in_list(regex, str_list):
 
  
 
-def get_next_batch_id():
-    f = open('../config/batches.list')
-    s = f.read()
-    f.close() 
-    i = int(s)
-    f = open('../config/batches.list', 'w')
-    f.write(str(i + 1))
-    f.close()
-    return(str(i))
-
-
 
 def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
     '''
@@ -128,186 +118,8 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
 
 
 
-def tokenize_records(list_of_records, project, TokenizerClass):
-    '''
-    Return a TokenDadta object for list_of_records, and update each 
-    record in list_of_records by adding to it a vector attribute and 
-    associating the TokenData instance to the record. If a file 
-    containing the pickled TokenData instance already exists, load it.
-    Also, make sure that the vectors are available in a file for later
-    use. If either file doesn't exist, start a new Tokenizer and
-    compute and export both. At the end of this function, both the 
-    tokendata and the vectors will exist in pickled format in files.
     
-    @param TokenizerClass: The Tokenizer class used. It can be 
-        TokenizerNgram, Tokenizer, etc.
-    '''
-    tokendata_file = config.tokendata_file_template % (project['state'])
-    vectors_file = config.vectors_file_template % (project['state'])
-    
-    
-    try:
-        tokenizer = TokenizerClass()
-        project.tokenizer = tokenizer
-        tokenizer.project = project
-        tokenizer.setRecords(list_of_records)
-        tokenizer.setTokenizedFields(project['list_tokenized_fields'])
-        
-        tokenizer.load_from_file()
-        
-        # Just make sure the vectors are also there.
-        if os.stat(vectors_file).st_size == 0:
-            print "vectors file not found."
-            raise
-        list_of_records = tokenizer.getRecords()
-    
-    except Exception as e:
-        print str(e)
-                
-        tokenizer = TokenizerClass()
-        project.tokenizer = tokenizer
-        tokenizer.project = project
-        tokenizer.setRecords(list_of_records)
-        tokenizer.setTokenizedFields(project['list_tokenized_fields'])
-        
-        
-        print "Tokenizing records..."
-        tokenizer.tokenize()
-        
-        print "Saving token data to file..."
-        tokenizer.tokens.save_to_file(tokendata_file)
-        list_of_records = tokenizer.getRecords()
-
-    return tokenizer.tokens, list_of_records
-        
-
-
-def compute_uniform_hashes_all_states( num_procs = 1):
-    '''
-    For all states, compute LSH hashes from the same set of
-    probe vectors. Use coarse feature vectors for this purpose.
-    That is, take words as tokens not unigrams and bigrams. The
-    goal is to be able to quickly and easily detect identical names,
-    employers, etc. across different states.  
-    '''
-    batch_id = get_next_batch_id()
-    project = Project.Project(batch_id=batch_id)
-    project.putData('state' , 'USA')
-    
-    filelabel = "USA"
-    file_tokens = config.tokendata_file_template % filelabel
-    f = open(file_tokens)
-    tokendata = cPickle.load(f)
-    f.close()
-    
-    ''' HERE WE DON'T LOAD AFFILIATION DATA BECAUSE THAT'S WHAT WE WANT TO PRODUCE! '''
-
-    
-    # Unnecessary
-#     project.list_of_records = list_of_records
-    
-    # dimension of input vectors
-    dim = tokendata.no_of_tokens
-
-    D = Disambiguator.Disambiguator(list_of_records = [], dim, matching_mode="strict_address", num_procs=num_procs)
-    project.D = D
-    D.project = project
-    
-    
-    # desired dimension (length) of hashes
-    hash_dim = 20
-    project.putData('hash_dim' , str(hash_dim))
-
-    # In D, how many neighbors to examine?
-    B = 40
-        
-    print 'Generating the LSH hashes'
-    
-    # compute the hashes
-    D.compute_hashes(hash_dim, num_procs)
-    
-    print "Done computing hashes."
-    pass
-
-
-def combine_state_tokens():
-    '''
-    Read all tokendata objects for different states and combine them.
-    Then read every state feature vector file and update it according
-    to the compound tokendata, and write all of them to a file.
-    '''
-    def update_vectors(dict_vectors,compoundtokendata, old_tokendata):
-        '''
-        for every r_id: r_vector pair in dict_vectors, update translate the vector
-        from old_tokendata to compoundtokendata.
-        '''
-        compound_dict_vectors = {}
-        for r_id, old_vector in dict_vectors.iteritems():
-            vector = {}
-            # translate self.vector
-            for index_old in old_vector:
-                index_new = compoundtokendata.token_2_index[old_tokendata.index_2_token[index_old]]
-                vector[index_new] = 1
-            compound_dict_vectors[r_id] = vector
-        return compound_dict_vectors
-    
-    filelabel = "USA"
-    
-    # list of tokendata objects
-    list_tokendata = []
-    print " combining tokendata objects..."
-    for param_state in get_states_sorted():
-        print "processing state: ", param_state
-        file_tokens = config.tokendata_file_template % param_state
-        f = open(file_tokens)
-        list_tokendata.append(cPickle.load(f))
-    compoundtokendata = TokenData.getCompoundTokenData(list_tokendata)
-    del list_tokendata[:]
-    print "Done combining state tokendata objects."
-    
-    
-    # Save compound tokendata to file
-    file_tokens = config.tokendata_file_template % filelabel
-    f = open(file_tokens,'w')
-    cPickle.dump(compoundtokendata,f)
-    f.close()
-    
-    
-    
-    # Load feature vector files for all states one at a time and
-    # update the vectors.
-    dict_vectors_all = {}
-    print "Updating feature vectors..."
-    for param_state in get_states_sorted():
-        print "processing state: ", param_state
-        file_vectors = config.vectors_file_template % param_state
-        f = open(file_vectors)
-        dict_vectors = cPickle.load(f)
-        f.close()
-        
-        file_tokens = config.tokendata_file_template % param_state
-        f = open(file_tokens)
-        old_tokendata = cPickle.load(f)
-        f.close()
-        
-        dict_vectors = update_vectors(dict_vectors,compoundtokendata, old_tokendata)
-        dict_vectors_all.update(dict_vectors)
-    print "Done updating feature vectors."
-        
-    # Export computed vectors to file
-    vectors_file = config.vectors_file_template % filelabel
-    try:
-        f = open(vectors_file,'w')
-        cPickle.dump(dict_vectors_all,f)
-        f.close()
-    except:
-        os.remove(vectors_file)
-        raise
-
-        
-        
-    
-def tokenize_all_states_uniform( record_limit=(0, 20000000)):
+def tokenize_all_states_uniform(record_limit=(0, 20000000)):
     '''
     BASICALLY USELESS, because tokenizing all states together comsumes
     way too much memory and it's multiprocessing's fauls I think.
@@ -322,7 +134,7 @@ def tokenize_all_states_uniform( record_limit=(0, 20000000)):
 
 
     
-    record_start,record_no = record_limit   
+    record_start, record_no = record_limit   
 
     project.putData('batch_id' , batch_id)
     
@@ -356,7 +168,7 @@ def tokenize_all_states_uniform( record_limit=(0, 20000000)):
                           where_clause=whereclause)
         retriever.retrieve()
     #     project.putData("query", retriever.getQuery())
-        print "number of records for state ", param_state,": ", len(retriever.list_of_records)
+        print "number of records for state ", param_state, ": ", len(retriever.list_of_records)
         
         list_of_records += retriever.getRecords()
         retriever = None
@@ -371,7 +183,7 @@ def tokenize_all_states_uniform( record_limit=(0, 20000000)):
     
         
     print "Tokenizing records..."
-    tokenizer.tokenize(num_procs = 12)
+    tokenizer.tokenize(num_procs=12)
     quit()
     
 
@@ -488,7 +300,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     
 
     
-    tokendata, list_of_records = tokenize_records(list_of_records, project, TokenizerNgram)
+    tokendata, list_of_records = init.tokenize_records(list_of_records, project, TokenizerNgram)
     
     ''' HERE WE DON'T LOAD AFFILIATION DATA BECAUSE THAT'S WHAT WE WANT TO PRODUCE! '''
 
@@ -519,7 +331,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     print 'Analyze...'
     t1 = time.time()
     # compute the hashes
-    D.get_LSH_hash(hash_dim)
+    D.get_LSH_hashes(hash_dim)
     
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     
@@ -676,7 +488,7 @@ def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000
 #     # Same as above, except each list(2) consists of the auxiliary columns of the record returned by MySQL.
 #     list_of_records_auxiliary = [[record[index] for index in index_auxiliary_fields] for record in tmp_list]  
     
-    tokendata = tokenize_records(list_of_records, project, TokenizerNgram)
+    tokendata = init.tokenize_records(list_of_records, project, TokenizerNgram)
     
     
 
@@ -707,7 +519,7 @@ def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000
     print 'Analyze...'
     t1 = time.time()
     # compute the hashes
-    D.get_LSH_hash(hash_dim)
+    D.get_LSH_hashes(hash_dim)
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     
     # D.show_sample_adjacency()
@@ -859,7 +671,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     # Get tokendata and make sure vectors are exported to file.
-    tokendata, list_of_records = tokenize_records(list_of_records, project, TokenizerNgram)
+    tokendata, list_of_records = init.tokenize_records(list_of_records, project, TokenizerNgram)
     
 
 
@@ -873,7 +685,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     interpreted as True.   Affiliations on the <state>_addresses data.
     '''
     
-    G_employer = loadAffiliationNetwork(param_state + "-", project['data_path'], 'employer', percent=percent_employers)
+    G_employer = loadAffiliationNetwork(param_state + "-", config.dict_paths["data_path_affiliations_employer"], 'employer', percent=percent_employers)
     if G_employer:
         for record in list_of_records:
             record.list_G_employer = [G_employer]
@@ -883,7 +695,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 
     
     
-    G_occupation = loadAffiliationNetwork(param_state + "-" , project['data_path'], 'occupation', percent=percent_occupations)
+    G_occupation = loadAffiliationNetwork(param_state + "-" , config.dict_paths["data_path_affiliations_occupation"], 'occupation', percent=percent_occupations)
     if G_occupation:  
         for record in list_of_records:
             record.list_G_occupation = [G_occupation]
@@ -934,8 +746,8 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     print 'Analyze...'
     t1 = time.time()
     # compute the hashes
-    D.get_LSH_hash(hash_dim, num_procs=num_procs)
-    print_resource_usage('---------------- after get_LSH_hash')
+    D.get_LSH_hashes(hash_dim, num_procs=num_procs)
+    print_resource_usage('---------------- after get_LSH_hashes')
     
 #     return project
 
@@ -1121,7 +933,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     interpreted as True.   Affiliations on the <state>_addresses data.
     '''
     
-    G_employer = loadAffiliationNetwork(param_state, project['data_path'], 'employer')
+    G_employer = loadAffiliationNetwork(param_state, config.dict_paths["data_path_affiliations_employer"], 'employer')
     if G_employer:
         for record in list_of_records:
             record.list_G_employer = [G_employer]
@@ -1132,7 +944,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
 
     
     
-    G_occupation = loadAffiliationNetwork(param_state, project['data_path'], 'occupation')
+    G_occupation = loadAffiliationNetwork(param_state, config.dict_paths["data_path_affiliations_occupation"], 'occupation')
     if G_occupation:  
         for record in list_of_records:
             record.list_G_occupation = [G_occupation]
@@ -1228,8 +1040,6 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     
     # Set D's logstats on or off
     D.set_logstats(is_on=logstats)
-        
-    
     
     # desired dimension (length) of hashes
     hash_dim = 40
@@ -1238,19 +1048,15 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     # In D, how many neighbors to examine?
     B = 40
     
-    
     # Number of times the hashes are permutated and sorted
     no_of_permutations = 20
     project.putData('number_of_permutations' , str(no_of_permutations))
 
     
-#     self.D = Disambiguator(self.list_of_vectors, self.tokens.index_2_token, self.tokens.token_2_index, dim, self.batch_id)
-    
-    
     print 'Analyze...'
     t1 = time.time()
     # compute the hashes
-    D.get_LSH_hash(hash_dim)
+    D.get_LSH_hashes(hash_dim)
     D.save_LSH_hash(batch_id=batch_id)
     D.compute_similarity(B1=B, m=no_of_permutations , sigma1=None)
     
@@ -1289,10 +1095,6 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     project.saveSettings(file_label=param_state + "-" + "affiliations-")
     
     project.dump_full_adjacency()
-    
-    
-    
-    
     return project
 
 
@@ -1362,7 +1164,7 @@ if __name__ == "__main__":
 #     generateAffiliationData('massachusetts', affiliation=None, record_limit=(0, 5000000))
 #     quit()
     
-    combine_state_tokens()
+    init.INIT_combine_state_tokens_and_vectors()
     quit()
     
 #     tokenize_all_states_uniform()    

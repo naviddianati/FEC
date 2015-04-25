@@ -787,10 +787,10 @@ class Disambiguator():
     def __load_LSH_hashes_from_file(self):
         '''
         Load the list of hashes from file. Raise exception if fail.
-        Also raise if the hashes found in file have lenght different
+        Also raise if the hashes found in file have length different
         from self.hash_dim
         '''
-        hash_file = config.hashes_file_template % self.project['state']
+        hash_file = config.hashes_file_template % (self.project['state'], self.tokenizer.__class__.__name__)
         f = open(hash_file)
         dict_hashes = cPickle.load(f)
         for r_id, hash in dict_hashes.iteritems():
@@ -807,7 +807,7 @@ class Disambiguator():
         '''
         Load record vectors from file if exists.
         '''
-        vectors_file = config.vectors_file_template % self.project['state']
+        vectors_file = config.vectors_file_template % (self.project['state'], self.tokenizer.__class__.__name__)
         f = open(vectors_file)
         self.dict_vectors = cPickle.load(f)
         f.close()
@@ -829,11 +829,15 @@ class Disambiguator():
         
         
 
-    def get_LSH_hash(self, hash_dim, num_procs = 1):
+    def get_LSH_hashes(self, hash_dim, num_procs = 1):
         '''
-        Load hashes. If they already exist in a file, load it.
-        Otherwise, load record vectors from file and compute the
-        hashes from them. If that fails, then raise.
+        Load hashes and set self.LSH_hash. If hases already exist in a 
+        file, load it. Otherwise, load record vectors from file and 
+        compute the hashes from them. If that fails, then raise.
+        This must be invoked only when self.list_of_records is set,
+        because that is necessary for computing self.LSH_hash from
+        the dictionary that is loaded from the exported hash file.
+        If self.list_of_records is not set, raise.
         '''
         
         # Expected hash dim
@@ -849,7 +853,7 @@ class Disambiguator():
                 # Otherwise, load the record vectors from file
                 # and compute the hashes from the vectors
                 self.compute_hashes(hash_dim, num_procs)
-                self.get_LSH_hash(hash_dim, num_procs)
+                self.get_LSH_hashes(hash_dim, num_procs)
             except:
                 print "ERROR: unable load record vectors from file and compute LSH hashes."
                 raise
@@ -862,7 +866,7 @@ class Disambiguator():
         Save a dict of hashes to file: {r.id: hash for r in list_of_records}
         It is expected that self.list_of_records and self.LSH_hash are aligned.
         '''
-        hash_file = config.hashes_file_template % self.project['state']
+        hash_file = config.hashes_file_template % (self.project['state'], self.tokenizer.__class__.__name__)
         f = open(hash_file, 'w')
 #         self.dict_hashes = {r.id: self.LSH_hash[i] for i,r in enumerate(self.list_of_records)}
         cPickle.dump(self.dict_hashes,f)
@@ -926,7 +930,7 @@ class Disambiguator():
         Save the match buffer to a file. This will be basically 
         an edge list (r_id0, r_id1).
         '''
-        f = open(config.match_buffer_file_template % self.project['state'],'w')
+        f = open(config.match_buffer_file_template % self.project['state'], 'w')
         
         print "Saving match buffer to file..."
         for id0,id1 in self.new_match_buffer:

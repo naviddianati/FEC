@@ -112,7 +112,7 @@ class Tokenizer():
 
         # The middle name is sometimes very difficult to pinpoint. If there are multiple pieces, look for a single-letter piece and pick that one
         mn = name.middle.upper()
-        if (len(mn) == 1) and ( not re.match(r'[A-Z]', mn)):
+        if (len(mn) == 1) and (not re.match(r'[A-Z]', mn)):
             record['N_middle_name'] = '' 
             return
         # If there are multiple "chunks", see if there is a single-letter one. Else, pick the first one.
@@ -439,8 +439,8 @@ class Tokenizer():
         Load the TokenData object and the normalized
         record attributes from file.
         '''
-        tokendata_file = config.tokendata_file_template % ( self.project['state'])
-        normalized_attributes_file = config.normalized_attributes_file_template % ( self.project['state'])
+        tokendata_file = config.tokendata_file_template % (self.project['state'], self.__class__.__name__)
+        normalized_attributes_file = config.normalized_attributes_file_template % (self.project['state'])
         
 
         # Attempt to load tokendata from file
@@ -467,22 +467,22 @@ class Tokenizer():
             
 
         
-    def tokenize(self, num_procs = 1, export_vectors = True, export_normalized_attributes = True, export_tokendata = True):
+    def tokenize(self, num_procs=1, export_vectors=True, export_normalized_attributes=True, export_tokendata=True):
         '''
         Tokenize the records using either one process or multiple processes.
         @param num_procs: number of processes to use.
         @param export_vectors: whether to export the feature vectors to file.
         '''
         if num_procs == 1:
-            self.__tokenize_single_proc(export_vectors, export_normalized_attributes,export_tokendata)
+            self.__tokenize_single_proc(export_vectors, export_normalized_attributes, export_tokendata)
         elif num_procs > 1:
-            self.__tokenize_multi_proc(num_procs, export_vectors, export_normalized_attributes,export_tokendata) 
+            self.__tokenize_multi_proc(num_procs, export_vectors, export_normalized_attributes, export_tokendata) 
         
     
     
     def __tokenize_multi_proc(self, num_procs, export_vectors, export_normalized_attributes, export_tokendata):
         '''
-        Divide the list_of_records into equal chunks. Send the chunks to a 
+        Divide the list_of_records into equal chunks. Send the chunks to a
         standalone method. In that method, multiple tokenizer instances will
         be created, and each data chunk assigned to one of them. Each tokenizer
         will then tokenize in a separate process and the results are comgined.
@@ -502,15 +502,15 @@ class Tokenizer():
         
         if export_tokendata:
             # Export tokendata to file.
-            tokendata_file = config.tokendata_file_template % (self.project['state'])
+            tokendata_file = config.tokendata_file_template % (self.project['state'], self.__class__.__name__)
             self.tokens.save_to_file(tokendata_file)
         
         if export_vectors:
             # Export computed vectors to file
-            vectors_file = config.vectors_file_template % (self.project['state'])
+            vectors_file = config.vectors_file_template % (self.project['state'], self.__class__.__name__)
             try:
-                f = open(vectors_file,'w')
-                cPickle.dump(self.dict_vectors,f)
+                f = open(vectors_file, 'w')
+                cPickle.dump(self.dict_vectors, f)
                 
                 f.close()
             except:
@@ -522,7 +522,7 @@ class Tokenizer():
             # Export the normalized attributes to file
             normalized_attributes_file = config.normalized_attributes_file_template % (self.project['state'])
             try:
-                f = open(normalized_attributes_file,'w')
+                f = open(normalized_attributes_file, 'w')
                 dict_normalized_attributes = {}
                 for r in self.list_of_records:
                     dict_normalized_attributes[r.id] = {}
@@ -533,7 +533,7 @@ class Tokenizer():
                             dict_normalized_attributes[r.id][attr] = None
 
 
-                cPickle.dump(dict_normalized_attributes,f)
+                cPickle.dump(dict_normalized_attributes, f)
                 f.close()
             except:
                 os.remove(normalized_attributes_file)
@@ -556,7 +556,7 @@ class Tokenizer():
         
         
         
-    def __tokenize_single_proc(self, export_vectors, export_normalized_attributes,export_tokendata):
+    def __tokenize_single_proc(self, export_vectors, export_normalized_attributes, export_tokendata):
         if not self.list_tokenized_fields:
             raise Exception("ERROR: Specify the fields to be tokenized.")
         
@@ -589,15 +589,15 @@ class Tokenizer():
      
         if export_tokendata:
             # Export tokendata to file.
-            tokendata_file = config.tokendata_file_template % (self.project['state'])
+            tokendata_file = config.tokendata_file_template % (self.project['state'], self.__class__.__name__)
             self.tokens.save_to_file(tokendata_file)
         
         if export_vectors:
             # Export computed vectors to file
-            vectors_file = config.vectors_file_template % (self.project['state'])
+            vectors_file = config.vectors_file_template % (self.project['state'], self.__class__.__name__)
             try:
-                f = open(vectors_file,'w')
-                cPickle.dump(self.dict_vectors,f)
+                f = open(vectors_file, 'w')
+                cPickle.dump(self.dict_vectors, f)
                 
                 f.close()
             except:
@@ -610,11 +610,11 @@ class Tokenizer():
             # Export the normalized attributes to file
             normalized_attributes_file = config.normalized_attributes_file_template % (self.project['state'])
             try:
-                f = open(normalized_attributes_file,'w')
+                f = open(normalized_attributes_file, 'w')
                 dict_normalized_attributes = {r.id:
                                                 {attr:r[attr] for attr in self.normalized_attrs} 
                                                 for r in self.list_of_records}
-                cPickle.dump(dict_normalized_attributes,f)
+                cPickle.dump(dict_normalized_attributes, f)
                 f.close()
             except:
                 os.remove(normalized_attributes_file)
@@ -722,7 +722,7 @@ class TokenizerNgram(Tokenizer):
 
         # Treat special cases
         # Leave P.O. Boxes alone
-        if re.match(r'\bP\.?O\.?\b|\bbox\b|p\.?o\.?box',s,re.IGNORECASE):
+        if re.match(r'\bP\.?O\.?\b|\bbox\b|p\.?o\.?box', s, re.IGNORECASE):
             record["N_address"] = s
             return           
         
@@ -904,7 +904,7 @@ import Project
 
 def worker_tokenizer_list_of_records(data):
     '''
-    Worker function that receives a dict of records, creates a new TokenizerClass 
+    Worker function that receives a dict of records, creates a new TokenizerClass
     instance and tokenizes the records. Then it returns the dict_of_vectors to
     be combined with other similar objects from other workers.
     '''
@@ -926,7 +926,7 @@ def worker_tokenizer_list_of_records(data):
     
     
     print "Tokenizing records..."
-    tokenizer.tokenize(num_procs = 1, export_vectors = False, export_normalized_attributes = False, export_tokendata = False)
+    tokenizer.tokenize(num_procs=1, export_vectors=False, export_normalized_attributes=False, export_tokendata=False)
     
     print "Saving token data to file..."
 #     tokenizer.tokens.save_to_file(tokendata_file)
@@ -940,7 +940,7 @@ def tokenize_multiple_lists_of_records(list_of_list_records, TokenizerClass, pro
     Receive multiple chunks of the tokenizer's list_of_records, instantiate a new
     TokenizerClass for each and tokenize the chunks in separate processes, then combine
     and update their record vectors and other attributes.
-    @param list_of_list_records: a list where each element is a contiguous chunk of 
+    @param list_of_list_records: a list where each element is a contiguous chunk of
         list_of_records where list_of_records is that of the original tokenizer that
         calls this method in order to tokenize with multiple processes.
     '''
@@ -955,19 +955,19 @@ def tokenize_multiple_lists_of_records(list_of_list_records, TokenizerClass, pro
 
 #     print "=" * 120
 
-    myrecord =  list_of_list_records[0][0]
+    myrecord = list_of_list_records[0][0]
     print "preparing data packages for child processes..."
     for i in range(len(list_of_list_records)):
         print "---- data for process ", i
-        #list_data.append((manager.list(list_of_list_records[0]), project['list_tokenized_fields'] ,TokenizerClass))
-        list_data.append((list_of_list_records[0], project['list_tokenized_fields'] ,TokenizerClass))
-        #del list_of_list_records[0][:]
+        # list_data.append((manager.list(list_of_list_records[0]), project['list_tokenized_fields'] ,TokenizerClass))
+        list_data.append((list_of_list_records[0], project['list_tokenized_fields'] , TokenizerClass))
+        # del list_of_list_records[0][:]
         del list_of_list_records[0]
 
     
     
     print "starting the pool..."
-    pool = multiprocessing.Pool(processes = num_procs)
+    pool = multiprocessing.Pool(processes=num_procs)
     result = pool.map(worker_tokenizer_list_of_records, list_data)
     
     list_of_list_records = [item[0] for item in result]
@@ -987,7 +987,7 @@ def tokenize_multiple_lists_of_records(list_of_list_records, TokenizerClass, pro
         del list_of_list_records[0]
         
     
-    #update vectors
+    # update vectors
     for chunk_id, dict_vectors in enumerate(list_dict_vectors):
         old_tokendata = list_tokendata[chunk_id]
         for r_id, old_vector in dict_vectors.iteritems():

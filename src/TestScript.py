@@ -21,7 +21,7 @@ def two_state_test():
     list_of_Ds = [project1.D, project2.D]
     
     D = Disambiguator.Disambiguator.getCompoundDisambiguator(list_of_Ds)
-    D.get_LSH_hash(20)
+    D.get_LSH_hashes(20)
     D.save_LSH_hash(batch_id='9999')
     D.compute_similarity(B1=40, m=20 , sigma1=None)
     
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     num_D_before = [len(D.set_of_persons), len(D.list_of_records)]
     
     print "Computing hashes"
-    D.get_LSH_hash(20)
+    D.get_LSH_hashes(20)
     print "Hashes computed"    
     
     D.save_LSH_hash(batch_id='9999')

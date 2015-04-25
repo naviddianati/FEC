@@ -3,7 +3,7 @@
 import pandas as pd
 import os
 
-my_data_path = os.path.join(os.path.dirname(__file__),'')
+my_data_path = os.path.join(os.path.dirname(__file__), '')
 
 dict_state = {
     "AL": "alabama",
@@ -139,13 +139,13 @@ dict_state_abbr = {
 
 def get_state_order():
     '''
-    Return a dictionary {state: order} where order is an 
+    Return a dictionary {state: order} where order is an
     integer ranking the state based on population. Lower
     order means higher population.
     '''
-    populations = pd.read_csv(os.path.join(my_data_path,'us-population.csv'))
-    data =  populations[["NAME","POPESTIMATE2014"]].sort("POPESTIMATE2014")["NAME"].tolist()
-    dict_state_order = {s.lower().replace(" ",""):i for i,s in enumerate(data[::-1])}
+    populations = pd.read_csv(os.path.join(my_data_path, 'us-population.csv'))
+    data = populations[["NAME", "POPESTIMATE2014"]].sort("POPESTIMATE2014")["NAME"].tolist()
+    dict_state_order = {s.lower().replace(" ", ""):i for i, s in enumerate(data[::-1])}
     tmp = {} 
     for state in dict_state.values():
         try:
@@ -165,7 +165,7 @@ def get_states_sorted():
     '''
     dict_state_order = get_state_order()
     list_states = sorted(dict_state.values())
-    list_states.sort(key = lambda state: dict_state_order[state])
+    list_states.sort(key=lambda state: dict_state_order[state])
     return list_states
 
 

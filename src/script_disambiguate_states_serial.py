@@ -58,7 +58,7 @@ if __name__ == "__main__":
         list_states = sorted(dict_state.values())
 
 
-    list_states.sort(key = lambda state: dict_state_order[state])
+    list_states.sort(key=lambda state: dict_state_order[state])
     print list_states
 
 
