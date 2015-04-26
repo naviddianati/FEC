@@ -81,7 +81,7 @@ def tokenize_records(list_of_records, project, TokenizerClass):
         tokenizer.tokens.save_to_file(tokendata_file)
         list_of_records = tokenizer.getRecords()
 
-    return tokenizer.tokens, list_of_records
+    return tokenizer, list_of_records
         
 
 
@@ -111,7 +111,9 @@ def INIT_compute_national_hashes(num_procs=1):
     D = Disambiguator.Disambiguator([], dim, matching_mode="strict_address", num_procs=num_procs)
     project.D = D
     D.project = project
+    D.tokenizer = Tokenizer()
     
+
     # desired dimension (length) of hashes
     hash_dim = 20
     project.putData('hash_dim' , str(hash_dim))
@@ -271,7 +273,8 @@ def INIT_process_single_state(state=None, TokenizerClass=None,  record_limit=(0,
     list_of_records = retriever.getRecords()
     
     # Tokenize, and save tokendata and vectors to file.
-    tokendata, list_of_records = tokenize_records(list_of_records, project, TokenizerClass)
+    tokenizer, list_of_records = tokenize_records(list_of_records, project, TokenizerClass)
+    tokendata = tokenizer.tokens
     
    
     # dimension of input vectors
@@ -280,6 +283,7 @@ def INIT_process_single_state(state=None, TokenizerClass=None,  record_limit=(0,
     D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode="strict_address", num_procs=num_procs)
     project.D = D
     D.project = project
+    D.tokenizer = tokenizer
     
     # desired dimension (length) of hashes
     hash_dim = 20
@@ -385,6 +389,9 @@ def INIT_process_multiple_states(list_states = [], TokenizerClass=None, num_proc
 
 
 if __name__ == "__main__":
+    
+    print states.get_states_sorted()
+    quit()
     
     '''State level data preparation (for fine-grained intra state disambiguation)'''
     # Tokenize, vectorize and hashify all states using Tokenizer
