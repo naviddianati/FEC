@@ -108,7 +108,7 @@ def INIT_compute_national_hashes(num_procs=1):
     # dimension of input vectors
     dim = tokendata.no_of_tokens
 
-    D = Disambiguator.Disambiguator(list_of_records=[], dim, matching_mode="strict_address", num_procs=num_procs)
+    D = Disambiguator.Disambiguator([], dim, matching_mode="strict_address", num_procs=num_procs)
     project.D = D
     D.project = project
     
@@ -211,7 +211,7 @@ def INIT_combine_state_tokens_and_vectors():
 
 
 
-def INIT_process_single_state(state=None, TokenizerClass,  record_limit=(0, 50000000), whereclause='', num_procs=1):
+def INIT_process_single_state(state=None, TokenizerClass=None,  record_limit=(0, 50000000), whereclause='', num_procs=1):
     '''
     Using the TokenizerClass specified, tokenize all records from the specified 
     state, savtokenize_recordse the tokendata as well as the feature vectors to files. 
@@ -318,7 +318,7 @@ def worker_process_multiple_states(conn):
 
  
 
-def INIT_process_multiple_states(list_states = [], TokenizerClass, num_procs = 12):
+def INIT_process_multiple_states(list_states = [], TokenizerClass=None, num_procs = 12):
     '''
     Using multiple processes, perform INIT_process_single_state for multiple
     states at the same time. 
@@ -390,10 +390,11 @@ if __name__ == "__main__":
     # Tokenize, vectorize and hashify all states using Tokenizer
     INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
     
-    
     ''' National level data preparation: '''
     # Tokenize, vectorize and hashify all states using Tokenizer
     INIT_process_multiple_states(TokenizerClass = Tokenizer, num_procs = 12)
+
+
     
     # combine the vectors and tokens from all states into the national data files.
     INIT_combine_state_tokens_and_vectors()

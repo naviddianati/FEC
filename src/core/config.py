@@ -6,7 +6,7 @@ uniformly by various scripts.
 import os
 
 # Global data path.
-data_path = os.path.expanduser('~/data/FEC/')
+data_path = os.path.expanduser('~/data/FEC-test/')
 dict_paths = { 
     "data_path": data_path,
     "data_path_vectors" :  data_path + "vectors/",
