@@ -310,9 +310,9 @@ def worker_process_multiple_states(conn):
     data = conn.recv()
     proc_name = multiprocessing.current_process().name
     
-    print proc_name, data['set_states']
+    print proc_name, data['list_states']
     
-    for state in data['set_states']:
+    for state in data['list_states']:
         try:
             INIT_process_single_state(state, data['TokenizerClass'], num_procs = 1)
         except Exception as e:
@@ -341,8 +341,8 @@ def INIT_process_multiple_states(list_states = [], TokenizerClass=None, num_proc
     if not list_states:
         list_states = states.get_states_sorted()
 
-    set_states = set(list_states)
-
+    list_states.reverse()
+    
     # Number of states to be processed.
     N = len(list_states)
 
@@ -356,9 +356,9 @@ def INIT_process_multiple_states(list_states = [], TokenizerClass=None, num_proc
 
 
     proc_id = 0
-    while set_states:
+    while list_states:
         if proc_id not in dict_states: dict_states[proc_id] = set()
-        dict_states[proc_id].add(set_states.pop())
+        dict_states[proc_id].add(list_states.pop())
         proc_id += 1
         proc_id = proc_id % number_of_processes
 
@@ -377,7 +377,7 @@ def INIT_process_multiple_states(list_states = [], TokenizerClass=None, num_proc
         list_jobs.append(p)
         time.sleep(1)
         p.start()
-        data = {'set_states': dict_states[id],
+        data = {'list_states': dict_states[id],
                 'TokenizerClass': TokenizerClass }
         conn_parent.send(data)
 
