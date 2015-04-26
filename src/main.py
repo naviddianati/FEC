@@ -300,8 +300,8 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     
 
     
-    tokendata, list_of_records = init.tokenize_records(list_of_records, project, TokenizerNgram)
-    
+    tokenizer, list_of_records = init.tokenize_records(list_of_records, project, TokenizerNgram)
+    tokendata = tokenizer.tokens
     ''' HERE WE DON'T LOAD AFFILIATION DATA BECAUSE THAT'S WHAT WE WANT TO PRODUCE! '''
 
     
@@ -488,8 +488,8 @@ def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000
 #     # Same as above, except each list(2) consists of the auxiliary columns of the record returned by MySQL.
 #     list_of_records_auxiliary = [[record[index] for index in index_auxiliary_fields] for record in tmp_list]  
     
-    tokendata = init.tokenize_records(list_of_records, project, TokenizerNgram)
-    
+    tokenizer, list_of_records = init.tokenize_records(list_of_records, project, TokenizerNgram)
+    tokendata = tokenizer.tokens
     
 
     
@@ -671,8 +671,8 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     
     
     # Get tokendata and make sure vectors are exported to file.
-    tokendata, list_of_records = init.tokenize_records(list_of_records, project, TokenizerNgram)
-    
+    tokenizer, list_of_records = init.tokenize_records(list_of_records, project, TokenizerNgram)
+    tokendata = tokenizer.tokens
 
 
     
