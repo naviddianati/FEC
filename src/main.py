@@ -5,7 +5,7 @@
 # My explanation is that lots of records that have unique identifier pairs in the <state> table, 
 # occur multiple times in the contributor_addresses table, and therefore don't appear in its unique
 # version, namely contributor_addresses_unique.
-import init
+import disambiguation.init as init
 ''' TODO:
     1- (DONE: <state>_combined) We need a new table that combines <state> and <state>_addresses as follows:
         The table structure is like <state>_addresses, but it contains all the records found in <state>.
@@ -46,14 +46,14 @@ Strategy:
 
 from collections import OrderedDict
 
-from core import Project
-from core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUndirected
-from core.Database import FecRetriever
-import core.Disambiguator as Disambiguator
-from core.Tokenizer import Tokenizer, TokenizerNgram, TokenData
-import config
-from core.states import *
-from core.utils import *
+from disambiguation.core import Project
+from disambiguation.core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUndirected
+from disambiguation.core.Database import FecRetriever
+import disambiguation.core.Disambiguator as Disambiguator
+from disambiguation.core.Tokenizer import Tokenizer, TokenizerNgram, TokenData
+import disambiguation.config as config
+from disambiguation.core.states import *
+from disambiguation.core.utils import *
 import resource
 
 
@@ -641,6 +641,11 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     project.putData("field_2_index", field_2_index)
     
     
+    if whereclause == "":
+        whereclause = " WHERE ENTITY_TP='IND' "
+    else:
+        whereclause = whereclause + " AND ENTITY_TP='IND' "
+        print "whereclasue: ", whereclause
     
     print_resource_usage('---------------- before retrieving data')
     retriever = FecRetriever(table_name=table_name,
@@ -721,6 +726,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 #     D.tokenizer = tokenizer
     project.D = D
     D.project = project
+    D.tokenizer = tokenizer
     
     # Set D's logstats on or off
     D.set_logstats(is_on=logstats)
@@ -1169,6 +1175,8 @@ if __name__ == "__main__":
     
 #     tokenize_all_states_uniform()    
 #     quit()
+
+
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     project = disambiguate_main('delaware',

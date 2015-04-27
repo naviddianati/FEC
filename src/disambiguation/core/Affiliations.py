@@ -15,7 +15,7 @@ import numpy as np
 from scipy.stats import binom
 from Database import FecRetriever
 from common import *
-from core import filters
+import filters
 
 def get_committees():
     ''' NOT COMPLETE'''

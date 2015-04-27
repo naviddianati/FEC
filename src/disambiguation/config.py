@@ -9,7 +9,7 @@ import os
 data_path = os.path.expanduser('~/data/FEC-test/')
 
 
-# src_path = os.path.join(os.path.dirname(__file__), '')
+src_path = os.path.join(os.path.dirname(__file__), '')
 
 
 dict_paths = { 

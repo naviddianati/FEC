@@ -19,14 +19,14 @@ import time
 import numpy as np
 import pandas as pd
 import states
-
+from .. import config
 
 def get_next_batch_id():
-    f = open('../../config/batches.list')
+    f = open(config.src_path + '../../config/batches.list')
     s = f.read()
     f.close() 
     i = int(s)
-    f = open('../../config/batches.list', 'w')
+    f = open(config.src_path + '../../config/batches.list','w')
     f.write(str(i + 1))
     f.close()
     return(str(i))

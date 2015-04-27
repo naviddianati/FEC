@@ -1,4 +1,4 @@
-import disambiguation.config as config
+from .. import  config
 from utils import *
 
 class Project(dict):

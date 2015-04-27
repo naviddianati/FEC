@@ -27,11 +27,11 @@ from math import ceil,floor
 from states import dict_state_abbr
 import resource
 from memory_spike import *
-from core.hashes import *
+from hashes import *
 from common import *
 import copy
 import disambiguation.config as config
-
+import disambiguation.data
 
 
 class Disambiguator():
@@ -51,7 +51,7 @@ class Disambiguator():
         self.m = 1  # number of permutations of the hashes
         
         # Load the name variants file
-        f = open('../data/name-variants.json')
+        f = open(disambiguation.data.DICT_PATH_DATAFILES['name-variants.json'])
         self.dict_name_variants = json.load(f)
         f.close()
         
@@ -536,10 +536,10 @@ class Disambiguator():
                 
                 # Export the result of this comparison to file.
                 if self.do_log_comparisons:
-                    if (verdict == 0 and result['n'] > 1 and  result['e'] > 1 and result['o'] > 1):
-                        print record1.toString()
-                        print record2.toString()
-                        print "="*120
+                    if (verdict == 0 and result['n'][0] > 1 and  result['e'][0] > 1 and result['o'][0] > 1):
+                        #print record1.toString()
+                        #print record2.toString()
+                        #print "="*120
                         self.__export_comparison([(record1,record2,verdict,result)])
                     
 
@@ -1490,7 +1490,7 @@ def find_nearest_neighbors(data):
 
             # Export the result of this comparison to file.
             if do_log_comparisons:
-                if (verdict == 0 and result['n'] > 1 and  result['e'] > 1 and result['o'] > 1):
+                if (verdict == 0 and result['n'][0] > 1 and  result['e'][0] > 1 and result['o'][0] > 1):
                     print record1.toString()
                     print record2.toString()
                     print "="*120

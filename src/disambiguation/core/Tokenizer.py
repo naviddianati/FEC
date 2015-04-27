@@ -18,8 +18,8 @@ from disambiguation.nameparser import HumanName
 
 from address import AddressParser
 from nltk.util import ngrams
-import disambiguation.config as config
-import disambiguation.data
+from .. import config
+import disambiguation.data 
 from multiprocessing import Manager
 from utils import *
 
@@ -445,33 +445,29 @@ class Tokenizer():
         
 
         # Attempt to load tokendata from file
-        print 5.1
         f = open(tokendata_file)
         tokendata = cPickle.load(f)
-        print 5.2
         self.tokens = tokendata
         f.close()
         
         f = open(normalized_attributes_file)
-        print 5.3
         dict_normalized_attributes = cPickle.load(f)
-        print 5.4
         f.close()
         
-        
+        counter_error = 0
         for record in self.list_of_records:
             record.tokendata = tokendata
-            print "r.id: ", record.id, record
             
-            # attach the normalized attributes to each record
-            for attr in self.normalized_attrs:
-                try:
-                    normalized_attributes = dict_normalized_attributes[record.id]
+            try:
+                normalized_attributes = dict_normalized_attributes[record.id]
+                # attach the normalized attributes to each record
+                for attr in self.normalized_attrs:
                     record[attr] = normalized_attributes[attr]
-                except Exception as e:
-                    print e
+            except Exception as e:
+                print  "blah blah ---- ", e
+                counter_error += 1  
+        print "Total number of errors: ", counter_error
                     
-        print 5.5
                 
         self.all_token_sorted = sorted(self.tokens.token_counts, key=self.tokens.token_counts.get, reverse=0)
 
