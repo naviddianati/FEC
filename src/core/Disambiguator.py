@@ -815,17 +815,22 @@ class Disambiguator():
         
     
 
-    def compute_hashes(self, hash_dim, num_procs):
+    def compute_hashes(self, hash_dim, num_procs, overwrite = False):
         '''
         Load record vectors from file and compute self.dict_hashes and
         save this dictionary to file.
         '''
-        self.__load_record_vectors_from_file()
-        if num_procs == 1:
-            self.__compute_LSH_hash_single_proc(hash_dim)
-        if num_procs > 1:
-            self.__compute_LSH_hash_multi_proc(hash_dim, num_procs)
-        self.__save_LSH_hash()
+        # Load hashes from file if found
+        hash_file = config.hashes_file_template % (self.project['state'], self.tokenizer.__class__.__name__)
+        if os.path.exists(hash_file) and not overwrite:
+            print "LSH hashes file already exists. Skipping."
+        else:
+            self.__load_record_vectors_from_file()
+            if num_procs == 1:
+                self.__compute_LSH_hash_single_proc(hash_dim)
+            if num_procs > 1:
+                self.__compute_LSH_hash_multi_proc(hash_dim, num_procs)
+            self.__save_LSH_hash()
         
         
 

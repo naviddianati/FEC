@@ -95,8 +95,7 @@ def INIT_compute_national_hashes(num_procs=1):
     unigrams and bigrams. The goal is to be able to quickly and 
     easily detect identical names, employers, etc. across different states.
     '''
-    batch_id = get_next_batch_id()
-    project = Project.Project(batch_id=batch_id)
+    project = Project.Project(1)
     project.putData('state' , 'USA')
     
     filelabel = "USA"
@@ -164,7 +163,7 @@ def INIT_combine_state_tokens_and_vectors():
     print " combining tokendata objects..."
     for param_state in get_states_sorted():
         print "processing state: ", param_state
-        file_tokens = config.tokendata_file_template % (filelabel, 'Tokenizer')
+        file_tokens = config.tokendata_file_template % (param_state, 'Tokenizer')
         f = open(file_tokens)
         list_tokendata.append(cPickle.load(f))
     compoundtokendata = TokenData.getCompoundTokenData(list_tokendata)
@@ -390,21 +389,18 @@ def INIT_process_multiple_states(list_states = [], TokenizerClass=None, num_proc
 
 if __name__ == "__main__":
     
-    print states.get_states_sorted()
-    quit()
     
     '''State level data preparation (for fine-grained intra state disambiguation)'''
     # Tokenize, vectorize and hashify all states using Tokenizer
-    INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
+    #INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
     
     ''' National level data preparation: '''
     # Tokenize, vectorize and hashify all states using Tokenizer
-    INIT_process_multiple_states(TokenizerClass = Tokenizer, num_procs = 12)
-
+    #INIT_process_multiple_states(TokenizerClass = Tokenizer, num_procs = 12)
 
     
     # combine the vectors and tokens from all states into the national data files.
-    INIT_combine_state_tokens_and_vectors()
+    #INIT_combine_state_tokens_and_vectors()
     
     # Using the national vectors and tokens, compute uniform national hashes
     INIT_compute_national_hashes(num_procs=10)
