@@ -7,6 +7,11 @@ import os
 
 # Global data path.
 data_path = os.path.expanduser('~/data/FEC-test/')
+
+
+# src_path = os.path.join(os.path.dirname(__file__), '')
+
+
 dict_paths = { 
     "data_path": data_path,
     "data_path_vectors" :  data_path + "vectors/",

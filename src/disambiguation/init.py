@@ -21,8 +21,8 @@ relevant paths and will be available to disambiguation methods:
 '''
 
 from core.utils import *
-from core import Project
-import core.config as config
+import core.Project
+import disambiguation.config as config
 from core.Database import FecRetriever
 import core.Disambiguator as Disambiguator
 from core.Tokenizer import Tokenizer, TokenizerNgram, TokenData
@@ -51,20 +51,25 @@ def tokenize_records(list_of_records, project, TokenizerClass):
     
     try:
         tokenizer = TokenizerClass()
+        print 1
         project.tokenizer = tokenizer
+        print 2
         tokenizer.project = project
+        print 3
         tokenizer.setRecords(list_of_records)
+        print 4
         tokenizer.setTokenizedFields(project['list_tokenized_fields'])
+        print 5
         
         tokenizer.load_from_file()
-        
+        print 6        
         # Just make sure the vectors are also there.
         if os.stat(vectors_file).st_size == 0:
-            print "vectors file not found."
-            raise
+            raise Exception("vectors file not found.")
         list_of_records = tokenizer.getRecords()
     
     except Exception as e:
+        print "error occurred"
         print str(e)
                 
         tokenizer = TokenizerClass()

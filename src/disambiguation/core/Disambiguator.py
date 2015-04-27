@@ -30,7 +30,7 @@ from memory_spike import *
 from core.hashes import *
 from common import *
 import copy
-import core.config as config
+import disambiguation.config as config
 
 
 

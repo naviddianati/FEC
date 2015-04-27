@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
-from nameparser import u, text_type
-from nameparser.constants import *
+from disambiguation.nameparser import u, text_type
+from disambiguation.nameparser.constants import *
 
 # http://code.google.com/p/python-nameparser/issues/detail?id=10
 log = logging.getLogger('HumanName')

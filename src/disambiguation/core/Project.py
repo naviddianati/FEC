@@ -1,4 +1,4 @@
-from core import config
+import disambiguation.config as config
 from utils import *
 
 class Project(dict):

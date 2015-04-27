@@ -51,7 +51,7 @@ from core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUn
 from core.Database import FecRetriever
 import core.Disambiguator as Disambiguator
 from core.Tokenizer import Tokenizer, TokenizerNgram, TokenData
-import core.config as config
+import config
 from core.states import *
 from core.utils import *
 import resource
@@ -1164,8 +1164,8 @@ if __name__ == "__main__":
 #     generateAffiliationData('massachusetts', affiliation=None, record_limit=(0, 5000000))
 #     quit()
     
-    init.INIT_combine_state_tokens_and_vectors()
-    quit()
+    #init.INIT_combine_state_tokens_and_vectors()
+    #quit()
     
 #     tokenize_all_states_uniform()    
 #     quit()
@@ -1178,7 +1178,7 @@ if __name__ == "__main__":
                        # whereclause=" WHERE NAME LIKE '%COHEN%' ",
                        # whereclause=" WHERE NAME like '%AARONS%' ",
                        # whereclause=" WHERE NAME like '%COHEN%' ",
-                       num_procs=12,
+                       num_procs=1,
                        percent_employers=50,
                        percent_occupations=50)
     quit()

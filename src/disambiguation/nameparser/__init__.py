@@ -25,4 +25,4 @@ else:
         return text_type(x)
 
 
-from nameparser.parser import HumanName
+from disambiguation.nameparser.parser import HumanName
