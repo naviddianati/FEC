@@ -1180,8 +1180,7 @@ if __name__ == "__main__":
 
     print "DISAMBIGUATING    \n" + "_"*80 + "\n"*5
     project = disambiguate_main('delaware',
-                       record_limit=(0, 5000000),
-                       
+                       record_limit=(0, 5000),
                        logstats=False,
                        # whereclause=" WHERE NAME LIKE '%COHEN%' ",
                        # whereclause=" WHERE NAME like '%AARONS%' ",

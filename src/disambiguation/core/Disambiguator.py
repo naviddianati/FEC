@@ -852,8 +852,8 @@ class Disambiguator():
             # Load hashes from file if found
             self.__load_LSH_hashes_from_file()
             print "LSH hashes loaded from file."
-        except Exception as e:
-            print e
+        except Exception, e:
+            print str(e)
             try:
                 # Otherwise, load the record vectors from file
                 # and compute the hashes from the vectors

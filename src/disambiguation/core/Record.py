@@ -349,82 +349,82 @@ class Record(dict):
     def _verdict_addressN_zipY(self, c_n, c_e, c_o, method_id=None):
         ''' If addresses are different and zipcodes are the same'''
         if method_id is None:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         
         # strict
         elif method_id == 1:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 2:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 3:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 4:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         
         
         elif method_id == 5:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 6:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 7:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 8:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
        
 
 
     def _verdict_addressN_zipN(self, c_n, c_e, c_o, method_id=None):
         ''' If addresses are different and zipcodes are different'''
         if method_id is None:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
 
         elif method_id == 1:
-            return (c_e >= 3 and c_o >= 3) and (c_n == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3)
         elif method_id == 2:
-            return (c_e >= 3 and c_o >= 3) and (c_n == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3)
         
         elif method_id == 3:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 4:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         
         elif method_id == 5:
-            return (c_e >= 3 and c_o >= 3) and (c_n == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3)
         elif method_id == 6:
-            return (c_e >= 3 and c_o >= 3) and (c_n == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3)
         
         elif method_id == 7:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 8:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
        
         
 
 
-    def _verdict_addressNA_zipY(self, c_n, c_e, c_o, method_id=None):        
+    def _verdict_addressNA_zipY(self, c_n, c_e, c_o , method_id=None):        
         ''' If at least one address is None  and zipcodes are the same'''
         if method_id is None:
-            return (c_e >= 1 or c_o >= 1) and (c_n == 3)
+            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] == 3)
        
         elif method_id == 1:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 2:
-            return (c_e >= 1 or c_o >= 1) and (c_n == 3)
+            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] == 3)
         
         elif method_id == 3:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 4:
-            return (c_e >= 1 or c_o >= 1) and (c_n == 3)
+            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] == 3)
         
         elif method_id == 5:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 6:
-            return (c_e >= 1 or c_o >= 1) and (c_n == 3)
+            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] == 3)
         
         elif method_id == 7:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 8:
-            return (c_e >= 1 or c_o >= 1) and (c_n == 3)
+            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] == 3)
         
 
 
@@ -432,23 +432,23 @@ class Record(dict):
         ''' If at least one address is None  and zipcodes are different'''
         # All are the same
         if method_id is None:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 1:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 2:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 3:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 4:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 5:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 6:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 7:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 8:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         
 
 
@@ -456,23 +456,23 @@ class Record(dict):
         ''' If cities are different '''        
         # All are the same
         if method_id is None:
-            return ((c_e >= 2 and c_o >= 2) or (c_o == 3) or (c_e == 3)) and (c_n == 3)
+            return ((c_e[0] >= 2 and c_o[0] >= 2) or (c_o[0] == 3) or (c_e[0] == 3)) and (c_n[0] == 3)
         elif method_id == 1:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 2:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 3:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 4:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 5:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 6:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 7:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 8:
-            return (c_e >= 2 and c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
         
 
 
@@ -480,25 +480,25 @@ class Record(dict):
         ''' If states are different '''
         # All are the same
         if method_id is None:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 1:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 2:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 4:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 3:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 4:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 5:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 6:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 7:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
         elif method_id == 8:
-            return (c_e >= 2 or c_o >= 2) and (c_n == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
        
 
 
@@ -988,7 +988,7 @@ class Record(dict):
                         except IndexError:
                             # If one first name is empty
 #                             identical *= 1
-                            pass # equivalent?
+                            pass  # equivalent?
     
                         
                     # check edit distances.
@@ -1003,7 +1003,7 @@ class Record(dict):
                         # Accept if one of the names is very rare
                         if f1 <= TokenData.RARE_FREQUENCY or f2 <= TokenData.RARE_FREQUENCY:
 #                             identical *= 1
-                            pass # equivalent?
+                            pass  # equivalent?
                         else:
                             identical = (2, None)
                             # print "EQUIVALENT:    ", firstname1, "-------------", firstname2
@@ -1035,7 +1035,7 @@ class Record(dict):
         '''
         TODO: records no longer hold their own vectors. So the vectors
         will have to be updated separately.
-        
+
         newtokendata is a TokenData object and is assumed to be
         a superset of self.tokendata. That is, every token or
         normalized token that exists in self.tokendata, also exists
