@@ -107,6 +107,12 @@ class Disambiguator():
         # Whether or not to export pairwise record comparison results.
         self.do_log_comparisons = True
         
+        # File object where each line is a json object documenting pairs of
+        # records that were not matched even though they were very close.
+        # This can be used for the second round of comparisons.
+        self.file_near_misses = None
+        
+        
         
         
 
@@ -123,6 +129,9 @@ class Disambiguator():
              
         comp_filename = config.comparisons_file_template % state
         self.file_comparison_results = open(comp_filename,'w')
+        
+        near_misses_filename = config.near_misses_file_template % state
+        self.file_near_misses = open(near_misses_filename,'w')
         self.do_log_comparisons = True
         
         
@@ -465,7 +474,9 @@ class Disambiguator():
             self.file_comparison_results.write(s1+"\n")
             self.file_comparison_results.write(s2+"\n")
             self.file_comparison_results.write("="*120+"\n")
-    
+
+            # Save the json object to file logging near misses
+            self.file_near_misses.write(s,'\n')
     
     def __update_nearest_neighbors_single_proc(self, B, hashes=None, allow_repeats=False):
         '''
