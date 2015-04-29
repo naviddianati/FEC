@@ -1491,9 +1491,9 @@ def find_nearest_neighbors(data):
             # Export the result of this comparison to file.
             if do_log_comparisons:
                 if (verdict == 0 and result['n'][0] > 1 and  result['e'][0] > 1 and result['o'][0] > 1):
-                    print record1.toString()
-                    print record2.toString()
-                    print "="*120
+                    #print record1.toString()
+                    #print record2.toString()
+                    #print "="*120
                     output['comparison_results'].append((record1,record2,verdict,result))
             
             # compute some statistics about the records
