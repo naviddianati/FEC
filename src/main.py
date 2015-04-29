@@ -809,6 +809,47 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 
 
 
+def DISAMBIGUATE_stage_1():
+    '''
+    Run disambiguate_main for each state. The main producsts will be the following:
+    
+    - The preliminary identities inferred at the state level, stored in the 
+        "identities" MySQL table.
+    - The full match buffers of all states. These are lists of all record pairs
+        matched within each state.
+    - The near misses within each state. These can be used to revisit and refine
+        the clusters found, in the second round.
+    '''
+    pass
+
+def DISAMBIGUATE_stage_2():
+    '''
+    Using results from state-level disambiguation, do a second run of comparisons
+    on a national level. The goal is to match clusters across states and even within
+    states. To do this, we use the following data:
+    - coarse hashes computed for the entire country using the Tokenizer class via
+        INIT_compute_national_hashes()
+    - The match buffer of each state, used to avoid double-checking records that are
+        already matched. That would be stupid.
+    - The set of near miss record pairs found for each state. These pairs will be re-
+        examined if they aren't clustered together already. The point is that using the 
+        stage_1 identities, we now have access to new statistics that will let us 
+        assess the likelihood of these near-misses actually being matches.
+    
+    The steps are roughly as follows:
+    - Using the uniform national hashes, find a list of similar record pairs across
+        the country. This list minus the match buffers from stage 1 will be the pairs
+        we will be comparing in this round.
+    - Divide records into num_procs "independent" sets of roughly equal sizes. That is,
+        divide into sets such that all pair comparisons we need to do fall within the
+        sets. Each one of these sets will be sent to a child process for processing.
+        
+    '''
+    pass
+
+
+
+
 
 
 def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="thorough", logstats=False):  
