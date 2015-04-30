@@ -1217,24 +1217,30 @@ def test_hashes():
     f.close()
      
     
-    edgelist, dict_hashes = get_edgelist_from_hashes_file(filename, 10, 40)
+    edgelist, dict_hashes = get_edgelist_from_hashes_file(filename, 20, 20)
     num_hashes = len(dict_hashes)
     
     # sort edgelist
     edgelist.sort(key=lambda x: x[2], reverse=True)
+    f = open('edgelist.txt','w')
+    for edge in edgelist:
+        f.write('%d %d %f\n' % edge)
+        d0 = dict_normalized_attributes[edge[0]]
+        d1 = dict_normalized_attributes[edge[1]]
+        print edge[2], "=" * 70
+        print edge[0], d0['N_first_name'], d0['N_middle_name'], d0['N_last_name'], d0['N_zipcode'], d0['N_occupation'], d0['N_employer'], d0['N_address']
+        print edge[1], d1['N_first_name'], d1['N_middle_name'], d1['N_last_name'], d1['N_zipcode'], d1['N_occupation'], d1['N_employer'], d1['N_address']
+    f.close()
+    return
     
     ecount = int(avg_degree * num_hashes)
     edgelist = edgelist[:ecount]
     g = ig.Graph.TupleList(edgelist, edge_attrs='score')
-    # g.components().giant().write_gml('delaware_edlist.gml')
     g.write_gml(config.data_path + 'delaware_edlist.gml')
-#     return
     list_components = g.components().subgraphs()
     
     set_names = set([int(v['name']) for v in g.vs])
     
-    print len(set_names - set(dict_hashes.keys()))
-#     return
     
     print "number of components: ", len(list_components)
     for component in  sorted(list_components, key=lambda g : dict_normalized_attributes[int(g.vs[0]['name'])]['N_last_name']):
@@ -1280,7 +1286,7 @@ def INIT():
     
     ''' National level data preparation: '''
     # Tokenize, vectorize and hashify all states using Tokenizer
-    init.INIT_process_multiple_states(TokenizerClass = Tokenizer, num_procs = 2)
+    init.INIT_process_multiple_states(TokenizerClass = Tokenizer, num_procs = 12)
 
     
     # combine the vectors and tokens from all states into the national data files.
@@ -1297,8 +1303,10 @@ def INIT():
 if __name__ == "__main__":
 #     view_vectors()
 #     quit()
-    INIT()
-    quit()
+
+
+#    INIT()
+#    quit()
     
     
     test_hashes()
