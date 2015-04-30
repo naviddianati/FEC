@@ -812,8 +812,8 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 def DISAMBIGUATE_stage_1():
     '''
     Run disambiguate_main for each state. The main producsts will be the following:
-    
-    - The preliminary identities inferred at the state level, stored in the 
+
+    - The preliminary identities inferred at the state level, stored in the
         "identities" MySQL table.
     - The full match buffers of all states. These are lists of all record pairs
         matched within each state.
@@ -832,10 +832,10 @@ def DISAMBIGUATE_stage_2():
     - The match buffer of each state, used to avoid double-checking records that are
         already matched. That would be stupid.
     - The set of near miss record pairs found for each state. These pairs will be re-
-        examined if they aren't clustered together already. The point is that using the 
-        stage_1 identities, we now have access to new statistics that will let us 
+        examined if they aren't clustered together already. The point is that using the
+        stage_1 identities, we now have access to new statistics that will let us
         assess the likelihood of these near-misses actually being matches.
-    
+
     The steps are roughly as follows:
     - Using the uniform national hashes, find a list of similar record pairs across
         the country. This list minus the match buffers from stage 1 will be the pairs
@@ -843,7 +843,7 @@ def DISAMBIGUATE_stage_2():
     - Divide records into num_procs "independent" sets of roughly equal sizes. That is,
         divide into sets such that all pair comparisons we need to do fall within the
         sets. Each one of these sets will be sent to a child process for processing.
-        
+
     '''
     pass
 
@@ -1193,7 +1193,116 @@ def print_resource_usage(msg):
 
 
 
+from disambiguation.core.hashes import get_edgelist_from_hashes_file
+import igraph as ig
+def test_hashes():
+    state = 'delaware'
+    
+    # Load normalized attributes
+    filename = config.normalized_attributes_file_template % state
+    f = open(filename)
+    dict_normalized_attributes = cPickle.load(f)
+    f.close()
+    
+#     return
+#     for x in  dict_normalized_attributes:
+#         print x
+#     return
+    avg_degree = 1
+    
+    # Load hash-based edgelist
+    filename = config.hashes_file_template % ('delaware', 'Tokenizer')
+    f = open(filename)
+    dict_hashes = cPickle.load(f)
+    f.close()
+     
+    
+    edgelist, dict_hashes = get_edgelist_from_hashes_file(filename, 10, 40)
+    num_hashes = len(dict_hashes)
+    
+    # sort edgelist
+    edgelist.sort(key=lambda x: x[2], reverse=True)
+    
+    ecount = int(avg_degree * num_hashes)
+    edgelist = edgelist[:ecount]
+    g = ig.Graph.TupleList(edgelist, edge_attrs='score')
+    # g.components().giant().write_gml('delaware_edlist.gml')
+    g.write_gml(config.data_path + 'delaware_edlist.gml')
+#     return
+    list_components = g.components().subgraphs()
+    
+    set_names = set([int(v['name']) for v in g.vs])
+    
+    print len(set_names - set(dict_hashes.keys()))
+#     return
+    
+    print "number of components: ", len(list_components)
+    for component in  sorted(list_components, key=lambda g : dict_normalized_attributes[int(g.vs[0]['name'])]['N_last_name']):
+        for v in component.vs:
+            d = dict_normalized_attributes[int(v['name'])]
+            d['id'] = int(v['name'])
+            print d['id'], d['N_first_name'], d['N_middle_name'], d['N_last_name'], d['N_zipcode'], d['N_occupation'], d['N_employer'], d['N_address']
+            print "------ ", dict_hashes[d['id']]
+        for e in component.es:
+            v0 = component.vs[e.target]
+            v1 = component.vs[e.source]
+            print "(%s , %s) -- %f" % (v0['name'], v1['name'], e['score']) 
+        print "=" * 70
+        
+    
+
+
+def view_vectors(state='delaware'):
+    '''
+    For a sample of records in state, print the normalized attributes
+    and feature vector.
+    '''
+    
+    dict_vectors = load_feature_vectors(state, 'Tokenizer')
+    tokendata = load_tokendata(state, 'Tokenizer')
+    dict_norm_attr = load_normalized_attributes(state)
+    
+    counter = 0
+    for r_id, norm_attr in dict_norm_attr.iteritems():
+        print [tokendata.index_2_token[token_id] for token_id in dict_vectors[r_id]]
+        print [norm_attr[key] for key in sorted(norm_attr.keys())]
+        print "=" * 70
+        if counter > 10: break
+        counter += 1
+
+
+
+def INIT():
+        
+    '''State level data preparation (for fine-grained intra state disambiguation)'''
+    # Tokenize, vectorize and hashify all states using TokenizerNgram
+    #init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
+    
+    ''' National level data preparation: '''
+    # Tokenize, vectorize and hashify all states using Tokenizer
+    init.INIT_process_multiple_states(TokenizerClass = Tokenizer, num_procs = 2)
+
+    
+    # combine the vectors and tokens from all states into the national data files.
+    #init.INIT_combine_state_tokens_and_vectors()
+    
+    # Using the national vectors and tokens, compute uniform national hashes
+#     init.INIT_compute_national_hashes(num_procs=10)
+    
+    
+
+
+
+
 if __name__ == "__main__":
+#     view_vectors()
+#     quit()
+    INIT()
+    quit()
+    
+    
+    test_hashes()
+    quit()
 
     # print "AFFILATION: zip_code\n" + "_"*80 + "\n"*5 
     # generateMigrationData('delaware', affiliation='zip_code', record_limit=(0, 5000000), num_procs = 12)
@@ -1211,8 +1320,8 @@ if __name__ == "__main__":
 #     generateAffiliationData('massachusetts', affiliation=None, record_limit=(0, 5000000))
 #     quit()
     
-    #init.INIT_combine_state_tokens_and_vectors()
-    #quit()
+    # init.INIT_combine_state_tokens_and_vectors()
+    # quit()
     
 #     tokenize_all_states_uniform()    
 #     quit()
