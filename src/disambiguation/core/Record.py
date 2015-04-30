@@ -454,7 +454,6 @@ class Record(dict):
 
     def _verdict_cityN(self, c_n, c_e, c_o, method_id=None):
         ''' If cities are different '''        
-   :q
         # All are the same
         if method_id is None:
             return ((c_e[0] >= 2 and c_o[0] >= 2) or (c_o[0] == 3) or (c_e[0] == 3)) and (c_n[0] == 3)

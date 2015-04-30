@@ -21,7 +21,7 @@ relevant paths and will be available to disambiguation methods:
 '''
 
 from core.utils import *
-import core.Project
+import core.Project as Project
 import disambiguation.config as config
 from core.Database import FecRetriever
 import core.Disambiguator as Disambiguator
@@ -290,7 +290,7 @@ def INIT_process_single_state(state=None, TokenizerClass=None,  record_limit=(0,
     D.tokenizer = tokenizer
     
     # desired dimension (length) of hashes
-    hash_dim = 20
+    hash_dim = 60
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
@@ -396,7 +396,7 @@ if __name__ == "__main__":
     
     
     '''State level data preparation (for fine-grained intra state disambiguation)'''
-    # Tokenize, vectorize and hashify all states using Tokenizer
+    # Tokenize, vectorize and hashify all states using TokenizerNgram
     #INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
     
     ''' National level data preparation: '''

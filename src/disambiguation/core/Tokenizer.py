@@ -305,7 +305,7 @@ class Tokenizer():
                 # For each field, call the appropriate normalize function
                 # NOTE: has to be done before calling tokenize functions
                 self.normalize_functions[field](record)
-                
+                    
                 # update dictionary of normalized name frequencies
                 self.update_normalized_token_counts(record)
 
