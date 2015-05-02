@@ -475,7 +475,7 @@ class Disambiguator():
             self.file_comparison_results.write("="*120+"\n")
 
             # Save the json object to file logging near misses
-            self.file_near_misses.write(s,'\n')
+            self.file_near_misses.write(s + "\n")
     
     def __update_nearest_neighbors_single_proc(self, B, hashes=None, allow_repeats=False):
         '''

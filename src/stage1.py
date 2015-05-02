@@ -1124,16 +1124,16 @@ def worker_disambiguate_states(conn):
     list_results = []
     
     for state in data:
+        #try:
+        project = disambiguate_main(state, record_limit=(0, 5000000))
+        
         try:
-            project = disambiguate_main(state, record_limit=(0, 5000000))
-            
-            try:
-                project.D.save_identities_to_db()
-            except Exception as e:
-                raise 
-
+            project.D.save_identities_to_db()
         except Exception as e:
-            print "ERROR: Could not disambiguate state ", state, ":   ", e
+            raise 
+
+        #except Exception as e:
+        #    print "ERROR: Could not disambiguate state ", state, ":   ", e
 
 
 
@@ -1154,12 +1154,9 @@ def disambiguate_multiple_states(list_states = [], num_procs = 12):
 
     # if not specified,  load all states
     if not list_states:
-        list_states = sorted(dict_state.values())
+        list_states = get_states_sorted()
+        list_states.reverse()
 
-    dict_state_order = get_state_order()
-    list_states.sort(key = lambda state: dict_state_order[state])
-
-    set_states = set(list_states)
 
     N = len(list_states)
 
@@ -1171,9 +1168,9 @@ def disambiguate_multiple_states(list_states = [], num_procs = 12):
     dict_conns = {}
 
     proc_id = 0
-    while set_states:
-        if proc_id not in dict_states: dict_states[proc_id] = set()
-        dict_states[proc_id].add(set_states.pop())
+    while list_states:
+        if proc_id not in dict_states: dict_states[proc_id] = []
+        dict_states[proc_id].append(list_states.pop())
         proc_id += 1
         proc_id = proc_id % number_of_processes
 
@@ -1205,6 +1202,10 @@ def disambiguate_multiple_states(list_states = [], num_procs = 12):
 
 
 if __name__ == "__main__":  
+
+    disambiguate_multiple_states()
+    quit()
+
     # print "AFFILATION: zip_code\n" + "_"*80 + "\n"*5 
     # generateMigrationData('delaware', affiliation='zip_code', record_limit=(0, 5000000), num_procs = 12)
     # quit()

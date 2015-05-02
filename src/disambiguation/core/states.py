@@ -166,6 +166,7 @@ def get_states_sorted():
     dict_state_order = get_state_order()
     list_states = sorted(dict_state.values())
     list_states.sort(key=lambda state: dict_state_order[state])
+    print list_states
     return list_states
 
 
