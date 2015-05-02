@@ -11,7 +11,7 @@ from core.states import get_state_order
 
 
 
-def worker(conn):
+def worker_disambiguate_states(conn):
     data = conn.recv()
     proc_name = multiprocessing.current_process().name
     print proc_name, data
@@ -32,7 +32,7 @@ def worker(conn):
             print "Could not disambiguate state ", state, ":   ", e
 
 
-def run_main():
+def disambiguate_multiple_states():
     # Whether to run new state batches or read from existing output files.
     run_fresh_batches = True
 
@@ -91,7 +91,7 @@ def run_main():
             conn_parent, conn_child = multiprocessing.Pipe()
             dict_conns[id] = (conn_parent, conn_child)        
 
-            p = multiprocessing.Process(target=worker, name=str(id), args=(conn_child,))
+            p = multiprocessing.Process(target=worker_disambiguate_states, name=str(id), args=(conn_child,))
 
             list_jobs.append(p)
             time.sleep(1)
@@ -204,5 +204,5 @@ def run_main():
 
 
 if __name__ == "__main__":
-    run_main()
+    disambiguate_multiple_states()
 

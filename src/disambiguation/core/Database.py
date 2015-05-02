@@ -122,8 +122,47 @@ class FecRetriever(DatabaseManager):
 
 
 
+
+
+
+
+
+
+class IdentityManager(object):
+    '''
+    DatabaseManager subclass that interacts with the 'identities' MySQL
+    table and retrieves cluster membership data.
+    '''
+    
+    def __load_data_from_db(self):
+        raise Exception("not implemented yet")
+
+
+    def get_dict_id_2_identity(self):
+        return self.dict_id_2_identity
+    
+    
+    def get_dict_identity_2_id(self):
+        return self.dict_identity_2_id
+    
+    
+    def __init__(self):
+        self.dict_id_2_identity = None
+        self.dict_identity_2_id = None
+        raise Exception("not implemented yet")
+    
+    
+
+
+
+
+
+
+
 if __name__ == "__main__":
     fr = DatabaseManager(table_name="california", query_fields=["NAME", "CITY", "CMTE_ID", "TRAN_ID"], limit=(1, 1000000), list_order_by=["NAME"])
     fr.retrieve()
     for record in fr.list_of_records:
         print record
+
+

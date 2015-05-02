@@ -43,6 +43,7 @@ def get_edgelist_from_hashes(dict_hashes, B=10, num_shuffles=10):
                     adj[(xmin, xmax)] = np.exp(-(np.abs(i - j)))
         print len(adj)
     edgelist = [(x[0], x[1], y) for x, y in adj.iteritems()]
+    edgelist.sort(key=lambda x: x[2], reverse=True)
     return edgelist
     pass
 

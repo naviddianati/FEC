@@ -22,6 +22,30 @@ import states
 from .. import config
 import math
 
+
+
+
+
+
+def find_all_in_list(regex, str_list):
+    ''' Given a list of strings, str_list and a regular expression, regex, return a dictionary with the
+        frequencies of all mathces in the list.'''
+    dict_matches = {}
+    for s in str_list:
+#         s_list = re.findall(r'\b\w\b', s)
+        s_list = re.findall(regex, s)
+        for s1 in s_list:
+            if s1 in dict_matches:
+                dict_matches[s1] += 1 
+            else:
+                dict_matches[s1] = 1
+    return dict_matches
+
+ 
+
+
+
+
 def get_next_batch_id():
     f = open(config.src_path + '../../config/batches.list')
     s = f.read()

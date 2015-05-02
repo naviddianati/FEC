@@ -21,7 +21,8 @@ dict_paths = {
     "data_path_affiliations_employer" : data_path + "affiliations/employer/",
     "data_path_affiliations_occupation" : data_path + "affiliations/occupation/",
     "data_path_match_buffers" : data_path + "match_buffers/",
-    "data_path_near_misses" : data_path + "near_misses/"
+    "data_path_near_misses" : data_path + "near_misses/",
+    "tmp_path": data_path + "tmp/"
 }
 
 # Make sure the data paths exist

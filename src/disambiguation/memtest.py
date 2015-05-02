@@ -3,7 +3,7 @@ import time
 from cPickle import loads, dumps
 import sys
 
-def worker(data):
+def worker_disambiguate_states(data):
     time.sleep(20)
 
 
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     print sum([sys.getsizeof(dumps(d)) for d in data2])
     quit()
  
-    result = pool.map(worker,data)
+    result = pool.map(worker_disambiguate_states,data)
 
 
 

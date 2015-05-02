@@ -24,7 +24,7 @@ def get_large_obj(size):
     
 
 
-def worker(conn):
+def worker_disambiguate_states(conn):
     data = conn.recv()
     proc_name = multiprocessing.current_process().name
     print proc_name, data
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         dict_conns[id] = (conn_parent, conn_child)        
 
 
-        p = multiprocessing.Process(target=worker, name=str(id), args=(conn_child,))
+        p = multiprocessing.Process(target=worker_disambiguate_states, name=str(id), args=(conn_child,))
 
         # set process as daemon. Let it run in the background
         # p.daemon = True
