@@ -56,7 +56,7 @@ class Disambiguator():
         
         
         self.debug = False
-        self.verbose = True
+        self.verbose = False
         
         self.project = None
         self.matching_mode = matching_mode
@@ -1123,7 +1123,10 @@ class Disambiguator():
         if not list_persons:
             print "NONE"
         for person in list_persons:
-            print person.toString()
+            try:
+                print person.toString()
+            except:
+                print "Error printing result of person.toString()."
             print (" "*20 + "|" + "\n") * 3
         print ("="*70 + "\n") * 3
     
@@ -1360,7 +1363,7 @@ class Disambiguator():
             db_manager.runQuery('CREATE TABLE identities ( id INT PRIMARY KEY, identity VARCHAR(24));')
         
         for id_pair in self.generator_identity_list():
-            print id_pair
+            #print id_pair
             result = db_manager.runQuery('INSERT INTO identities (id,identity)  VALUES (%d,"%s");' % id_pair)
             print result
         db_manager.connection.commit()

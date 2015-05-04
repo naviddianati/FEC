@@ -45,7 +45,12 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
         print filename
         G = igraph.Graph.Read_GML(filename)
         
-        G = prune(G, field='significance', percent=percent)
+        try:
+            G = prune(G, field='significance', percent=percent)
+        except Exception, e:
+            print e
+            print "Error pruning the affiliation graph. Reloading the full graph."
+            G = igraph.Graph.Read_GML(filename)
         
         dict_string_2_ind = {v['label']:v.index for v in G.vs}
         G.dict_string_2_ind = dict_string_2_ind
@@ -156,7 +161,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     print_resource_usage('---------------- after setting list_of_records')
     if not list_of_records:
         print "ERROR: list of records empty. Aborting..."
-        quit()
+        return
 
 
     
@@ -911,8 +916,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
         
     file_handcode_data.close()
         
-    quit()
-    
+    return 
     
     
     print len(tokenizer.tokens.token_2_index.keys())
@@ -1107,7 +1111,6 @@ def tokenize_all_states_uniform(record_limit=(0, 20000000)):
         
     print "Tokenizing records..."
     tokenizer.tokenize(num_procs=12)
-    quit()
     
 
 
@@ -1200,12 +1203,11 @@ def disambiguate_multiple_states(list_states = [], num_procs = 12):
    
     
 
-
+import sys
 if __name__ == "__main__":  
 
     disambiguate_multiple_states()
-    quit()
-
+    sys.exit()
     # print "AFFILATION: zip_code\n" + "_"*80 + "\n"*5 
     # generateMigrationData('delaware', affiliation='zip_code', record_limit=(0, 5000000), num_procs = 12)
     # quit()
