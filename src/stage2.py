@@ -33,31 +33,34 @@ def get_candidate_pairs(num_pairs, state='USA',):
     # Dictionary id:identity from stage 1
     dict_id_2_identity = identity_manager.get_dict_id_2_identity()
 
-    def is_new(pair):
+    def is_new(edge):
         '''
         Determine if the stage 1 identities of records in
         pair are identical. If not, the pair is new.
         '''
-        return True if dict_id_2_identity[pair[0]] != dict_id_2_identity[pair[1]] else False
+        return True if dict_id_2_identity[edge[0]] != dict_id_2_identity[edge[1]] else False
 
     # Number of adjacency hashes to log
     B = 20
 
     # number of times to shuffle the list of hashes.
-    num_shuffles = 20
+    num_shuffles = 2
 
     # list of candidate pairs to be compared.
     list_pairs = []
 
     # Get the full sorted edgelist from national hashes.
     filename = config.hashes_file_template % (state, 'Tokenizer')
-    edgelist = hashes.get_edgelist_from_hashes_file(filename, B, num_shuffles, num_procs=2)
+    edgelist = hashes.get_edgelist_from_hashes_file(filename, B, num_shuffles, num_procs=12)
 
     # Main loop.
-    while (len(list_pairs) < num_pairs) and list_pairs:
-        pair = list_pairs.pop()
-        if is_new(pair):
-            list_pairs.append(pair)
+    while (len(list_pairs) < num_pairs) and edgelist:
+        edge = edgelist.pop()
+        if is_new(edge):
+            list_pairs.append(edge)
+            print "new"
+        else:
+            print "old"
 
     return list_pairs
 

@@ -260,7 +260,7 @@ if __name__ == "__main__":
 #    INIT()
 #    quit()
     import stage2
-    stage2.get_candidate_pairs(100, 'delaware')
+    stage2.get_candidate_pairs(1000, 'delaware')
     quit()
 
     states.get_states_sorted('num_records')
