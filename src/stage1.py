@@ -162,17 +162,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     if not list_of_records:
         print "ERROR: list of records empty. Aborting..."
         return
-
-
-    
-#     # A list(1) of lists(2)  where each list(2) corresponds to one of the records returned by MySQL
-#     # and it contains only the "identifier" fields of that record. This is the main piece of data processed by this program.
-#     list_of_records_identifier = [[record[index] for index in index_list_tokenized_fields] for record in tmp_list]
-#     
-#     # Same as above, except each list(2) consists of the auxiliary columns of the record returned by MySQL.
-#     list_of_records_auxiliary = [[record[index] for index in index_auxiliary_fields] for record in tmp_list]  
-    
-    
+  
     
     # Get tokendata and make sure vectors are exported to file.
     tokenizer, list_of_records = init.tokenize_records(list_of_records, project, TokenizerNgram)
@@ -323,9 +313,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     data files which can be loaded by loadAffiliationNetwork().
     The comparison method used by Records here should be
     strict_address.
-    '''
     
-    '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
     2- Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the

@@ -1,8 +1,8 @@
 #! /usr/bin/python
 # This program analyzes the full database for a given state. That is, not just the <state>_addresses
-# 
+#
 # The <state>_addresses tables are roughly 0.25 the size of their corresponding <state> tables. Why?
-# My explanation is that lots of records that have unique identifier pairs in the <state> table, 
+# My explanation is that lots of records that have unique identifier pairs in the <state> table,
 # occur multiple times in the contributor_addresses table, and therefore don't appear in its unique
 # version, namely contributor_addresses_unique.
 ''' TODO:
@@ -52,21 +52,20 @@ from disambiguation.core.Tokenizer import Tokenizer, TokenizerNgram, TokenData
 import disambiguation.config as config
 from disambiguation.core.states import *
 from disambiguation.core.utils import *
-# import resource
 
 
 
 
 
-   
-      
 
-   
+
+
+
 
 
 def DISAMBIGUATE_stage_1():
     '''
-    Run disambiguate_main for each state. The main producsts will be the following:
+    Run disambiguate_main for each state. The main products will be the following:
 
     - The preliminary identities inferred at the state level, stored in the
         "identities" MySQL table.
@@ -76,10 +75,10 @@ def DISAMBIGUATE_stage_1():
         the clusters found, in the second round.
     '''
     import stage1
-    
+
     # Disambiguate every state separately in parallel.
-    stage1.disambiguate_multiple_states(list_states = [], num_procs = 12)
-    
+    stage1.disambiguate_multiple_states(list_states=[], num_procs=12)
+
 
 
 
@@ -108,25 +107,25 @@ def DISAMBIGUATE_stage_2():
     import stage2
     # Number of new record pairs to compare at the national level
     num_pairs = 10000
-    
+
     # Number of processes to use for stage 2 disambiguation.
     num_procs = 12
-    
-    # Get pairs of record ids that are similary according
+
+    # Get pairs of record ids that are similar according
     # to the national (combined) hashes, but aren't already
-    # linked at the state level. 
+    # linked at the state level.
     list_record_pairs = stage2.get_candidate_pairs(num_pairs)
-    
-    
+
+
     # Partition the full record set into num_procs subsets
     # with minimal inter-set links, and export the record ids
     # to a separate file for each subset.
     list_filenames = stage2.partition_records(list_record_pairs, num_procs, file_label="")
-    
-    
-    # Compare record pairs within each subset and save results. 
+
+
+    # Compare record pairs within each subset and save results.
     stage2.disambiguate_subsets_multiproc(list_filenames, num_procs)
-    
+
     pass
 
 
@@ -139,33 +138,29 @@ from disambiguation.core.hashes import get_edgelist_from_hashes_file
 import igraph as ig
 def test_hashes():
     state = 'delaware'
-    
+
     # Load normalized attributes
     filename = config.normalized_attributes_file_template % state
     f = open(filename)
     dict_normalized_attributes = cPickle.load(f)
     f.close()
-    
+
 #     return
 #     for x in  dict_normalized_attributes:
 #         print x
 #     return
     avg_degree = 1
-    
-    # Load hash-based edgelist
-    filename = config.hashes_file_template % ('delaware', 'Tokenizer')
-    f = open(filename)
-    dict_hashes = cPickle.load(f)
-    f.close()
-     
-    
-    edgelist, dict_hashes = get_edgelist_from_hashes_file(filename, 20, 20)
-    num_hashes = len(dict_hashes)
-    
+
+
+
+    filename = config.hashes_file_template % (state, 'Tokenizer')
+    edgelist = get_edgelist_from_hashes_file(filename, 20, 20, num_procs=2)
+    num_hashes = len(dict_normalized_attributes)
+
     # sort edgelist
     # COMES SORTED
     # edgelist.sort(key=lambda x: x[2], reverse=True)
-    f = open('edgelist.txt','w')
+    f = open('edgelist.txt', 'w')
     for edge in edgelist:
         f.write('%d %d %f\n' % edge)
         d0 = dict_normalized_attributes[edge[0]]
@@ -175,30 +170,29 @@ def test_hashes():
         print edge[1], d1['N_first_name'], d1['N_middle_name'], d1['N_last_name'], d1['N_zipcode'], d1['N_occupation'], d1['N_employer'], d1['N_address']
     f.close()
     return
-    
+
     ecount = int(avg_degree * num_hashes)
     edgelist = edgelist[:ecount]
     g = ig.Graph.TupleList(edgelist, edge_attrs='score')
     g.write_gml(config.data_path + 'delaware_edlist.gml')
     list_components = g.components().subgraphs()
-    
+
     set_names = set([int(v['name']) for v in g.vs])
-    
-    
+
+
     print "number of components: ", len(list_components)
     for component in  sorted(list_components, key=lambda g : dict_normalized_attributes[int(g.vs[0]['name'])]['N_last_name']):
         for v in component.vs:
             d = dict_normalized_attributes[int(v['name'])]
             d['id'] = int(v['name'])
             print d['id'], d['N_first_name'], d['N_middle_name'], d['N_last_name'], d['N_zipcode'], d['N_occupation'], d['N_employer'], d['N_address']
-            print "------ ", dict_hashes[d['id']]
         for e in component.es:
             v0 = component.vs[e.target]
             v1 = component.vs[e.source]
-            print "(%s , %s) -- %f" % (v0['name'], v1['name'], e['score']) 
+            print "(%s , %s) -- %f" % (v0['name'], v1['name'], e['score'])
         print "=" * 70
-        
-    
+
+
 
 
 def view_vectors(state='delaware'):
@@ -206,11 +200,11 @@ def view_vectors(state='delaware'):
     For a sample of records in state, print the normalized attributes
     and feature vector.
     '''
-    
+
     dict_vectors = load_feature_vectors(state, 'Tokenizer')
     tokendata = load_tokendata(state, 'Tokenizer')
     dict_norm_attr = load_normalized_attributes(state)
-    
+
     counter = 0
     for r_id, norm_attr in dict_norm_attr.iteritems():
         print [tokendata.index_2_token[token_id] for token_id in dict_vectors[r_id]]
@@ -222,37 +216,62 @@ def view_vectors(state='delaware'):
 
 
 def INIT():
-        
+
     '''State level data preparation (for fine-grained intra state disambiguation)'''
     # Tokenize, vectorize and hashify all states using TokenizerNgram
-    #init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
-    
+    # init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
+
     ''' National level data preparation: '''
     # Tokenize, vectorize and hashify all states using Tokenizer
-    init.INIT_process_multiple_states(TokenizerClass = Tokenizer, num_procs = 12)
+    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, num_procs=12)
 
-    
+
     # combine the vectors and tokens from all states into the national data files.
-    #init.INIT_combine_state_tokens_and_vectors()
-    
+    # init.INIT_combine_state_tokens_and_vectors()
+
     # Using the national vectors and tokens, compute uniform national hashes
 #     init.INIT_compute_national_hashes(num_procs=10)
-    
-    
 
 
+
+
+
+
+
+def test_identity_manager():
+    from disambiguation.core.Database import IdentityManager
+    idm = IdentityManager(state='delaware')
+
+    for identity, rids in idm.dict_identity_2_list_ids.iteritems():
+        print identity, rids
 
 
 if __name__ == "__main__":
+
+#     filename = config.hashes_file_template % ('delaware','Tokenizer')
+#     edgelist = get_edgelist_from_hashes_file(filename, 20, 5, num_procs = 3)
+#     print len(edgelist)
+#     quit()
+
 #     view_vectors()
 #     quit()
 
 
 #    INIT()
 #    quit()
-    
-    
+    import stage2
+    stage2.get_candidate_pairs(100, 'delaware')
+    quit()
+
+    states.get_states_sorted('num_records')
+    quit()
+
+
+
+    test_identity_manager()
+    quit()
+
     test_hashes()
     quit()
 
-   
+

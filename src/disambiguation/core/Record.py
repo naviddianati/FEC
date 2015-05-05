@@ -99,7 +99,7 @@ class Record(dict):
       
 
     
-    ''' The follosing two methods need to be defined in order to make the object hashable.
+    ''' The following two methods need to be defined in order to make the object hashable.
     Note that my definition of __eq__ works fine as long as I don't ever need to compare
     equality between two objects based on their "content".
     '''
@@ -114,10 +114,10 @@ class Record(dict):
     
     
     
-    '''
-    return a short string summarizing the record
-    '''
     def toString(self):
+        '''
+        return a short string summarizing the record
+        '''
         s = "%s\t%s\t%s\t%s" % (self['NAME'], self['ZIP_CODE'], self['EMPLOYER'], self['OCCUPATION'])
         return s
     
@@ -181,6 +181,7 @@ class Record(dict):
     def __getitem__(self, key):
         val = dict.__getitem__(self, key)
         return val
+    
 
     def __setitem__(self, key, val):
         dict.__setitem__(self, key, val)
@@ -200,16 +201,6 @@ class Record(dict):
         
         identical = True
      
-        
-        # If either has no address, require firstname and last name to be identical and also middle name if both have it.
-        # WHY DID I DO THIS?! MAKES NO SENSE!!!!!
-        # if not r1['N_address'] or not  r2['N_address']:
-        #    identical = (r1['N_last_name'] == r2['N_last_name']) \
-        #                and (r1['N_first_name'] == r2['N_first_name']) \
-        #                and ((r1['N_middle_name'] == r2['N_middle_name']) \
-        #                    if (r1['N_middle_name'] and r2['N_middle_name']) else True)
-        #    return identical, None
-
 
         # Both records MUST have addresses
         if not r1['N_address'] or not  r2['N_address']:
@@ -234,13 +225,11 @@ class Record(dict):
         if not r1['N_middle_name'] and r2['N_middle_name']: identical = False
           
         # if last names arden't close enough, fail.
-#         if dict1[1] != dict2[1]: identical = False;
         if not r1['N_last_name'] or not r2['N_last_name']: 
             identical = False       
         elif editdist.distance(''.join(sorted(r1['N_last_name'])), ''.join(sorted(r2['N_last_name']))) > 2: identical = False
 
         # if first names don't overlap, then check if they are variants. If not, fail
-#         if not any(i in dict1[2] for i in dict2[2]): identical = False
         firstname1 = ' '.join(r1['N_first_name'])
         firstname2 = ' '.join(r2['N_first_name'])  
         if editdist.distance(firstname1, firstname2) > 1:
@@ -256,10 +245,12 @@ class Record(dict):
 
 
     def _compare_STRICT_AFFILIATION(self, r1, r2):
-        ''' This function returns two values: the verdict, and the detailed result of the  comparisons performed.
-        TODO: return the result (details) too. Right now, None is returned for the detailed result.
-
-        This function returns True or False indicating whether two name vectors are close enough to be considered identical or not.
+        ''' This function returns two values: the verdict, and the 
+        detailed result of the  comparisons performed.
+        TODO: return the result (details) too. Right now, None is
+        returned for the detailed result.
+        This function returns True or False indicating whether two name
+        vectors are close enough to be considered identical or not.
        ''' 
         
         
@@ -292,13 +283,11 @@ class Record(dict):
         if not r1['N_middle_name'] and r2['N_middle_name']: identical = False
           
         # if last names arden't close enough, fail.
-#         if dict1[1] != dict2[1]: identical = False;
         if not r1['N_last_name'] or not r2['N_last_name']: 
             identical = False       
         elif editdist.distance(''.join(sorted(r1['N_last_name'])), ''.join(sorted(r2['N_last_name']))) > 2: identical = False
 
         # if first names don't overlap, then check if they are variants. If not, fail
-#         if not any(i in dict1[2] for i in dict2[2]): identical = False
         firstname1 = ' '.join(r1['N_first_name'])
         firstname2 = ' '.join(r2['N_first_name'])  
         if editdist.distance(firstname1, firstname2) > 1:
@@ -561,13 +550,10 @@ class Record(dict):
         4- In general, employer string distance should also be taken into account.
         4- if cities are different but employers are identical, then accept
         '''
-#         Record.debug = True if   r1['N_first_name'] == r2['N_first_name'] == "MARKUS" and r1['N_last_name'] == r2['N_last_name'] == "AAKKO" else False
-#         Record.debug = True  if r1['N_first_name'] != r2['N_first_name']  else False;  
         if Record.debug:
             print "_______________________________________________________________________________________________________________"
             print r1
             print r2
-            # If states are the same,
         
         result = {'o':None,  # occupation
                   'e':None,  # employer
@@ -578,12 +564,8 @@ class Record(dict):
                   }
         
         
-#         print self.pvalue(r1,r2)
         
         
-        #=======================================================================
-        # 
-        #=======================================================================
         firstname1 = r1['N_first_name']
         firstname2 = r2['N_first_name']
         
@@ -591,9 +573,6 @@ class Record(dict):
 #             if self.compare_names(r1, r2):
 #                 print "------>", r1['NAME'], "     |     ", r2['NAME']
              
-        #===================================================================
-        # 
-        #===================================================================
     
         
         if r1['STATE'] == r2['STATE']:
@@ -732,7 +711,6 @@ class Record(dict):
             if Record.debug: print "no occupation field found"
             return (1, None)
         
-#         print occupation1, occupation2
         
         if bad_identifier(occupation1, type="occupation") or bad_identifier(occupation2, type="occupation"):
             return (1, None)
@@ -809,8 +787,6 @@ class Record(dict):
             if Record.debug: print "no employer field found"
             return (1, None)
         
-        
-#         print employer1,employer2
         
         if bad_identifier(employer1, type="employer") or bad_identifier(employer2, type="employer"):
             return (1, None)
@@ -1006,7 +982,6 @@ class Record(dict):
                             pass  # equivalent?
                         else:
                             identical = (2, None)
-                            # print "EQUIVALENT:    ", firstname1, "-------------", firstname2
                     else: identical = (0, None)
                         
 

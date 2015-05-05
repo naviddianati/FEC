@@ -91,8 +91,11 @@ class Person(object):
             
             
     def toString(self):
-        s = ''.join(["\t".join([r['NAME'],r['N_last_name'], r['OCCUPATION'], r['EMPLOYER'], r['ZIP_CODE'], r['CITY'], r['STATE'], "\n"]) for r in self.set_of_records])
-#         s += '_'*50
+        s = ''.join(["\t".join([r['NAME'],r['N_last_name'],
+                                r['OCCUPATION'], r['EMPLOYER'],
+                                r['ZIP_CODE'], r['CITY'],
+                                r['STATE'], "\n"]) 
+                     for r in self.set_of_records])
         return s
             
             
@@ -112,7 +115,7 @@ class Person(object):
             
     def setAlreadyCompared(self, other):
         '''
-        record other as having already been compared with self.
+        Werecord other as having already been compared with self.
         '''
         self.set_compared.add(other)
 

@@ -13,3 +13,4 @@ config/batches.list
 
 output
 *.swp
+message.txt

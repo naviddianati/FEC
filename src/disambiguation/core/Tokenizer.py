@@ -26,13 +26,16 @@ from utils import *
 
 
 class Tokenizer():
-    ''' This class receives a list of records (perhaps retrieved from a MySQL query). The fields are divided between "identifier" fieldsz
-        and "auxiliary" fields.
-        The class tokenizes all the identifier fields of all records, and for each record computes a vector that encapsulates this information.
-        The set of these vectors is then sent to a Disambiguator instance which computes a similarity graph between the nodes(records) based
-        on their vectors.
+    ''' 
+    This class receives a list of records (perhaps retrieved from a MySQL query). 
+    The fields are divided between "identifier" fieldsz and "auxiliary" fields.
+    The class tokenizes all the identifier fields of all records, and for each 
+    record computes a vector that encapsulates this information. The set of these
+    vectors is then sent to a Disambiguator instance which computes a similarity 
+    graph between the nodes(records) based on their vectors.
 
-        QUESTION: How do we use the auxiliary fields as well?'''
+    QUESTION: How do we use the auxiliary fields as well?
+    '''
    
         
         
@@ -78,7 +81,6 @@ class Tokenizer():
         self.token_identifiers = self.tokens.token_identifiers
                             
         self.ap = AddressParser()
-#         self.query = ''
       
         
         # List of records associated with this Tokenizer.
@@ -94,9 +96,13 @@ class Tokenizer():
         
         
 
-    # Uses nameparser
+    
     def _normalize_NAME(self, record):
-        ''' this normalizer is applied to the whole name, that is, when first/middle/last name and titles are all mixed into one string.'''
+        ''' 
+        this normalizer is applied to the whole name, that is, when
+        first/middle/last name and titles are all mixed into one string.
+        Uses nameparser.
+        '''
         # remove all numerals
         s = record['NAME']
 
@@ -138,18 +144,18 @@ class Tokenizer():
         
 
    
-    # Void. updates the record
-    # This one doesn't use nameparser. My own version
     def _normalize_NAME_old(self, record):
-        ''' this normalizer is applied to the whole name, that is, when first/middle/last name and titles are all mixed into one string.'''
+        ''' 
+        This normalizer is applied to the whole name, that is, when
+        first/middle/last name and titles are all mixed into one string.
+        Void. updates the record. This one doesn't use nameparser. My own version
+        '''
         # remove all numerals
         s = record['NAME']
         
         s1 = re.sub(r'\.|[0-9]+', '', s)
-        
-        # List of all suffixes found then remove them
-#         suffix_list = re.findall(r'\bESQ\b|\bENG\b|\bINC\b|\bLLC\b|\bLLP\b|\bMRS\b|\bPHD\b|\bSEN\b', s)
-#         suffix_list += re.findall(r'\bDR\b|\bII\b|\bIII\b|\bIV\b|\bJR\b|\bMD\b|\bMR\b|\bMS\b|\bSR\b', s)
+
+        # Suffixes        
         s1 = re.sub(r'(\bESQ\b)|(\bENG\b)|(\bINC\b)|(\bLLC\b)|(\bLLP\b)|(\bMRS\b)|(\bPHD\b)|(\bSEN\b)', '', s1)
         s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bSR\b)|(\bSGT\b)|(\bDC\b)', '', s1)
      
@@ -172,7 +178,6 @@ class Tokenizer():
         # Compactify multiple whitespaces
         s1 = re.sub(r'\s+', ' ', s1)
         
-#         print s1
         # Extract full last name and tokenize, then remove from s1
         last_name = re.findall(r'^[^,]*(?=\,)', s1)
         
@@ -205,16 +210,7 @@ class Tokenizer():
             else: 
                 middle_name = middle_name_single
 
-        ''' Print NAME tokens'''
-#         print s
-#         print "    First name:--------- ", first_name_list
-#         print "    Las tname:--------- ", last_name_list
-#         print "    Middle name:--------- ", middle_name
-#         print "    Suffixes:--------- ", suffix_list
 
-#         tokens = []
-#         if middle_name==[]: middle_name=''
-        tmp = list(self.token_identifiers)
         
         for s in last_name_list:
             record['N_last_name'].append(s)
@@ -227,17 +223,22 @@ class Tokenizer():
             record['N_middle_name'].append(middle_name[0])
         
      
-    ''' Not implemented since we mostly use the NAME fields of the FEC database instead '''
     def _normalize_LAST_NAME(self, record):
+        ''' 
+        Not implemented since we mostly use the
+        NAME fields of the FEC database instead.
+        '''
         pass
     
-    ''' Not implemented since we mostly use the NAME fields of the FEC database instead '''
     def _normalize_FIRST_NAME(self, record):
+        ''' 
+        Not implemented since we mostly use the
+        NAME fields of the FEC database instead.
+         '''
         pass
     
-    # Void. updates the record
     def _normalize_ZIP(self, record):
-#         s = record['CONTRIBUTOR_ZIP'] if record['CONTRIBUTOR_ZIP'] else record['ZIP_CODE']
+        # Void. updates the record
         s = record['ZIP_CODE']
         if not s:
             record['N_zipcode'].append(None)                
@@ -245,8 +246,8 @@ class Tokenizer():
         record['ZIP_CODE'] = s if len(s) < 5 else s[0:5] 
         record['N_zipcode'].append(record['ZIP_CODE']) 
     
-    # Void. updates the record
     def _normalize_STREET(self, record):
+        # Void. updates the record
         s = record['CONTRIBUTOR_STREET_1']
         try:
             address = self.ap.parse_address(s)
@@ -255,19 +256,14 @@ class Tokenizer():
             tmp = [x  for x in tmp if x is not None]
 
             address_new = ' '.join(tmp)
-#             print "ADDRESS parsed properly=================================================================="
             record["N_address"] = address_new.upper()
         except:
-#             print 'error'
-#             print "ADDRESS FAILED=================================================================="
             record["N_address"] = s
 
    
    
    
-    # TODO: is it a waste of memory to define record['N_occupation'] ?
     def _normalize_OCCUPATION(self, record):
-      
         if record['OCCUPATION']:
             record['N_occupation'] = record['OCCUPATION'].upper()
         else:
@@ -288,8 +284,11 @@ class Tokenizer():
    
    
         
-    ''' This function tokenizes a list of selected fields for the given record'''        
     def _get_tokens(self, record, list_fields):
+        ''' 
+        This function tokenizes a list of selected
+        fields for the given record.
+        '''        
         tokens = []
         # Iterate through all specified fields in the retrieved record
         for field in list_fields:
@@ -315,37 +314,31 @@ class Tokenizer():
 #         print tokens
         return tokens
     
-    #===========================================================================
-    # 
-    #===========================================================================
+
 
     def _get_tokens_FIRST_NAME(self, record):
         name = record['N_first_name']
-        ''' Some first names are contaminated with middle names. clean them up.'''
+        # Some first names are contaminated with middle names. clean them up.
         identifier = self.token_identifiers['FIRST_NAME'][0]
         
         
         return [(identifier, s) for s in name]
     
-    #===========================================================================
-    # 
-    #===========================================================================
+
+    
     def _get_tokens_LAST_NAME(self, record):
         lastname = record['N_last_name']
         identifier = self.token_identifiers['LAST_NAME'][0]
         return [(identifier, s) for s in lastname]        
     
-    #===========================================================================
-    # 
-    #===========================================================================
+
+    
     def _get_tokens_ZIP(self, record):
         zipcode = record['N_zipcode']
         identifier = self.token_identifiers['CONTRIBUTOR_ZIP'][0]
         return [(identifier, s) for s in zipcode]
     
-    #===========================================================================
-    # 
-    #===========================================================================
+
     def _get_tokens_STREET(self, record):
         address = record['N_address']
         if not address:
@@ -354,9 +347,8 @@ class Tokenizer():
         return [(identifier, s) for s in address.split()]
 
         
-    #===========================================================================
-    # 
-    #===========================================================================
+
+    
     def _get_tokens_NAME(self, record):
         lastname = record['N_last_name']
         firstname = record['N_first_name']
@@ -412,8 +404,8 @@ class Tokenizer():
      
     def update_normalized_token_counts(self, record):
         '''
-        Update self.tokens.normalized_token_counts by tracking/updating the frequency of the
-        normalized tokens belonging to the given record.
+        Update self.tokens.normalized_token_counts by tracking/updating
+        the frequency of the normalized tokens belonging to the given record.
         '''
         last_name = " ".join(record['N_last_name'])
         first_name = " ".join(record['N_first_name'])
@@ -550,11 +542,7 @@ class Tokenizer():
             
                 
         self.all_token_sorted = sorted(self.tokens.token_counts, key=self.tokens.token_counts.get, reverse=0)
-#         for token in self.all_token_sorted:
-#             print token, self.tokens.token_counts[token],'---------'
         print "Total number of tokens identified: ", len(self.tokens.token_counts)
-#         pp.pprint(self.list_of_records_identifier)
-#         quit()
 
         # set "self.toknes" as the TokenData object associated with each record
         for record in self.list_of_records:
@@ -631,11 +619,7 @@ class Tokenizer():
             
                 
         self.all_token_sorted = sorted(self.tokens.token_counts, key=self.tokens.token_counts.get, reverse=0)
-#         for token in self.all_token_sorted:
-#             print token, self.tokens.token_counts[token],'---------'
         print "Total number of tokens identified: ", len(self.tokens.token_counts)
-#         pp.pprint(self.list_of_records_identifier)
-#         quit()
 
         # set "self.toknes" as the TokenData object associated with each record
         for record in self.list_of_records:
@@ -645,7 +629,10 @@ class Tokenizer():
     
   
     def setTokenizedFields(self, list_tokenized_fields):
-        ''' List of MySQL table "identifier" fields retrieved using the original MySQL query'''
+        '''
+        List of MySQL table "identifier" fields retrieved
+        using the original MySQL query
+        '''
         self.list_tokenized_fields = list_tokenized_fields
     
   
@@ -664,10 +651,11 @@ class Tokenizer():
 
 
 
-'''
-Subclass of Tokenizer that implements different tokenizer functions for FIRST_NAME,LAST_NAME,etc
-'''
 class TokenizerNgram(Tokenizer):
+    '''
+    Subclass of Tokenizer that implements different 
+    tokenizer functions for FIRST_NAME,LAST_NAME,etc.
+    '''
     
     def __init__(self):
         Tokenizer.__init__(self)
@@ -675,8 +663,12 @@ class TokenizerNgram(Tokenizer):
         # Features are bigrams
         self.ngram_n = 2
        
-    ''' split string into tokens and then extract all ngrams in all tokens '''
+       
     def ngrams(self, sentence, n):
+        '''
+        split string into tokens and then extract
+        all ngrams in all tokens.
+         '''
         list_ngrams = []
         tokens = sentence.split()
         for token in tokens:
@@ -685,10 +677,13 @@ class TokenizerNgram(Tokenizer):
                 list_ngrams.append("".join(grams)) 
         return list_ngrams
     
-    # Override: here, tokenz are ngrams
     def _get_tokens_NAME(self, record):
+        '''
+        Override: here, tokenz are ngrams.
+        NOTE: with the new name normalizer, each of the
+        following are a single string: N_last_name, N_first_name,N_middle_name.
+        '''
         
-        # NOTE: with the new name normalizer, each of the following are a single string!
         
         lastname = record['N_last_name']
         firstname = record['N_first_name']
@@ -700,13 +695,11 @@ class TokenizerNgram(Tokenizer):
         # last name
         identifier = self.token_identifiers['NAME'][0]
         
-#         tokens += [(identifier, s) for word in lastname for s in self.ngrams(word, self.ngram_n) ]
         tokens += [(identifier, s) for  s in self.ngrams(lastname, self.ngram_n) ]
 
         
         # first name
         identifier = self.token_identifiers['NAME'][1]
-#         tokens += [(identifier, s) for word in firstname for s in self.ngrams(word, self.ngram_n) ]
         tokens += [(identifier, s) for  s in self.ngrams(firstname, self.ngram_n) ]
         
         
@@ -721,8 +714,8 @@ class TokenizerNgram(Tokenizer):
                 
     
 
-    # Override.
     def _normalize_STREET(self, record):
+        # Override.
         s = record['CONTRIBUTOR_STREET_1']
         if not s: 
             record["N_address"] = s
@@ -741,11 +734,8 @@ class TokenizerNgram(Tokenizer):
             tmp = [x  for x in tmp if x is not None]
 
             address_new = ' '.join(tmp)
-#             print "ADDRESS parsed properly=================================================================="
             record["N_address"] = address_new.upper()
         except:
-#             print 'error'
-#             print "ADDRESS FAILED=================================================================="
             record["N_address"] = s
 
         # Check if normalizer screwed up too badly
@@ -759,16 +749,16 @@ class TokenizerNgram(Tokenizer):
 
 
 
-    # Override: here, tokens are ngrams
     def _get_tokens_FIRST_NAME(self, record):
+        # Override: here, tokens are ngrams
         firstname = record['N_first_name']
         identifier = self.token_identifiers['NAME'][1]
         tokens = [(identifier, s) for word in firstname for myngram in self.ngrams(word, self.ngram_n) for s in myngram]
         return  tokens
     
     
-    # Override: here, tokens are ngrams
     def _get_tokens_LAST_NAME(self, record):
+        # Override: here, tokens are ngrams
         lastname = record['N_last_name']
         identifier = self.token_identifiers['NAME'][0]
         tokens = [(identifier, s) for word in lastname for myngram in self.ngrams(word, self.ngram_n) for s in myngram]
@@ -786,11 +776,11 @@ class TokenizerNgram(Tokenizer):
         
 
 
-'''
-This class encapsulates the global token data derived from all
-records processed by a Tokenizer instance.
-'''
 class TokenData():
+    '''
+    This class encapsulates the global token data derived
+    from all records processed by a Tokenizer instance.
+    '''
 
     # If the frequency of a name token is less than this, it is considered rare 
     # and maybe considered a misspelling depending on its edit distance from a similar name 
@@ -806,14 +796,13 @@ class TokenData():
         # A dictionary {(token_id:normalized_token):frequency} showing the 
         # frequency of each normalized token
         self.normalized_token_counts = {}
-        # Load the name variants file
-        f = open(disambiguation.data.DICT_PATH_DATAFILES['name-variants.json'])
-        self.dict_name_variants = json.load(f)
-        f.close()
         
-        f = open(disambiguation.data.DICT_PATH_DATAFILES['all-names.json'])
-        self.set_all_names = set(json.load(f))
-        f.close()
+        # Load the name variants file
+        with open(disambiguation.data.DICT_PATH_DATAFILES['name-variants.json']) as f:
+            self.dict_name_variants = json.load(f)
+        
+        with open(disambiguation.data.DICT_PATH_DATAFILES['all-names.json']) as f:
+            self.set_all_names = set(json.load(f))
         
         self.token_identifiers = {'NAME':[1, 2, 3],
                                    'LAST_NAME':[1],
@@ -830,19 +819,25 @@ class TokenData():
         pickler.dump(self)
         f.close()
     
-    '''
-    Return the frequency of the token (id,string) from self.token_counts
-    '''
     def get_token_frequency(self, tokenTuple):    
+        '''
+        Return the frequency of the token (id,string)
+        from self.token_counts.
+        '''
         try:
             frequency = self.token_counts[tokenTuple]
         except KeyError:
             frequency = 0
         return frequency
+    
 
     @classmethod
     def getCompoundTokenData(cls, list_of_tokendata):
-        ''' Receive a list of TokenData objects, then combine them all and return new object. '''
+        ''' 
+        Receive a list of TokenData objects, then combine 
+        them all and return new object. 
+        '''
+        
         T_new = TokenData()
         
         # combine token_to_index
@@ -850,7 +845,8 @@ class TokenData():
         for T in list_of_tokendata:
             for token in T.token_2_index:
                 
-                # If the token already exists in T_new's token_to_index, do nothing. Otherwise, add it and increment no_of_tokens
+                # If the token already exists in T_new's token_to_index,
+                # do nothing. Otherwise, add it and increment no_of_tokens
                 try:
                     T_new.token_2_index[token] += 0
                 except KeyError:
@@ -956,12 +952,6 @@ def tokenize_multiple_lists_of_records(list_of_list_records, TokenizerClass, pro
     num_procs = len(list_of_list_records)
     list_data = []
     manager = multiprocessing.Manager() 
-#     for item in list_of_list_records:
-#         print [r.id for r in item]
-#         
-
-
-#     print "=" * 120
 
     myrecord = list_of_list_records[0][0]
     print "preparing data packages for child processes..."
@@ -1008,10 +998,6 @@ def tokenize_multiple_lists_of_records(list_of_list_records, TokenizerClass, pro
             compound_dict_vectors[r_id] = vector
 
     
-#     print compound_tokendata.index_2_token        
-#     for i, r in enumerate(compound_list_of_records):
-#         print r.id, compound_dict_vectors[r.id]
-#     print "=" * 120
     print "total number of records:", len(compound_list_of_records)
     return compound_dict_vectors, compound_list_of_records, compound_tokendata
 

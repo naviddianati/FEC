@@ -23,7 +23,16 @@ from .. import config
 import math
 
 
-
+def partition_integer(N, n):
+    '''
+    Partition an integer number into n roughly equal integers.
+    Return these integers in a list. N = n_1 + n_2 + ... + n_n.
+    @param N: the integer to be partitioned
+    @param n: the number of partitions.
+    '''
+    a = np.round((float(N) / n) * np.arange(n + 1))
+    b = (a[1:] - a[:-1]).astype(int)
+    return b
 
 
 
@@ -47,13 +56,11 @@ def find_all_in_list(regex, str_list):
 
 
 def get_next_batch_id():
-    f = open(config.src_path + '../../config/batches.list')
-    s = f.read()
-    f.close() 
+    with  open(config.src_path + '../../config/batches.list') as f:
+        s = f.read()
     i = int(s)
-    f = open(config.src_path + '../../config/batches.list', 'w')
-    f.write(str(i + 1))
-    f.close()
+    with open(config.src_path + '../../config/batches.list', 'w') as f:
+        f.write(str(i + 1))
     return(str(i))
 
 
@@ -65,9 +72,8 @@ def load_normalized_attributes(state):
     Load and return normalized attributes for state.
     '''
     filename = config.normalized_attributes_file_template % state
-    f = open(filename)
-    dict_normalized_attributes = cPickle.load(f)
-    f.close()
+    with open(filename) as f:
+        dict_normalized_attributes = cPickle.load(f)
     return dict_normalized_attributes
     
 def load_feature_vectors(state, tokenizer_class_name='Tokenizer'):
@@ -75,9 +81,8 @@ def load_feature_vectors(state, tokenizer_class_name='Tokenizer'):
     Load and return feature vectors for state and tokenizer class.
     '''
     filename = config.vectors_file_template % (state, tokenizer_class_name)
-    f = open(filename)
-    dict_vectors = cPickle.load(f)
-    f.close()
+    with open(filename) as f:
+        dict_vectors = cPickle.load(f)
     return dict_vectors
 
 
@@ -86,9 +91,8 @@ def load_tokendata(state, tokenizer_class_name='Tokenizer'):
     Load and return tokendata for state and tokenizer class.
     '''
     filename = config.tokendata_file_template % (state, tokenizer_class_name)
-    f = open(filename)
-    tokendata = cPickle.load(f)
-    f.close()
+    with open(filename) as f:
+        tokendata = cPickle.load(f)
     return tokendata
     
     
@@ -97,9 +101,8 @@ def load_hashes(state, tokenizer_class_name='Tokenizer'):
     Load and return hashes for state and tokenizer class.
     '''
     filename = config.hashes_file_template % (state, tokenizer_class_name)
-    f = open(filename)
-    dict_hashes = cPickle.load(f)
-    f.close()
+    with open(filename) as f:
+        dict_hashes = cPickle.load(f)
     return dict_hashes
 
 

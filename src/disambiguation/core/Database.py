@@ -7,7 +7,7 @@ Created on Jun 26, 2014
 import datetime
 import MySQLdb as mdb
 from Record import Record
-
+import states
 
 class DatabaseManager:
     '''Generic class for interacting with MySQL server '''
@@ -57,7 +57,7 @@ class DatabaseManager:
 class FecRetriever(DatabaseManager):
     ''' subclass of DatabaseManager with a method specifically to retrieve our desired data
     from MySQL database.'''
-    def __init__(self, table_name, query_fields, limit, list_order_by,where_clause = '', require_id = True):
+    def __init__(self, table_name, query_fields, limit, list_order_by, where_clause='', require_id=True):
         
         DatabaseManager.__init__(self)
 
@@ -98,7 +98,7 @@ class FecRetriever(DatabaseManager):
         
         
         self.list_of_records = []
-        for counter,item in enumerate(tmp_list):
+        for counter, item in enumerate(tmp_list):
             r = Record()
             for i, field in enumerate(self.query_fields):
                 r[field] = item[i]
@@ -128,28 +128,72 @@ class FecRetriever(DatabaseManager):
 
 
 
-class IdentityManager(object):
+class IdentityManager(DatabaseManager):
     '''
     DatabaseManager subclass that interacts with the 'identities' MySQL
     table and retrieves cluster membership data.
     '''
-    
-    def __load_data_from_db(self):
-        raise Exception("not implemented yet")
+    def __init__(self, state, table_name = 'identities', list_order_by = "", where_clause=''):
+        DatabaseManager.__init__(self)
+        
+        self.dict_id_2_identity = {}
+        '''@ivar: dictionary mapping each record id to its corresponding identity.'''
+        
+        self.dict_identity_2_list_ids = {}
+        '''@ivar: dictionary mapping each identity to the list of its corresponding record ids.'''
+        
+        # process the order_by arg    
+        self.table_name = table_name
 
+        self.state = state
+        
+        if state != "USA": 
+            state_abbr = states.dict_state_abbr[state]
+            # Process the where clause. 
+            if where_clause == "":
+                where_clause = " WHERE identity like '%%%s%%' " % state_abbr
+            else:
+                where_clause += " AND identity like '%%%s%%' " % state_abbr
+        self.where_clause = where_clause
+
+        
+        if list_order_by:
+            self.order_by = " order by %s " % ",".join(list_order_by)
+        else:
+            self.order_by = ""
+            
+        self.__load_data_from_db()
+        
+        
+        
+        
+    def __load_data_from_db(self):
+        query = "select id,identity from " + self.table_name + self.where_clause + self.order_by  + ";"
+        print query
+        self.query = query
+        
+        query_result = self.runQuery(query)
+        
+        # Populate self.dict_id_2_identity
+        self.dict_id_2_identity = {r_id:identity for r_id,identity in query_result}
+        
+        # Populate self.dict_identity_2_list_ids
+        for r_id,identity in query_result:
+            try:
+                self.dict_identity_2_list_ids[identity].append(r_id)
+            except:
+                self.dict_identity_2_list_ids[identity] = [r_id]
+                
+        
 
     def get_dict_id_2_identity(self):
         return self.dict_id_2_identity
     
     
     def get_dict_identity_2_id(self):
-        return self.dict_identity_2_id
+        return self.dict_identity_2_list_ids
     
     
-    def __init__(self):
-        self.dict_id_2_identity = None
-        self.dict_identity_2_id = None
-        raise Exception("not implemented yet")
     
     
 
@@ -160,6 +204,8 @@ class IdentityManager(object):
 
 
 if __name__ == "__main__":
+    
+    
     fr = DatabaseManager(table_name="california", query_fields=["NAME", "CITY", "CMTE_ID", "TRAN_ID"], limit=(1, 1000000), list_order_by=["NAME"])
     fr.retrieve()
     for record in fr.list_of_records:

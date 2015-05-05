@@ -1,22 +1,14 @@
-MIGRATION + BUG FIXES
+MULTIPLE ADDITIONS
 
-
-In Record.py _compare_STRICT_ADDRESS(), I think I found a strange bug.
-For some reason, up to now, I've been allowing matches if one record
-doesn't have an address if the names match exactly. This is waaaaay too
-lax and I've removed it.
-
-I'm starting a migration analysis code base as well. So, for compare_strict,
-we have two methods now: one matches based on exact address mathces, and
-the other matches based on exact employer and occupation. The latter is
-used for producing the migration matrix where there simply can't be a 
-geographical match.
-
-In Affiliations.py, we now have a new subclass class 
-MigrationAnalyzerUndirected(AffiliationAnalyzerUndirected) for generating
-the migration matrix similarly to the affiliation transiion matrix.
-
-The set of matching modes are expanded:
-matching_mode can be "strict_address" or "strict_affiliation" or "thorough".
-
-main_general.py now has an additional method generateMigrationData()
+IdentityManager() class implemented.
+functions added to hashes module for loading hashes and
+computing edgelists from hashes.
+States can now be sorted based on number of records rather
+than population. Improves allocation in multiprocessing.
+This is computed from the database and then exported to
+json file for future use.   
+New function partition_integer() for better allocation of
+states to processes.
+Lots of code cleanup and improved docstrings.
+Using context managers (with statement) for working with
+files.
