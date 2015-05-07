@@ -137,7 +137,8 @@ def DISAMBIGUATE_stage_2():
 from disambiguation.core.hashes import get_edgelist_from_hashes_file
 import igraph as ig
 def test_hashes():
-    state = 'delaware'
+    import stage2
+    state = 'USA'
 
     # Load normalized attributes
     filename = config.normalized_attributes_file_template % state
@@ -153,10 +154,10 @@ def test_hashes():
 
 
 
-    filename = config.hashes_file_template % (state, 'Tokenizer')
-    edgelist = get_edgelist_from_hashes_file(filename, 20, 20, num_procs=2)
     num_hashes = len(dict_normalized_attributes)
 
+
+    edgelist = stage2.get_candidate_pairs(100000, 'USA')
     # sort edgelist
     # COMES SORTED
     # edgelist.sort(key=lambda x: x[2], reverse=True)
@@ -223,25 +224,51 @@ def INIT():
 
     ''' National level data preparation: '''
     # Tokenize, vectorize and hashify all states using Tokenizer
-    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, num_procs=12)
+    #init.INIT_process_multiple_states(TokenizerClass=Tokenizer, num_procs=12)
 
 
     # combine the vectors and tokens from all states into the national data files.
     # init.INIT_combine_state_tokens_and_vectors()
 
     # Using the national vectors and tokens, compute uniform national hashes
-#     init.INIT_compute_national_hashes(num_procs=10)
+    init.INIT_compute_national_hashes(num_procs=10)
 
 
-
-
+    
+def test_memory1():
+    '''
+    load the USA 20-char hashes to see memory 
+    use.
+    '''
+    import disambiguation.core.utils as utils 
+    utils.time.sleep(10)
+    print "loading hashes"
+    filename = config.hashes_file_template % ('USA', 'Tokenizer')
+    with open(filename) as f:
+        dict_hashes = cPickle.load(f)
+    print "now converting."
+    ids = []
+    ss = []
+    for rid in dict_hashes.keys():
+        s = dict_hashes.pop(rid)
+        ids.append(rid)
+        ss.append(s)
+    del dict_hashes
+    print "done"
+    utils.time.sleep(60)
+    quit()
 
 
 
 def test_identity_manager():
     from disambiguation.core.Database import IdentityManager
-    idm = IdentityManager(state='delaware')
-
+    from disambiguation.core import utils
+    
+    idm = IdentityManager(state='USA')
+    idm.fetch_dict_id_2_identity()
+    print "Done"
+    utils.time.sleep(60)
+    return
     for identity, rids in idm.dict_identity_2_list_ids.iteritems():
         print identity, rids
 
@@ -256,12 +283,41 @@ if __name__ == "__main__":
 #     view_vectors()
 #     quit()
 
-
-#    INIT()
-#    quit()
     import stage2
-    stage2.get_candidate_pairs(1000, 'delaware')
+    list_pairs = stage2.get_candidate_pairs(1000000, 'USA')
+    for edge in list_pairs:
+        print edge[0], edge[1], edge[2]
     quit()
+
+
+    test_hashes()
+    quit()
+
+
+
+
+    test_identity_manager()
+    quit()
+
+
+
+
+
+
+
+
+
+
+    INIT()
+    quit()
+
+
+
+
+
+
+
+
 
     states.get_states_sorted('num_records')
     quit()
@@ -271,7 +327,5 @@ if __name__ == "__main__":
     test_identity_manager()
     quit()
 
-    test_hashes()
-    quit()
 
 

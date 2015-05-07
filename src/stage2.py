@@ -28,41 +28,24 @@ def get_candidate_pairs(num_pairs, state='USA',):
     @param num_pairs: number of new records to select for comparison
     @return: list of tuples of record ids.
     '''
-    identity_manager = Database.IdentityManager(state=state)
-
-    # Dictionary id:identity from stage 1
-    dict_id_2_identity = identity_manager.get_dict_id_2_identity()
-
-    def is_new(edge):
-        '''
-        Determine if the stage 1 identities of records in
-        pair are identical. If not, the pair is new.
-        '''
-        return True if dict_id_2_identity[edge[0]] != dict_id_2_identity[edge[1]] else False
-
-    # Number of adjacency hashes to log
-    B = 20
+    # Number of adjacent hashes to log
+    B = 3
 
     # number of times to shuffle the list of hashes.
-    num_shuffles = 2
+    num_shuffles = 40
 
     # list of candidate pairs to be compared.
     list_pairs = []
 
     # Get the full sorted edgelist from national hashes.
     filename = config.hashes_file_template % (state, 'Tokenizer')
-    edgelist = hashes.get_edgelist_from_hashes_file(filename, B, num_shuffles, num_procs=12)
-
-    # Main loop.
-    while (len(list_pairs) < num_pairs) and edgelist:
-        edge = edgelist.pop()
-        if is_new(edge):
-            list_pairs.append(edge)
-            print "new"
-        else:
-            print "old"
-
-    return list_pairs
+    
+    print "Starting get_edgelist_from_hashes_file()..."
+    edgelist = hashes.get_edgelist_from_hashes_file(filename, state, B, num_shuffles, num_procs=3, num_pairs = num_pairs)
+    #edgelist.reverse()
+    print "Done with get_edgelist_from_hashes_file()"
+    print "Done fetching new pairs."
+    return edgelist
 
 
 

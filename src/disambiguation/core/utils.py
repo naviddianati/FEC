@@ -21,6 +21,39 @@ import pandas as pd
 import states
 from .. import config
 import math
+from ast import literal_eval
+
+def prune_dict(mydict, condition_fcn, filename = ''):
+    '''
+    conditionally remove items from dict without
+    copying it in memory:
+    write dict to file, clear the dict, then
+    read back the data from file and insert into
+    fresh dict based on condition.
+    @param mydict: dictionary with tuple(int,int) keys and int values
+    @param condition_fcn: condition function applied to values. Values
+        for which condition_fcn(value) is True will be kept.
+    @param filename: name of tmp file to use.
+    '''
+    if not filename:
+        filename = config.dict_paths['tmp_path'] + "tmp-%d.txt" % random.randint(0,100000)
+    with open(filename,'w') as f:
+        for key,value in mydict.iteritems():
+            if condition_fcn(value):
+                f.write("%s|%s\n" % (str(key), str(value)))
+    mydict.clear()
+    mydict = {}
+    with open(filename) as f:
+        for line in f:
+            l =line.strip()
+            key,value =  l.split("|")
+            
+            # Parse the key string into a tuple of two ints
+            key = literal_eval(key)
+            value = int(value)
+            mydict[key] = value
+    os.remove(filename)
+    return mydict
 
 
 def partition_integer(N, n):
@@ -112,7 +145,7 @@ def jaccard_similarity(set1, set2):
     Return the Jaccard similarity of two sets
     '''
 
-    return 1. * len(set1 - set2) / len(set1.union(set2))
+    return 1. * len(set1.intersection(set2)) / len(set1.union(set2))
 
 
 def chunks_replace(l, n):

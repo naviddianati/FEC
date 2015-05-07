@@ -162,37 +162,34 @@ class IdentityManager(DatabaseManager):
         else:
             self.order_by = ""
             
-        self.__load_data_from_db()
         
         
         
         
-    def __load_data_from_db(self):
+        
+
+    def fetch_dict_id_2_identity(self):
         query = "select id,identity from " + self.table_name + self.where_clause + self.order_by  + ";"
         print query
         self.query = query
-        
         query_result = self.runQuery(query)
-        
         # Populate self.dict_id_2_identity
-        self.dict_id_2_identity = {r_id:identity for r_id,identity in query_result}
-        
+        self.dict_id_2_identity = {int(r_id):identity for r_id,identity in query_result}
+        del query_result    
+    
+    def fetch_dict_identity_2_id(self):
+        query = "select id,identity from " + self.table_name + self.where_clause + self.order_by  + ";"
+        print query
+        self.query = query
+        query_result = self.runQuery(query)
         # Populate self.dict_identity_2_list_ids
         for r_id,identity in query_result:
             try:
-                self.dict_identity_2_list_ids[identity].append(r_id)
+                self.dict_identity_2_list_ids[identity].append(int(r_id))
             except:
-                self.dict_identity_2_list_ids[identity] = [r_id]
+                self.dict_identity_2_list_ids[identity] = [int(r_id)]
                 
         
-
-    def get_dict_id_2_identity(self):
-        return self.dict_id_2_identity
-    
-    
-    def get_dict_identity_2_id(self):
-        return self.dict_identity_2_list_ids
-    
     
     
     

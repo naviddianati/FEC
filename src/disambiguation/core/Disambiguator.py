@@ -682,7 +682,7 @@ class Disambiguator():
         # Number of vectors
         N = len(self.dict_vectors)
 
-        self.dict_hashes = {r_id:'' for r_id in self.dict_vectors}
+        self.dict_hashes = {int(r_id):'' for r_id in self.dict_vectors}
 
         # generate hash_dim random probe vectors and compute
         # their inner products with each of the input vectors.
@@ -695,7 +695,7 @@ class Disambiguator():
             vec_n = vec_norm(vec)
             for r_id, v  in self.dict_vectors.iteritems():
                 c = '1' if inner_product(v, vec) > 0 else '0'
-                self.dict_hashes[r_id] += c
+                self.dict_hashes[int(r_id)] += c
 
     def __compute_LSH_hash_multi_proc(self, hash_dim, num_procs):
         '''
@@ -762,7 +762,7 @@ class Disambiguator():
 
         if not self.list_of_records:
             raise Exception("Error: in order to load self.LSH_hash properly, you must specify self.list_of_records first.")
-        self.LSH_hash = [dict_hashes[r.id] for r in self.list_of_records]
+        self.LSH_hash = [dict_hashes[int(r.id)] for r in self.list_of_records]
 
 
     def __load_record_vectors_from_file(self):

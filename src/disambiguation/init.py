@@ -119,7 +119,7 @@ def INIT_compute_national_hashes(num_procs=1):
     
 
     # desired dimension (length) of hashes
-    hash_dim = 20
+    hash_dim = 60
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?

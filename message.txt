@@ -1,14 +1,33 @@
-MULTIPLE ADDITIONS
+MEMORY EFFIFICIENT HASH TO EDGELIST
 
-IdentityManager() class implemented.
-functions added to hashes module for loading hashes and
-computing edgelists from hashes.
-States can now be sorted based on number of records rather
-than population. Improves allocation in multiprocessing.
-This is computed from the database and then exported to
-json file for future use.   
-New function partition_integer() for better allocation of
-states to processes.
-Lots of code cleanup and improved docstrings.
-Using context managers (with statement) for working with
-files.
+We have a working version of the function in the hashes module that
+loads the hashes, shuffles them and computes an edgelist from it.
+
+The process spawns a number of children. Each child instantiates
+an IdentityManager, shuffles the hashes a number of times, and each
+time, logs records that are adjacent. This data is sent back to the
+parent process which combines them into a weighted adjacency matrix
+adj_full. The problem used to be that this dict becomes HUGE and 
+won't fit in memory. Now, we have made a number of optimizations.
+Most importantly, after receiving 10 sets of edgelists from the
+childremn, the parent "prunes" adj_full by removing record pairs
+that failed to appear together more than once in 10 shuffles. This
+can't be done in memory without copying at least the keys of the 
+adj_full dict which is memory intensive. So, we have a method in
+utils, calledn prune_dict which uses a temp file to export those
+elements of the dict that satisfy a user-supplied condition, deletes
+the original dict and reloads the pruned version from file. 
+Furthermore, the queue connecting the parent and child processes
+is limited in size to avoid overloading while the parent is processing
+the received edgelists. This makes the operation feasible.
+
+Additionally, IdentityManager doesn't load both dictionaries at
+the same time by default, but loads whichever is required upon
+request.
+
+In Disambiguator, the keys of dict_hashes are cast as int which takes
+slightly less memory than the default long int.
+
+the USA hashes are now 60 long rather than 20, for use in the stage 2.
+
+The list of hashes is sorted using the heapsort algorithm now.
