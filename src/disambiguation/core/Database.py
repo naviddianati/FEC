@@ -8,6 +8,7 @@ import datetime
 import MySQLdb as mdb
 from Record import Record
 import states
+import utils
 
 class DatabaseManager:
     '''Generic class for interacting with MySQL server '''
@@ -44,6 +45,81 @@ class DatabaseManager:
 
 
 
+
+
+
+
+class FecRetrieverByID(DatabaseManager):
+    '''
+    Subclass that retrieves records with ids in a given list of ids.
+    '''
+
+    def __init__(self, table_name):
+        DatabaseManager.__init__(self)
+
+        self.temp_table = ''
+        self.table_name = table_name
+
+
+
+    def __get_temp_table(self):
+        '''
+        Return the name of a temp table that can be safely used by
+        this instance.
+        '''
+        self.temp_table = "tmp_%s" % str(id(self))
+        query1 = "DROP TABLE IF EXISTS %s;" % self.temp_table 
+        query2 = "CREATE TABLE %s (id INT,  PRIMARY KEY (id));" % self.temp_table
+        self.runQuery(query1)
+        self.runQuery(query2)
+        pass
+
+
+
+    def __populate_temp_table(self, list_ids):
+        '''
+        Insert the ids into the temp table.
+        '''
+        print "inserting..."
+        for rid in list_ids:
+            query = "INSERT INTO %s (id) values (%d);" % (self.temp_table, rid)
+            self.runQuery(query)
+        print "done."
+        
+
+
+
+    def __del_temp_table(self):
+        '''
+        Delete the allocated temp table from database.
+        '''
+        query = "DROP TABLE %s;" %self.temp_table
+        self.runQuery(query)
+        
+
+    def retrieve(self, list_ids, query_fields):
+        '''
+        Retrieve the rows with ids in list_ids.
+        '''
+
+
+        self.__get_temp_table()
+        
+        t1 = utils.time.time()
+        self.__populate_temp_table(list_ids)
+        t2 = utils.time.time()
+        print "Done in %f seconds" % (t2-t1)
+        self.__del_temp_table()
+        return
+
+        query = "SELECT " + ','.join(query_fields) + " FROM " + self.table_name + " JOIN " + self.temp_table + " USING (id) ;"
+        print query
+        results = self.runQuery(query)
+        for row in results:
+            print row
+
+
+        # Cleanup
 
 
 

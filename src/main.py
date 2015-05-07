@@ -46,7 +46,7 @@ from collections import OrderedDict
 
 from disambiguation.core import Project
 from disambiguation.core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUndirected
-from disambiguation.core.Database import FecRetriever
+from disambiguation.core.Database import FecRetriever, FecRetrieverByID
 import disambiguation.core.Disambiguator as Disambiguator
 from disambiguation.core.Tokenizer import Tokenizer, TokenizerNgram, TokenData
 import disambiguation.config as config
@@ -120,7 +120,7 @@ def DISAMBIGUATE_stage_2():
     # Partition the full record set into num_procs subsets
     # with minimal inter-set links, and export the record ids
     # to a separate file for each subset.
-    list_filenames = stage2.partition_records( num_procs, file_label="")
+    list_filenames = stage2.partition_records(num_procs, file_label="")
 
 
     # Compare record pairs within each subset and save results.
@@ -273,6 +273,32 @@ def test_identity_manager():
         print identity, rids
 
 
+
+def test_retriever_by_id():
+    from disambiguation.core import Database
+    retriever = Database.FecRetrieverByID('newyork_combined')
+
+    num_records = 1000000
+
+
+    list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
+    all_fields = list_tokenized_fields + list_auxiliary_fields
+
+    db = FecRetriever(table_name='newyork_combined',
+                      query_fields=['id'],
+                      limit=(0, num_records),
+                      list_order_by='')
+    db.retrieve()
+    list_ids = [int(r.id) for r in db.getRecords()]
+    
+    
+    
+    retriever.retrieve(list_ids, all_fields)
+
+
+
+
 if __name__ == "__main__":
 
 #     filename = config.hashes_file_template % ('delaware','Tokenizer')
@@ -283,9 +309,13 @@ if __name__ == "__main__":
 #     view_vectors()
 #     quit()
 
+    test_retriever_by_id()
+    quit()
+
+
     import stage2
     list_pairs = stage2.get_candidate_pairs(1000000, 'delaware')
-    
+
     quit()
 
 
