@@ -109,17 +109,17 @@ class FecRetrieverByID(DatabaseManager):
         self.__populate_temp_table(list_ids)
         t2 = utils.time.time()
         print "Done in %f seconds" % (t2-t1)
-        self.__del_temp_table()
-        return
 
         query = "SELECT " + ','.join(query_fields) + " FROM " + self.table_name + " JOIN " + self.temp_table + " USING (id) ;"
         print query
+        t1 = utils.time.time()
         results = self.runQuery(query)
-        for row in results:
-            print row
-
+        t2 = utils.time.time()
+        print "Done in %f seconds" % (t2-t1)
 
         # Cleanup
+        self.__del_temp_table()
+        return
 
 
 
