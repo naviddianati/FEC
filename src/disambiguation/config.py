@@ -12,7 +12,7 @@ data_path = os.path.expanduser('~/data/FEC-test/')
 src_path = os.path.join(os.path.dirname(__file__), '')
 
 
-dict_paths = { 
+dict_paths = {
     "data_path": data_path,
     "data_path_vectors" :  data_path + "vectors/",
     "data_path_hashes" : data_path + "hashes/",
@@ -22,6 +22,7 @@ dict_paths = {
     "data_path_affiliations_occupation" : data_path + "affiliations/occupation/",
     "data_path_match_buffers" : data_path + "match_buffers/",
     "data_path_near_misses" : data_path + "near_misses/",
+    "data_path_candidate_pairs" : data_path + "candidate_pairs/",
     "tmp_path": data_path + "tmp/"
 }
 
@@ -59,3 +60,7 @@ comparisons_file_template = dict_paths["data_path_near_misses"] + "%s-record_com
 
 # File with each line a json object documenting a near miss pair of records.
 near_misses_file_template = dict_paths["data_path_near_misses"] + "%s-near_misses.json.txt"
+
+# File containing the pairs of records found by hashes.get_edgelist_from_hashes_file()
+# These are pairs that are candidates for comparison as judged from the hashes.
+candidate_pairs_file_template = dict_paths["data_path_candidate_pairs"] + "%s-candidate_pairs.txt"

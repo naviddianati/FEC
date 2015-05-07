@@ -114,13 +114,13 @@ def DISAMBIGUATE_stage_2():
     # Get pairs of record ids that are similar according
     # to the national (combined) hashes, but aren't already
     # linked at the state level.
-    list_record_pairs = stage2.get_candidate_pairs(num_pairs)
+    stage2.get_candidate_pairs(num_pairs)
 
 
     # Partition the full record set into num_procs subsets
     # with minimal inter-set links, and export the record ids
     # to a separate file for each subset.
-    list_filenames = stage2.partition_records(list_record_pairs, num_procs, file_label="")
+    list_filenames = stage2.partition_records( num_procs, file_label="")
 
 
     # Compare record pairs within each subset and save results.
@@ -224,7 +224,7 @@ def INIT():
 
     ''' National level data preparation: '''
     # Tokenize, vectorize and hashify all states using Tokenizer
-    #init.INIT_process_multiple_states(TokenizerClass=Tokenizer, num_procs=12)
+    # init.INIT_process_multiple_states(TokenizerClass=Tokenizer, num_procs=12)
 
 
     # combine the vectors and tokens from all states into the national data files.
@@ -234,13 +234,13 @@ def INIT():
     init.INIT_compute_national_hashes(num_procs=10)
 
 
-    
+
 def test_memory1():
     '''
-    load the USA 20-char hashes to see memory 
+    load the USA 20-char hashes to see memory
     use.
     '''
-    import disambiguation.core.utils as utils 
+    import disambiguation.core.utils as utils
     utils.time.sleep(10)
     print "loading hashes"
     filename = config.hashes_file_template % ('USA', 'Tokenizer')
@@ -263,7 +263,7 @@ def test_memory1():
 def test_identity_manager():
     from disambiguation.core.Database import IdentityManager
     from disambiguation.core import utils
-    
+
     idm = IdentityManager(state='USA')
     idm.fetch_dict_id_2_identity()
     print "Done"
@@ -284,9 +284,8 @@ if __name__ == "__main__":
 #     quit()
 
     import stage2
-    list_pairs = stage2.get_candidate_pairs(1000000, 'USA')
-    for edge in list_pairs:
-        print edge[0], edge[1], edge[2]
+    list_pairs = stage2.get_candidate_pairs(1000000, 'delaware')
+    
     quit()
 
 

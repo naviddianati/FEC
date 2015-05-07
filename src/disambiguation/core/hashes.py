@@ -40,13 +40,13 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10):
         ss.append(s)
     del dict_hashes
     print "Done initializing lists of ids and hashes."
-    #ids = dict_hashes.keys()
-    #ss = dict_hashes.values()
+    # ids = dict_hashes.keys()
+    # ss = dict_hashes.values()
     n = len(ss)
     random.seed()
     for counter in range(num_shuffles):
         edgelist = set()
-        
+
         utils.shuffle_list_of_str(ss)
         print "Done shuffling ss."
         arg = np.argsort(ss, axis=0, kind='heapsort')
@@ -57,7 +57,7 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10):
         counter_not_found = 0
 
         for i, s in enumerate(arg):
-            #j_low , j_high = max(0, i - B / 2), min(i + B / 2, n - 1)
+            # j_low , j_high = max(0, i - B / 2), min(i + B / 2, n - 1)
             j_low , j_high = i, min(i + B, n - 1)
             for j in range(j_low, j_high + 1):
                 x = ids[arg[i]]
@@ -66,21 +66,21 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10):
                 xmin = min(x, y)
                 xmax = max(x, y)
                 try:
-                    if dict_id_2_identity[xmin] == dict_id_2_identity[xmax]: 
+                    if dict_id_2_identity[xmin] == dict_id_2_identity[xmax]:
                         counter_linked += 1
                         continue
                 except:
                     pass
                     counter_not_found += 1
-            
+
                 counter_new += 1
-                edgelist.add((xmin,xmax))
+                edgelist.add((xmin, xmax))
 
                 # This was back when instead of edgelist I had an adj:
-                #try:
+                # try:
                 #    #adj[(xmin, xmax)] += np.exp(-(np.abs(i - j)))
                 #    edgelist[(xmin, xmax)] += 1
-                #except:
+                # except:
                 #    #adj[(xmin, xmax)] = np.exp(-(np.abs(i - j)))
                 #    edgelist[(xmin, xmax)] = 1
         print "shuffle done. %d -- %d" % (counter, len(edgelist))
@@ -89,16 +89,16 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10):
         print "pairs where one id has no identity: %d" % counter_not_found
         yield edgelist
         del edgelist
-    
 
 
 
-def get_edgelist_from_hashes_file(filename, state,  B=10, num_shuffles=40, num_procs=12, num_pairs = 1000):
+
+def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_procs=12, num_pairs=1000):
     '''
     Using multiple child processes, load hashes, shuffle them multiple
     times and compute edgelist. Worker function: worker_get_edgelist_from_hashes_file()
 
-    @param filename: filename where hashes are pickled. 
+    @param filename: filename where hashes are pickled.
     @param B: number of adjacency hashes to log.
     @parma num_shuffles: total number of times to shuffle the hashes.
     @param nump_procs:  number of processes to use.
@@ -131,16 +131,16 @@ def get_edgelist_from_hashes_file(filename, state,  B=10, num_shuffles=40, num_p
     # combine them on the fly.
     results_counter = 0
     while results_counter < num_shuffles:
-        #utils.time.sleep(0.5)
-        #if q.empty(): continue
+        # utils.time.sleep(0.5)
+        # if q.empty(): continue
 
         # After receiving each 10 results, prune adj_full
         # by removing keys with values == 1. i.e., if a pair
         # of records haven't been adjacent after 10 reshuffles,
         # then they are hopeless, dead weight.
         if results_counter % 10 == 9:
-            print "--------- Pruning adj_full..." 
-            adj_full = utils.prune_dict(adj_full, lambda x: (x>1))
+            print "--------- Pruning adj_full..."
+            adj_full = utils.prune_dict(adj_full, lambda x: (x > 1))
         edgelist_new = q.get()
         print "received results..."
         results_counter += 1
@@ -151,15 +151,15 @@ def get_edgelist_from_hashes_file(filename, state,  B=10, num_shuffles=40, num_p
                 adj_full[id_tuple] += int(1)
             except KeyError:
                 adj_full[id_tuple] = int(1)
-        del edgelist_new[:]
+        edgelist_new.clear()
         print "Done processing result no %d" % results_counter
         print "Total size of adj_full: %d" % len(adj_full)
 
     # prune adj_full one last time.
-    adj_full = utils.prune_dict(adj_full, lambda x: (x>2))
+    adj_full = utils.prune_dict(adj_full, lambda x: (x > 2))
     # Convert adj_full to a list of tuples
     edgelist = [(x[0], x[1], y) for x, y in adj_full.iteritems()]
-    
+
     del adj_full
     edgelist.sort(key=lambda x: x[2], reverse=True)
     del edgelist[num_pairs:]
@@ -177,9 +177,9 @@ def worker_get_edgelist_from_hashes_file(data):
     # Unpack init data.
     filename, state, B , num_shuffles, queue = data
     pid = utils.multiprocessing.current_process().name
-    for edgelist in  get_edgelist_from_hashes(filename,  state, B, num_shuffles):
+    for edgelist in  get_edgelist_from_hashes(filename, state, B, num_shuffles):
         print "Sending data to queue on process %s len(adj): %d" % (pid, len(edgelist))
-        
+
         queue.put(edgelist)
         print "Done sending data to queue on process %s " % pid
 

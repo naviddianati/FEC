@@ -9,7 +9,7 @@ import cPickle
 import datetime
 import glob
 import igraph
-import multiprocessing 
+import multiprocessing
 import os
 import pickle
 import random
@@ -23,7 +23,7 @@ from .. import config
 import math
 from ast import literal_eval
 
-def prune_dict(mydict, condition_fcn, filename = ''):
+def prune_dict(mydict, condition_fcn, filename=''):
     '''
     conditionally remove items from dict without
     copying it in memory:
@@ -36,18 +36,18 @@ def prune_dict(mydict, condition_fcn, filename = ''):
     @param filename: name of tmp file to use.
     '''
     if not filename:
-        filename = config.dict_paths['tmp_path'] + "tmp-%d.txt" % random.randint(0,100000)
-    with open(filename,'w') as f:
-        for key,value in mydict.iteritems():
+        filename = config.dict_paths['tmp_path'] + "tmp-%d.txt" % random.randint(0, 100000)
+    with open(filename, 'w') as f:
+        for key, value in mydict.iteritems():
             if condition_fcn(value):
                 f.write("%s|%s\n" % (str(key), str(value)))
     mydict.clear()
     mydict = {}
     with open(filename) as f:
         for line in f:
-            l =line.strip()
-            key,value =  l.split("|")
-            
+            l = line.strip()
+            key, value = l.split("|")
+
             # Parse the key string into a tuple of two ints
             key = literal_eval(key)
             value = int(value)
@@ -78,12 +78,12 @@ def find_all_in_list(regex, str_list):
         s_list = re.findall(regex, s)
         for s1 in s_list:
             if s1 in dict_matches:
-                dict_matches[s1] += 1 
+                dict_matches[s1] += 1
             else:
                 dict_matches[s1] = 1
     return dict_matches
 
- 
+
 
 
 
@@ -108,7 +108,7 @@ def load_normalized_attributes(state):
     with open(filename) as f:
         dict_normalized_attributes = cPickle.load(f)
     return dict_normalized_attributes
-    
+
 def load_feature_vectors(state, tokenizer_class_name='Tokenizer'):
     '''
     Load and return feature vectors for state and tokenizer class.
@@ -127,8 +127,8 @@ def load_tokendata(state, tokenizer_class_name='Tokenizer'):
     with open(filename) as f:
         tokendata = cPickle.load(f)
     return tokendata
-    
-    
+
+
 def load_hashes(state, tokenizer_class_name='Tokenizer'):
     '''
     Load and return hashes for state and tokenizer class.
@@ -168,7 +168,7 @@ def chunks_replace(l, n):
         list_chunks.append(chunk)
         del l[int(i * size) - n_removed : int((i + 1) * size) - n_removed]
         n_removed += len(chunk)
-    
+
     return list_chunks
 
 
@@ -185,7 +185,7 @@ def chunks(l, n):
     size = float(N) / n
     return [l[int(i * size):int((i + 1) * size)] for i in range(n)]
 
-        
+
 
 def chunkit_padded(list_input, i, num_chunks, overlap=0):
     '''
@@ -202,7 +202,7 @@ def chunkit_padded(list_input, i, num_chunks, overlap=0):
 
 
 
-        
+
 def covariance(list_of_strs):
     n = len(list_of_strs)
     m = len(list_of_strs[0])
@@ -216,7 +216,7 @@ def covariance(list_of_strs):
 def Hamming_distance(s1, s2):
     '''This function computes the Hamming distance between two strings'''
     return sum([c1 != c2 for c1, c2 in zip(s1, s2)])
-    
+
 
 def random_uniform_hyperspherical(n):
     '''
@@ -227,7 +227,7 @@ def random_uniform_hyperspherical(n):
         vec[i] = random.gauss(0, 1)
     vec = vec / np.linalg.norm(vec)
     return vec
-        
+
 def shuffle_list_of_str(list_of_strs):
     ''' This function takes a list of strings (of equal lengths) and
         applies the same random permutation to all of them, in place.'''
@@ -236,13 +236,13 @@ def shuffle_list_of_str(list_of_strs):
     random.shuffle(l)
     for j in range(len(list_of_strs)):
         list_of_strs[j] = ''.join([list_of_strs[j][l[i]] for i in range(n) ])
-    
+
 
 def argsort_list_of_dicts(seq, orderby):
     ''' argsort for a sequence of dicts or dict subclasses. Allows sorting by the value of a given key of the dicts.
          returns the indices of the sorted sequence'''
     if not orderby:
-        raise Exception("Must specify key to order dicts by.") 
+        raise Exception("Must specify key to order dicts by.")
     # http://stackoverflow.com/questions/3071415/efficient-method-to-calculate-the-rank-vector-of-a-list-in-python
     return sorted(range(len(seq)), key=lambda index: seq.__getitem__(index)[orderby])
 
@@ -259,4 +259,4 @@ def chunk_dict(dictionary, num_chunks):
         list_dicts[counter % num_chunks][key] = value
         counter += 1
     return list_dicts
-        
+
