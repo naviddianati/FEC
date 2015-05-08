@@ -18,7 +18,7 @@ from disambiguation.core import utils
 
 
 
-def worker_get_similar_records_db(r):
+def worker_get_similar_records_db(target_record):
     
     db = Database.DatabaseManager()
 
@@ -26,9 +26,9 @@ def worker_get_similar_records_db(r):
     list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
     all_fields = list_tokenized_fields + list_auxiliary_fields
 
-    firstname = r['N_first_name']
-    lastname = r['N_last_name']
-    middlename = r['N_middle_name']
+    firstname = target_record['N_first_name']
+    lastname = target_record['N_last_name']
+    middlename = target_record['N_middle_name']
 
     db = Database.FecRetriever(table_name='individual_contributions',
                       query_fields=all_fields,
@@ -43,7 +43,7 @@ def worker_get_similar_records_db(r):
     print "saving to file"
     with open(firstname + "-" + lastname + ".txt", 'w') as f:
         f.write("="*70 + "\n")
-        f.write("%s %s %s\n" %(r['N_first_name'], r['N_middle_name'], r['N_last_name']))
+        f.write("%s %s %s\n" %(target_record['N_first_name'], target_record['N_middle_name'], target_record['N_last_name']))
         f.write("="*70 + "\n")
         for record in list_records:
             f.write('  '.join([str(record[field]) for field in all_fields]) + "\n")
