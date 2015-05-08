@@ -13,26 +13,46 @@ from disambiguation.core import Project
 from disambiguation.core import Tokenizer
 from disambiguation.core import Disambiguator
 from disambiguation.core import Database
+from disambiguation.core import utils
 
 
 
 
-def worker_get_similar_records_db(data):
-    list_records = data['list_records']
-    q = data['queue']
+def worker_get_similar_records_db(r):
     
     db = Database.DatabaseManager()
-    
-    for r in list_records:
-        print "="*70
-        print "%s %s %s" %(r['N_first_name'], r['N_middle_name'], r['N_last_name'])
-        print "="*70
-        firstname = r['N_first_name']
-        lastname = r['N_last_name']
-        middlename = r['N_middle_name']
-        query = 'SELECT * from individual_contributions WHERE NAME regexp "\b%s\b.*\b%s\b";' %(firstname,lastname)
-        result = db.runQuery(query)
-        print result
+
+    list_tokenized_fields = ['NAME', 'TRANSACTION_DT', 'ZIP_CODE' , 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
+    all_fields = list_tokenized_fields + list_auxiliary_fields
+
+    firstname = r['N_first_name']
+    lastname = r['N_last_name']
+    middlename = r['N_middle_name']
+
+    db = Database.FecRetriever(table_name='individual_contributions',
+                      query_fields=all_fields,
+                      limit='',
+                      list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
+                      where_clause=" WHERE NAME REGEXP '[[:<:]]%s.*[[:<:]]%s'" %(lastname,firstname) 
+    )
+    db.retrieve()
+    print "records retrieved"
+    list_records = db.getRecords() 
+ 
+    print "saving to file"
+    with open(firstname + "-" + lastname + ".txt", 'w') as f:
+        f.write("="*70 + "\n")
+        f.write("%s %s %s\n" %(r['N_first_name'], r['N_middle_name'], r['N_last_name']))
+        f.write("="*70 + "\n")
+        for record in list_records:
+            f.write('  '.join([str(record[field]) for field in all_fields]) + "\n")
+            
+
+def get_similar_records_multiproc(list_records):
+    pool = utils.multiprocessing.Pool(1)
+    pool.map(worker_get_similar_records_db, list_records)
+
 
 if __name__ == "__main__":
         
@@ -40,7 +60,7 @@ if __name__ == "__main__":
     state = 'boarddata'
     
     
-    data = pd.read_csv('/home/navid/data/FEC/zubin/sample_data.csv')
+    data = pd.read_csv('/nfs/home/navid/data/FEC/zubin/sample_data.csv')
     print data.columns
     
     list_of_records = []
@@ -74,10 +94,9 @@ if __name__ == "__main__":
     list_of_records = tokenizer.getRecords()
     
     
+    get_similar_records_multiproc(list_of_records) 
     
     
-    
-    worker_get_similar_records_db({'list_records': list_of_records,'queue':None})
         
     quit()
     

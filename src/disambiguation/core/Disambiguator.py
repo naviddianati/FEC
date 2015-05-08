@@ -16,7 +16,6 @@ from multiprocessing.process import Process
 from multiprocessing import Pool, Manager
 from multiprocessing.queues import Queue
 
-from Affiliations import AffiliationAnalyzer
 from Database import DatabaseManager
 from Person import Person
 from Tokenizer import TokenData, Tokenizer
