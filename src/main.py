@@ -114,17 +114,16 @@ def DISAMBIGUATE_stage_2():
     # Get pairs of record ids that are similar according
     # to the national (combined) hashes, but aren't already
     # linked at the state level.
-    stage2.get_candidate_pairs(num_pairs)
+#     stage2.get_candidate_pairs(num_pairs)
 
 
     # Partition the full record set into num_procs subsets
     # with minimal inter-set links, and export the record ids
     # to a separate file for each subset.
-    list_filenames = stage2.partition_records(num_procs, file_label="")
-
+    stage2.partition_records( num_pairs = num_pairs, num_partitions = num_procs, state = 'USA')
 
     # Compare record pairs within each subset and save results.
-    stage2.disambiguate_subsets_multiproc(list_filenames, num_procs)
+#     stage2.disambiguate_subsets_multiproc(list_filenames, num_procs)
 
     pass
 
@@ -278,7 +277,7 @@ def test_retriever_by_id():
     from disambiguation.core import Database
     retriever = Database.FecRetrieverByID('newyork_combined')
 
-    num_records = 1000000
+    num_records = 10
 
 
     list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
@@ -295,6 +294,9 @@ def test_retriever_by_id():
     
     
     retriever.retrieve(list_ids, all_fields)
+    for r in retriever.getRecords():
+        print r.id
+    print list_ids
 
 
 
@@ -309,13 +311,17 @@ if __name__ == "__main__":
 #     view_vectors()
 #     quit()
 
+
+    DISAMBIGUATE_stage_2()
+    quit()
+    
+
     test_retriever_by_id()
     quit()
 
 
     import stage2
     list_pairs = stage2.get_candidate_pairs(1000000, 'delaware')
-
     quit()
 
 

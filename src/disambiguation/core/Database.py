@@ -6,7 +6,8 @@ Created on Jun 26, 2014
 
 import datetime
 import MySQLdb as mdb
-from Record import Record
+
+import Record
 import states
 import utils
 
@@ -102,7 +103,6 @@ class FecRetrieverByID(DatabaseManager):
         Retrieve the rows with ids in list_ids.
         '''
 
-
         self.__get_temp_table()
         
         t1 = utils.time.time()
@@ -110,16 +110,41 @@ class FecRetrieverByID(DatabaseManager):
         t2 = utils.time.time()
         print "Done in %f seconds" % (t2-t1)
 
+        # Retrieve the rows from the join
         query = "SELECT " + ','.join(query_fields) + " FROM " + self.table_name + " JOIN " + self.temp_table + " USING (id) ;"
         print query
         t1 = utils.time.time()
-        results = self.runQuery(query)
+        query_result = self.runQuery(query)
         t2 = utils.time.time()
         print "Done in %f seconds" % (t2-t1)
 
         # Cleanup
         self.__del_temp_table()
-        return
+        
+        
+        # Convert strings to upper case, dates to date format.
+        tmp_list = [[s.upper() if isinstance(s, basestring) else s.strftime("%Y%m%d") if  isinstance(s, datetime.date) else s  for s in record] for record in query_result]
+
+
+        self.list_of_records = []
+        for counter, item in enumerate(tmp_list):
+            r = Record.Record()
+            for i, field in enumerate(query_fields):
+                r[field] = item[i]
+
+            # I require that each row have a unique "id" column
+            try:
+                r.id = r['id']
+            except KeyError:
+                if self.require_id :
+                    raise Exception("ERROR: record does not have 'id' column")
+                pass
+
+            self.list_of_records.append(r)
+
+
+    def getRecords(self):
+        return self.list_of_records
 
 
 
@@ -175,7 +200,7 @@ class FecRetriever(DatabaseManager):
 
         self.list_of_records = []
         for counter, item in enumerate(tmp_list):
-            r = Record()
+            r = Record.Record()
             for i, field in enumerate(self.query_fields):
                 r[field] = item[i]
 

@@ -21,7 +21,7 @@ from nltk.util import ngrams
 from .. import config
 import disambiguation.data 
 from multiprocessing import Manager
-from utils import *
+import utils
 
 
 
@@ -913,7 +913,7 @@ def worker_tokenizer_list_of_records(data):
     be combined with other similar objects from other workers.
     '''
     
-    time.sleep(20)
+    utils.time.sleep(20)
     return
     list_of_records, fields, TokenizerClass = data
     print "--------", TokenizerClass
@@ -951,7 +951,7 @@ def tokenize_multiple_lists_of_records(list_of_list_records, TokenizerClass, pro
     import gc
     num_procs = len(list_of_list_records)
     list_data = []
-    manager = multiprocessing.Manager() 
+    manager = utils.multiprocessing.Manager() 
 
     myrecord = list_of_list_records[0][0]
     print "preparing data packages for child processes..."
@@ -965,7 +965,7 @@ def tokenize_multiple_lists_of_records(list_of_list_records, TokenizerClass, pro
     
     
     print "starting the pool..."
-    pool = multiprocessing.Pool(processes=num_procs)
+    pool = utils.multiprocessing.Pool(processes=num_procs)
     result = pool.map(worker_tokenizer_list_of_records, list_data)
     
     list_of_list_records = [item[0] for item in result]

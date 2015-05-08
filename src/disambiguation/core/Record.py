@@ -37,7 +37,8 @@ import json
 
 from common import bad_identifier
 from Person import Person
-from Tokenizer import TokenData
+# from Tokenizer import TokenData
+import Tokenizer
 import editdist
 
 
@@ -890,7 +891,7 @@ class Record(dict):
             f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r1['N_last_name']))
             f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r2['N_last_name']))
             
-            if f1 <= TokenData.RARE_FREQUENCY or f2 <= TokenData.RARE_FREQUENCY:
+            if f1 <= Tokenizer.TokenData.RARE_FREQUENCY or f2 <= Tokenizer.TokenData.RARE_FREQUENCY:
                 # They are very similar and at least one is rare. Must be misspelling. Accept
                 identical = (3, None)
             else:
@@ -977,7 +978,7 @@ class Record(dict):
                         f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], firstname2))
                         
                         # Accept if one of the names is very rare
-                        if f1 <= TokenData.RARE_FREQUENCY or f2 <= TokenData.RARE_FREQUENCY:
+                        if f1 <= Tokenizer.TokenData.RARE_FREQUENCY or f2 <= Tokenizer.TokenData.RARE_FREQUENCY:
 #                             identical *= 1
                             pass  # equivalent?
                         else:

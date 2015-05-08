@@ -213,7 +213,7 @@ def get_states_sorted(criterion='num_records'):
 
 
 
-from Database import DatabaseManager
+import Database
 import json
 def get_states_record_numbers(recompute=False):
     '''
@@ -235,7 +235,7 @@ def get_states_record_numbers(recompute=False):
     print "computing number of records for each state from database..."
 
     # If unsuccessful or if recompute = True, recompute.
-    db = DatabaseManager()
+    db = Database.DatabaseManager()
     db.db_connect()
     for state, state_abbr in dict_state_abbr.iteritems():
         query = "SELECT COUNT(*) FROM %s_combined;" % state
