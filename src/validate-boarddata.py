@@ -1,4 +1,8 @@
 from disambiguation.core import Database
+from disambiguation.core import Project
+from disambiguation.core import Tokenizer 
+from disambiguation.core import Record 
+from disambiguation.core import utils 
 
 
 import random
@@ -56,13 +60,13 @@ class html_table():
         return self.html
 
         
-def get_auxilliary_data(dict_data):
+def get_auxilliary_data(list_data):
     '''
     Return html code for the auxilliary data div.
     @param dict_data: dictionary of the data items.
     '''
     html = ''
-    for title,content in dict_data.iteritems():
+    for title,content in list_data:
         html += "<div class = 'aux-data-item-title'> %s </div>\n" % title
         html += "<div class = 'aux-data-item-content'> %s </div>\n" % content
     return html
@@ -102,12 +106,20 @@ def worker_get_similar_records_db(target_record):
     middlename = target_record['N_middle_name']
 
     db = Database.FecRetriever(table_name='individual_contributions',
+    #db = Database.FecRetriever(table_name='newyork_combined',
                       query_fields=all_fields,
                       limit='',
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
                       where_clause=" WHERE NAME REGEXP '[[:<:]]%s.*[[:<:]]%s'" %(lastname,firstname) 
     )
-    db.retrieve()
+    try:
+        db.retrieve()
+    except Exception, e:
+        with open('error-log.txt','a') as f:
+            f.write("Unable to retrieve similar records for this record:\n")
+            f.write(target_record['NAME'] + "\n")
+            f.write(str(e) + "\n")
+            f.write("="*72 + "\n")
     print "records retrieved"
     list_records = db.getRecords() 
  
@@ -118,7 +130,7 @@ def worker_get_similar_records_db(target_record):
         f.write("="*70 + "\n")
         for record in list_records:
             f.write('  '.join([str(record[field]) for field in all_fields]) + "\n")
-    return list_records
+    return target_record, list_records
             
 
 
@@ -138,6 +150,7 @@ def get_list_target_records():
     data = pd.read_csv('/nfs/home/navid/data/FEC/zubin/sample_data.csv')
     
     list_of_records = []
+    counter = 0
     for x in data.iterrows():
         try:
             r = Record.Record()
@@ -146,8 +159,10 @@ def get_list_target_records():
             r['EMPLOYER'] = x[1]["employment_Company Name"].encode('ascii', 'ignore')
             r['OCCUPATION'] =  x[1]["employment_Role"].encode('ascii', 'ignore')
             list_of_records.append(r)
-        except:
-            print "error"
+            counter += 1
+        except Exception, e:
+            print e
+        #if counter > 15: break
     # Normalize and tokenize the target records
     project = Project.Project(1)
     project.putData('state', state)
@@ -182,13 +197,14 @@ def get_identity_data(state='USA'):
     
 def get_dict_aux_data(record):
     '''
-    return a dict of the auxilliary data to be
+    return a list of the auxilliary data to be
     displayed on the coding page for the given
     target record.
     '''
-    dict_data = {"Name": record['NAME'],
-                 "Employer": record['EMPLOYER']}
-    return dict_data
+    list_data = [("Name", record['NAME']),
+                 ("Employer", record['EMPLOYER']),
+                 ("Occupation", record['OCCUPATION'])]
+    return list_data
 
 
 def get_coding_page(target_record, dict_identities):
@@ -201,7 +217,7 @@ def get_coding_page(target_record, dict_identities):
         containing records similar to target_record.
     @return: html code for the coding page.
     '''
-    list_fields = ['NAME', 'TRANSACTION_DT', 'ZIP_CODE' , 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION','id']
+    list_fields = ['NAME', 'TRANSACTION_DT', 'ZIP_CODE' , 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION','id']
     dict_fields={"TRANSACTION_DT": "Date",
                  "ZIP_CODE": "zipcode",
                  "CONTRIBUTOR_STREET_1": "Address",
@@ -216,19 +232,20 @@ def get_coding_page(target_record, dict_identities):
     table.add_header([dict_fields[x] for x in list_fields] + ['identity'] , row_classes = ['table-header'])
 
     # loop through all identities that must be displayed on page.
+    print "Len(dict_identities): ", len(dict_identities)
     for  identity, list_current_records in dict_identities.iteritems():
         new_block = []
         for r in list_current_records:
             r['TRANSACTION_DT'] = format_date(r['TRANSACTION_DT'])
             new_row = [r[field] for field in list_fields] + [identity] 
             new_row = ["" if s is None else s.encode('ascii', 'ignore') if isinstance(s, unicode) else s  for s in new_row ] 
-            row_classes = ['record', 'noselect']
+            row_classes = ['record', 'noselect', 'identity-'+identity]
             row_classes.append('score-no') 
             
             column_classes = ['' for i in range(len(new_row))]
             column_classes[list_fields.index('id')] = "id"
             column_classes[-1] = "identity" 
-            table.add_row(new_row, row_classes = row_classes, row_id=str(record_id), column_classes = column_classes)
+            table.add_row(new_row, row_classes = row_classes, row_id=str(r['id']), column_classes = column_classes)
 
         table.add_row([], row_classes=["separator"])
     return table.to_html()
@@ -244,63 +261,77 @@ def generate_coding_page_multiproc(list_of_records, num_procs, dict_id_2_identit
     similar records for each target record.
     @param list_of_records: list of target records.
     '''
+    html = ''
     
     # For each target record, get a list of similar records.
     pool = utils.multiprocessing.Pool(num_procs)
-    results = pool.map(worker_get_similar_records_db, list_of_records)
-    
+
+
     # For each target record, analyze its list of
     # similar records.
-    for page_counter, list_similar_records in enumerate(results):
-        target_record = list_of_records[page_counter]
-        
-        # dict {r_id: record} for all records in list_similar_records
-        dict_similar_records = {r['id']:r for r in list_similar_records}
+    page_counter = 0
+    for target_record,list_similar_records in pool.imap(worker_get_similar_records_db, list_of_records):
+        print "Received results..."
+        print len(list_similar_records)
+            
+        dict_similar_records = {r.id:r for r in list_similar_records}
         
         # Get the identities of all similar records
-        set_identities = set([dict_id_2_identity[similar_record['id']] for similar_record in list_similar_records])
+        set_identities = set()
+        counter_no_identity = 0
+        for similar_record in list_similar_records:
+            try:
+                set_identities.add(dict_id_2_identity[similar_record.id])
+            except Exception, e:
+                print e
+                counter_no_identity += 1
+        print "Number of ids without identity: ", counter_no_identity
+        print set_identities
+    
+
+        for identity in set_identities:
+            if identity in dict_identity_2_list_ids:
+                print "yes ", identity
+            else:
+                print "no  ", identity
         
-        # Dict {identity:list of records} for all identities 
-        # containing records similar to target record.        
-        dict_identities = {identity: [dict_similar_records[r_id] for r_id in dict_identity_2_list_ids[identity]]
-                                 for identity in set_identities}
-        
-        # Html code for the page for target_record
-        html = get_coding_page(target_record, dict_identities)
-        
-        # write main content of coding page to file
-        with open('%d.html' % page_counter, 'w') as f:
-            f.write(html)
+
+        try:
+            # Dict {identity:list of records} for all identities 
+            # containing records similar to target record.        
+            dict_identities = {identity: [dict_similar_records[r_id] for r_id in dict_identity_2_list_ids[identity]]\
+                     for identity in set_identities   }
             
-        with open("%d-aux.html" %page_counter, 'w') as f:
-            f.write(get_auxilliary_data(get_dict_aux_data(target_record)))
-          
+            # Html code for the page for target_record
+            html = get_coding_page(target_record, dict_identities)
         
+            # write main content of coding page to file
+            with open('%d.html' % (page_counter + 1), 'w') as f:
+                f.write(html)
+                
+            with open("%d-aux.html" % (page_counter + 1), 'w') as f:
+                f.write(get_auxilliary_data(get_dict_aux_data(target_record)))
+          
+            page_counter += 1
+        except Exception, e:
+            print e
 
     
 
 
 if __name__ == "__main__":
 
-
-    # load identity data.
-    dict_id_2_identity, dict_identity_2_list_ids = get_identity_data()
-    
-    list_target_records = get_list_target_records()
-
-    # list and dict of all loaded records
-    list_of_records_names_only = load_records(record_limit=(0,N_records), all_fields = ['id','NAME'], do_sort = False)
-    N_records = len(list_of_records_names_only)
-    dict_of_records_names_only = {r['id']:r for r in list_of_records_names_only}
-    print "Names loaded..."
-
     # Set of "records" we want to find matches for.
     # A records can be an artificial records build
     # from a query.
     list_target_records = get_list_target_records()
+
+    # load identity data.
+    dict_id_2_identity, dict_identity_2_list_ids = get_identity_data()
+    #dict_id_2_identity, dict_identity_2_list_ids = {},{}
     
     # Generate the pages
-    generate_coding_page_multiproc(list_target_records, 1, dict_id_2_identity, dict_identity_2_list_ids)
+    generate_coding_page_multiproc(list_target_records, 22, dict_id_2_identity, dict_identity_2_list_ids)
     
 
     
