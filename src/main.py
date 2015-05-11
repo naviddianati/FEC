@@ -106,7 +106,7 @@ def DISAMBIGUATE_stage_2():
     '''
     import stage2
     # Number of new record pairs to compare at the national level
-    num_pairs = 10000
+    num_pairs = 10000000
 
     # Number of processes to use for stage 2 disambiguation.
     num_procs = 12
@@ -114,16 +114,16 @@ def DISAMBIGUATE_stage_2():
     # Get pairs of record ids that are similar according
     # to the national (combined) hashes, but aren't already
     # linked at the state level.
-#     stage2.get_candidate_pairs(num_pairs)
+    stage2.get_candidate_pairs(num_pairs)
 
 
     # Partition the full record set into num_procs subsets
     # with minimal inter-set links, and export the record ids
     # to a separate file for each subset.
-    # stage2.partition_records( num_partitions = num_procs, state = 'USA')
+    stage2.partition_records( num_partitions = num_procs, state = 'USA')
 
     # Compare record pairs within each subset and save results.
-    stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=2)
+#     stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=2)
 
     pass
 
@@ -223,7 +223,8 @@ def INIT():
 
     ''' National level data preparation: '''
     # Tokenize, vectorize and hashify all states using Tokenizer
-    # init.INIT_process_multiple_states(TokenizerClass=Tokenizer, num_procs=12)
+    ltf = ['NAME', 'EMPLOYER', 'OCCUPATION']
+    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields = ltf, num_procs=12)
 
 
     # combine the vectors and tokens from all states into the national data files.
@@ -312,6 +313,8 @@ if __name__ == "__main__":
 #     quit()
 
 
+    INIT()
+
     DISAMBIGUATE_stage_2()
     quit()
     
@@ -342,9 +345,6 @@ if __name__ == "__main__":
 
 
 
-
-    INIT()
-    quit()
 
 
 
