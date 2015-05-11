@@ -449,22 +449,35 @@ class Disambiguator():
         The same instance variables are set by this function as with 
         update_nearest_neighbors.
 
-        @param list_of_pairs: list of tuples (record1, record2)
+        @param list_of_pairs: list of tuples (rid1,rid2)
         '''
         # dict:  {record: index of record in self.list_of_records }
-        dict_record_index = {r:i for i,r in enumerate(self.list_of_records)}
-        for record1,record2 in list_of_pairs:
-            index1 = dict_record_index[record1]
-            index2 = dict_record_index[record2]
-            # New implementation: comparison is done via instance function of the Record class
-            # Comparison (matching) mode is passed to the Record's compare method.
-            verdict, result = record1.compare(record2, mode=self.matching_mode)
+        dict_records = {r.id:r for i,r in enumerate(self.list_of_records)}
+        dict_rid_2_index = {r.id:i for i,r in enumerate(self.list_of_records)}
+        for rid1,rid2 in list_of_pairs:
+            record1 = dict_records[rid1]
+            record2 = dict_records[rid2]
+            
+            print record1.toString()
+            print record2.toString()
+            print "="*120
 
-           
-            if verdict > 0:
-                self.match_count += 1
-                self.index_adjacency[index1].add(index2)
-                self.new_match_buffer.add((index1, index2))
+
+        index1 = dict_rid_2_index[rid1]
+        index2 = dict_rid_2_index[rid2]
+
+        # New implementation: comparison is done via instance function of the Record class
+        # Comparison (matching) mode is passed to the Record's compare method.
+        verdict, result = record1.compare(record2, mode=self.matching_mode)
+
+       
+        if verdict > 0:
+            self.match_count += 1
+            self.index_adjacency[index1].add(index2)
+            self.new_match_buffer.add((index1, index2))
+            print record1.toString()
+            print record2.toString()
+            print "="*120
 
             # compute some statistics about the records
             if self.do_stats:

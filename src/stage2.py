@@ -117,8 +117,12 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs = 12):
     list_filenames = [config.candidate_pairs_partitioned_file_template %(state, counter)\
                        for counter in range(num_partitions)]
     
-    pool = utils.multiprocessing.Pool(num_procs)
-    pool.map(worker_disambiguate_subset_of_edgelist,list_filenames)
+    if num_procs == 1:
+        for i,filename in enumerate(list_filenames):
+            worker_disambiguate_subset_of_edgelist(filename)
+    else:
+        pool = utils.multiprocessing.Pool(num_procs)
+        pool.map(worker_disambiguate_subset_of_edgelist,list_filenames)
 
 
 
@@ -139,19 +143,27 @@ def worker_disambiguate_subset_of_edgelist(filename):
     all_fields = list_tokenized_fields + list_auxiliary_fields
     ig = utils.igraph
     with open(filename) as f:
+        print "Loading partition of edgelist."
         g = ig.Graph.Read_Ncol(f, names=True, weights="if_present", directed=False)
         list_record_ids = [int(v['name']) for v in g.vs]
-        list_of_pairs = [(g.vs[e.source]['name'],g.vs[e.target]['name']) for e in g.es]
+         
+        print "Getting list_of_pairs."
+        list_of_pairs = [(int(g.vs[e.source]['name']),int(g.vs[e.target]['name'])) 
+            for e in sorted(g.es, key = lambda e:e['weight'], reverse = True)]
 
+        print "Retrieving records for this partition from database."
         retriever = Database.FecRetrieverByID(config.MySQL_tablename_all_records)
         retriever.retrieve(list_record_ids, all_fields)
         list_of_records = retriever.getRecords()
         
+        print "Instantiating Disambiguator."
         D = Disambiguator.Disambiguator(list_of_records, vector_dimension = None, matching_mode='thorough', num_procs=1)
         project = Project.Project(1)
         project.D = D
         D.project = project
         D.tokenizer = Tokenizer.Tokenizer()
+        
+        print "Running D.disambiguate_list_of_pairs(list_of_pairs)"
         D.disambiguate_list_of_pairs(list_of_pairs)
     
     

@@ -119,7 +119,7 @@ class Record(dict):
         '''
         return a short string summarizing the record
         '''
-        s = "%s\t%s\t%s\t%s" % (self['NAME'], self['ZIP_CODE'], self['EMPLOYER'], self['OCCUPATION'])
+        s = "%s\t%s\t%s\t%s\t%s\t%s" % (self['NAME'], self['ZIP_CODE'], self['CITY'],self['STATE'],self['EMPLOYER'], self['OCCUPATION'])
         return s
     
 #     @staticmethod
