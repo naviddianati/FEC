@@ -217,10 +217,10 @@ def INIT_combine_state_tokens_and_vectors():
 
 
 
-def INIT_process_single_state(state=None, TokenizerClass=None,  record_limit=(0, 50000000), whereclause='', num_procs=1):
+def INIT_process_single_state(state=None, TokenizerClass=None,  list_tokenized_fields = [], record_limit=(0, 50000000), whereclause='', num_procs=1):
     '''
     Using the TokenizerClass specified, tokenize all records from the specified 
-    state, savtokenize_recordse the tokendata as well as the feature vectors to files. 
+    state, save the tokendata as well as the feature vectors to files. 
     Then, compute the LSH hashes and save to file.
     
     '''
@@ -243,7 +243,9 @@ def INIT_process_single_state(state=None, TokenizerClass=None,  record_limit=(0,
     record_start = record_limit[0]
     record_no = record_limit[1]
     
-    list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+    if not list_tokenized_fields:
+        list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+
     project.putData("list_tokenized_fields", list_tokenized_fields)
     
     list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
@@ -253,11 +255,11 @@ def INIT_process_single_state(state=None, TokenizerClass=None,  record_limit=(0,
     project.putData('all_fields' , all_fields)
     
     # dictionaries indicating the index numbers associated with all fields
-    index_2_field = { all_fields.index(s):s for s in all_fields}
-    project.putData("index_2_field", index_2_field)
-    
-    field_2_index = { s:all_fields.index(s) for s in all_fields}
-    project.putData("field_2_index", field_2_index)
+#     index_2_field = { all_fields.index(s):s for s in all_fields}
+#     project.putData("index_2_field", index_2_field)
+#     
+#     field_2_index = { s:all_fields.index(s) for s in all_fields}
+#     project.putData("field_2_index", field_2_index)
     
     
     if whereclause == "":
@@ -316,9 +318,12 @@ def worker_process_multiple_states(conn):
     
     print proc_name, data['list_states']
     
+    
     for state in data['list_states']:
         try:
-            INIT_process_single_state(state, data['TokenizerClass'], num_procs = 1)
+            INIT_process_single_state(state, data['TokenizerClass'],
+                                       list_tokenized_fields = data['list_tokenized_fields'],
+                                       num_procs = 1)
         except Exception as e:
             print "Failed to run INIT_process_single_state for state ", state
             print "Error ", e
@@ -326,7 +331,7 @@ def worker_process_multiple_states(conn):
 
  
 
-def INIT_process_multiple_states(list_states = [], TokenizerClass=None, num_procs = 12):
+def INIT_process_multiple_states(list_states = [], TokenizerClass=None, list_tokenized_fields = [], num_procs = 12):
     '''
     Using multiple processes, perform INIT_process_single_state for multiple
     states at the same time. 
@@ -382,7 +387,8 @@ def INIT_process_multiple_states(list_states = [], TokenizerClass=None, num_proc
         time.sleep(1)
         p.start()
         data = {'list_states': dict_states[id],
-                'TokenizerClass': TokenizerClass }
+                'TokenizerClass': TokenizerClass,
+                'list_tokenized_fields': list_tokenized_fields }
         conn_parent.send(data)
 
     for p in list_jobs:
