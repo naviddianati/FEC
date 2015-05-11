@@ -70,3 +70,9 @@ candidate_pairs_file_template = dict_paths["data_path_candidate_pairs"] + "%s-ca
 # to be used for disambiguation.
 candidate_pairs_partitioned_file_template = dict_paths["data_path_candidate_pairs"] + "%s-candidate_pairs_partition-%d.txt"
 
+
+# Name of the table containing all records with addresses.
+# This table is the concatenation of all <state>_combined tables
+MySQL_tablename_all_records = 'usa_combined' 
+
+

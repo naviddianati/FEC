@@ -440,6 +440,45 @@ class Disambiguator():
         print "NUMBER OF DISTINCT RECORDS IN list_of_records: ", len(tmp)
 
 
+    def disambiguate_list_of_pairs(self,list_of_pairs):
+        '''
+        Disambiguate by perform comparisons between a given list of record
+        pairs. Can be used instead of compute_similarity, when we know which
+        pairs of records we should compare already, for example because we've
+        already processed the hashes and found the nearest neighbors.
+        The same instance variables are set by this function as with 
+        update_nearest_neighbors.
+
+        @param list_of_pairs: list of tuples (record1, record2)
+        '''
+        # dict:  {record: index of record in self.list_of_records }
+        dict_record_index = {r:i for i,r in enumerate(self.list_of_records)}
+        for record1,record2 in list_of_pairs:
+            index1 = dict_record_index[record1]
+            index2 = dict_record_index[record2]
+            # New implementation: comparison is done via instance function of the Record class
+            # Comparison (matching) mode is passed to the Record's compare method.
+            verdict, result = record1.compare(record2, mode=self.matching_mode)
+
+           
+            if verdict > 0:
+                self.match_count += 1
+                self.index_adjacency[index1].add(index2)
+                self.new_match_buffer.add((index1, index2))
+
+            # compute some statistics about the records
+            if self.do_stats:
+                self.logstats(record1, record2, verdict, result)
+
+            # Export the result of this comparison to file.
+            if self.do_log_comparisons:
+                if (verdict == 0 and result['n'][0] > 1 and  result['e'][0] > 1 and result['o'][0] > 1):
+                    # print record1.toString()
+                    # print record2.toString()
+                    # print "="*120
+                    self.__export_comparison([(record1, record2, verdict, result)])
+
+
 
 
     def update_nearest_neighbors(self, B, hashes=None, allow_repeats=False, num_procs=None):
@@ -522,8 +561,8 @@ class Disambiguator():
                 # Comparison (matching) mode is passed to the Record's compare method.
                 verdict, result = record1.compare(record2, mode=self.matching_mode)
 
-                if record1['N_first_name'] == 'RICHARD' and record2['N_first_name'] == "ROBERT" and verdict > 0:
-                    print record1.toString(), '--', record2.toString(), verdict, result
+                #if record1['N_first_name'] == 'RICHARD' and record2['N_first_name'] == "ROBERT" and verdict > 0:
+                #    print record1.toString(), '--', record2.toString(), verdict, result
 
                 if verdict > 0:
                     self.match_count += 1

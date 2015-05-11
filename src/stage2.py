@@ -12,7 +12,7 @@ information regarding name/employer/occupation/etc. frequencies obtained
 from stage1 clusters are used.
 '''
 
-from disambiguation.core import utils
+from disambiguation.core import utils, Disambiguator, Project, Tokenizer
 from disambiguation.core import hashes
 import disambiguation.config as config
 from disambiguation.core import Database
@@ -67,7 +67,7 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False):
 
 
 
-def partition_records(num_pairs, num_partitions, state = "USA"):
+def partition_records( num_partitions, state = "USA"):
     '''
     Partition the set of records appearing in the pairs identified
     by get_candidate_pairs into num_partitions subsets
@@ -91,7 +91,7 @@ def partition_records(num_pairs, num_partitions, state = "USA"):
 #         print g.vcount(), g.ecount()
     
   
-    
+
     list_components = g.components().subgraphs()
     
     # partition the list of all connected components into a list of 
@@ -109,24 +109,58 @@ def partition_records(num_pairs, num_partitions, state = "USA"):
         
             
 
-def disambiguate_subsets_multiproc(list_filenames, num_procs):
+def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs = 12):
     '''
     Compare record pairs within each subset and save results.
-    @param list_filenames: list of filenames exported by partition_records()
     '''
+    # List of filenames in which subsets of the edgelist are stored.
+    list_filenames = [config.candidate_pairs_partitioned_file_template %(state, counter)\
+                       for counter in range(num_partitions)]
     
-    for pid in range(num_procs):
-        p = utils.multiprocessing.Process(target=worker_get_edgelist_from_hashes_file
-                                    , args=(data[pid],))
-        p.start()
-        print "process %d started..." % pid
-        list_procs.append(p)
-    for counter,partition in enumerate(list_of_list_edges):
-        with open(config.candidate_pairs_partitioned_file_template %(state, counter),'w') as f:
-            for edge in partition:
-                f.write("%s %s %s\n" % edge)
-                
-    pass
+    pool = utils.multiprocessing.Pool(num_procs)
+    pool.map(worker_disambiguate_subset_of_edgelist,list_filenames)
+
+
+
+
+
+
+def worker_disambiguate_subset_of_edgelist(filename):
+    '''
+    Disambiguate by comparing the record pairs in filename. To do this
+    first extract the list of all record ids, generate a temp MySQL table
+    with thos in it, then extract the full records from individual_contributions
+    by joining it with the temp table.
+    
+    @param filename: filename in which on partition of the edgelist is stored.
+    '''
+    list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+    list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
+    all_fields = list_tokenized_fields + list_auxiliary_fields
+    ig = utils.igraph
+    with open(filename) as f:
+        g = ig.Graph.Read_Ncol(f, names=True, weights="if_present", directed=False)
+        list_record_ids = [int(v['name']) for v in g.vs]
+        list_of_pairs = [(g.vs[e.source]['name'],g.vs[e.target]['name']) for e in g.es]
+
+        retriever = Database.FecRetrieverByID(config.MySQL_tablename_all_records)
+        retriever.retrieve(list_record_ids, all_fields)
+        list_of_records = retriever.getRecords()
+        
+        D = Disambiguator.Disambiguator(list_of_records, vector_dimension = None, matching_mode='thorough', num_procs=1)
+        project = Project.Project(1)
+        project.D = D
+        D.project = project
+        D.tokenizer = Tokenizer.Tokenizer()
+        D.disambiguate_list_of_pairs(list_of_pairs)
+    
+    
+
+
+
+
+
+
 
 
 

@@ -68,12 +68,11 @@ class FecRetrieverByID(DatabaseManager):
         Return the name of a temp table that can be safely used by
         this instance.
         '''
-        self.temp_table = "tmp_%s" % str(id(self))
+        self.temp_table = "tmp_" + utils.get_random_string(20)
         query1 = "DROP TABLE IF EXISTS %s;" % self.temp_table 
-        query2 = "CREATE TABLE %s (id INT,  PRIMARY KEY (id));" % self.temp_table
+        query2 = "CREATE TABLE %s (id INT  PRIMARY KEY);" % self.temp_table
         self.runQuery(query1)
         self.runQuery(query2)
-        pass
 
 
 
@@ -83,7 +82,7 @@ class FecRetrieverByID(DatabaseManager):
         '''
         print "inserting..."
         for rid in list_ids:
-            query = "INSERT INTO %s (id) values (%d);" % (self.temp_table, rid)
+            query = "INSERT INTO %s  value (%d);" % (self.temp_table, rid)
             self.runQuery(query)
         print "done."
         

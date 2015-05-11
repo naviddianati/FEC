@@ -23,7 +23,10 @@ from .. import config
 import math
 from ast import literal_eval
 
+# list of all alphanumeric characters
+abcd = 'abcdefghijklmnopqrstuvwxz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
+random.seed()
 
 def partition_list_of_graphs(mylist, num_partitions):
     '''
@@ -283,4 +286,14 @@ def chunk_dict(dictionary, num_chunks):
         list_dicts[counter % num_chunks][key] = value
         counter += 1
     return list_dicts
+
+
+def get_random_string(length):
+    '''
+    Return a random string of lengh length
+    '''
+    s = abcd
+    return ''.join([random.choice(s) for i in range(length)])
+    
+
 

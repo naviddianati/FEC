@@ -120,10 +120,10 @@ def DISAMBIGUATE_stage_2():
     # Partition the full record set into num_procs subsets
     # with minimal inter-set links, and export the record ids
     # to a separate file for each subset.
-    stage2.partition_records( num_pairs = num_pairs, num_partitions = num_procs, state = 'USA')
+    # stage2.partition_records( num_partitions = num_procs, state = 'USA')
 
     # Compare record pairs within each subset and save results.
-#     stage2.disambiguate_subsets_multiproc(list_filenames, num_procs)
+    stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=2)
 
     pass
 
