@@ -467,14 +467,17 @@ class Disambiguator():
             # Comparison (matching) mode is passed to the Record's compare method.
             verdict, result = record1.compare(record2, mode=self.matching_mode)
 
-            print verdict, "="*120
+            print verdict, str(result), "="*70
             print record1.toString(), "'%s'" % record1['N_last_name']
             print record2.toString(), "'%s'" % record1['N_last_name']
             print 
-
             if verdict > 0:
                 self.match_count += 1
-                self.index_adjacency[index1].add(index2)
+                try:
+                    self.index_adjacency[index1].add(index2)
+                except:
+                    self.index_adjacency[index1] = set([index2])
+
                 self.new_match_buffer.add((index1, index2))
                 #print record1.toString()
                 #print record2.toString()

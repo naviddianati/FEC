@@ -135,7 +135,8 @@ def worker_disambiguate_subset_of_edgelist(filename):
     first extract the list of all record ids, generate a temp MySQL table
     with thos in it, then extract the full records from individual_contributions
     by joining it with the temp table.
-    
+    @note: the records need to be tokenized first, since record comparison relies
+        on normalized names, etc.    
     @param filename: filename in which on partition of the edgelist is stored.
     '''
     list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
@@ -157,6 +158,8 @@ def worker_disambiguate_subset_of_edgelist(filename):
         list_of_records = retriever.getRecords()
         
 
+        project = Project.Project(1)
+
         tokenizer = Tokenizer.Tokenizer()
         project.tokenizer = tokenizer
         tokenizer.project = project
@@ -170,11 +173,10 @@ def worker_disambiguate_subset_of_edgelist(filename):
 
         print "Instantiating Disambiguator."
         D = Disambiguator.Disambiguator(list_of_records, vector_dimension = None, matching_mode='thorough', num_procs=1)
-        project = Project.Project(1)
         project.D = D
         D.project = project
-        D.tokenizer = Tokenizer.Tokenizer()
-
+        D.tokenizer = tokenizer
+        
         print "Running D.disambiguate_list_of_pairs(list_of_pairs)"
         D.disambiguate_list_of_pairs(list_of_pairs)
     
