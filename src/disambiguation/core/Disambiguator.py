@@ -467,30 +467,33 @@ class Disambiguator():
             # Comparison (matching) mode is passed to the Record's compare method.
             verdict, result = record1.compare(record2, mode=self.matching_mode)
 
-            print verdict, "="*120
-            print record1.toString()
-            print record2.toString()
+            print verdict, str(result), "="*70
+            print record1.toString(), "'%s'" % record1['N_last_name']
+            print record2.toString(), "'%s'" % record1['N_last_name']
             print 
-
             if verdict > 0:
                 self.match_count += 1
-                self.index_adjacency[index1].add(index2)
+                try:
+                    self.index_adjacency[index1].add(index2)
+                except:
+                    self.index_adjacency[index1] = set([index2])
+
                 self.new_match_buffer.add((index1, index2))
                 #print record1.toString()
                 #print record2.toString()
                 #print "="*120
 
-                # compute some statistics about the records
-                if self.do_stats:
-                    self.logstats(record1, record2, verdict, result)
+            # compute some statistics about the records
+            if self.do_stats:
+                self.logstats(record1, record2, verdict, result)
 
-                # Export the result of this comparison to file.
-                if self.do_log_comparisons:
-                    if (verdict == 0 and result['n'][0] > 1 and  result['e'][0] > 1 and result['o'][0] > 1):
-                        # print record1.toString()
-                        # print record2.toString()
-                        # print "="*120
-                        self.__export_comparison([(record1, record2, verdict, result)])
+            # Export the result of this comparison to file.
+            if self.do_log_comparisons:
+                if (verdict == 0 and result['n'][0] > 1 and  result['e'][0] > 1 and result['o'][0] > 1):
+                    # print record1.toString()
+                    # print record2.toString()
+                    # print "="*120
+                    self.__export_comparison([(record1, record2, verdict, result)])
 
 
 
