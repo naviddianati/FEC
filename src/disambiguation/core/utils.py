@@ -28,25 +28,41 @@ abcd = 'abcdefghijklmnopqrstuvwxz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 random.seed()
 
+
+
+
+def Log(message, msg_type="Error"):
+    '''
+    Log a message to the log file defined in config
+    @param message: string message/
+    @param msg_type: type of message. Can be "Error", "Warning", etc.
+    '''
+    filename = config.log_filename
+    with open(filename, 'a') as f:
+        now = time.strftime("%c")
+        msg = config.log_message_template % (now, msg_type, message)
+        f.write(msg)
+
+
 def partition_list_of_graphs(mylist, num_partitions):
     '''
-    Partition a list of graphs into subsets such that 
+    Partition a list of graphs into subsets such that
     the total number of nodes in each subset is roughly
     equal.
     @param mylist: list of igraph.Graph instances
     @param num_partitions: desired number of partitions.
     @return: list where each element is a list of graphs.
     '''
-    mylist.sort(key = lambda g:g.vcount())
-    A = [[[],0] for i in range(num_partitions)]
+    mylist.sort(key=lambda g:g.vcount())
+    A = [[[], 0] for i in range(num_partitions)]
 
     while mylist:
         g = mylist.pop()
-        A.sort(key = lambda subset:subset[1])
+        A.sort(key=lambda subset:subset[1])
         A[0][0].append(g)
         A[0][1] += g.vcount()
 #         print "Sizes of partitions: ", [subset[1] for subset in A]
-    
+
     return [item[0] for item in A]
 
 
@@ -294,6 +310,6 @@ def get_random_string(length):
     '''
     s = abcd
     return ''.join([random.choice(s) for i in range(length)])
-    
+
 
 

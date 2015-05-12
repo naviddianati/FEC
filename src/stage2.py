@@ -156,13 +156,25 @@ def worker_disambiguate_subset_of_edgelist(filename):
         retriever.retrieve(list_record_ids, all_fields)
         list_of_records = retriever.getRecords()
         
+
+        tokenizer = Tokenizer.Tokenizer()
+        project.tokenizer = tokenizer
+        tokenizer.project = project
+        tokenizer.setRecords(list_of_records)
+        tokenizer.setTokenizedFields(list_tokenized_fields)
+        
+        
+        print "Tokenizing records..."
+        tokenizer.tokenize()
+        list_of_records = tokenizer.getRecords()
+
         print "Instantiating Disambiguator."
         D = Disambiguator.Disambiguator(list_of_records, vector_dimension = None, matching_mode='thorough', num_procs=1)
         project = Project.Project(1)
         project.D = D
         D.project = project
         D.tokenizer = Tokenizer.Tokenizer()
-        
+
         print "Running D.disambiguate_list_of_pairs(list_of_pairs)"
         D.disambiguate_list_of_pairs(list_of_pairs)
     

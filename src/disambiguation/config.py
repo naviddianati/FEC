@@ -76,3 +76,10 @@ candidate_pairs_partitioned_file_template = dict_paths["data_path_candidate_pair
 MySQL_tablename_all_records = 'usa_combined' 
 
 
+
+# log file name
+log_filename = data_path + "messages.log"
+
+# String template for log messages.
+# The three strings are datetime, msg_type and message
+log_message_template = "[%s] (%s):\t%s\n"

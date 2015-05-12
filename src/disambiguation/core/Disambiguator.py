@@ -468,8 +468,8 @@ class Disambiguator():
             verdict, result = record1.compare(record2, mode=self.matching_mode)
 
             print verdict, "="*120
-            print record1.toString()
-            print record2.toString()
+            print record1.toString(), "'%s'" % record1['N_last_name']
+            print record2.toString(), "'%s'" % record1['N_last_name']
             print 
 
             if verdict > 0:
@@ -480,17 +480,17 @@ class Disambiguator():
                 #print record2.toString()
                 #print "="*120
 
-                # compute some statistics about the records
-                if self.do_stats:
-                    self.logstats(record1, record2, verdict, result)
+            # compute some statistics about the records
+            if self.do_stats:
+                self.logstats(record1, record2, verdict, result)
 
-                # Export the result of this comparison to file.
-                if self.do_log_comparisons:
-                    if (verdict == 0 and result['n'][0] > 1 and  result['e'][0] > 1 and result['o'][0] > 1):
-                        # print record1.toString()
-                        # print record2.toString()
-                        # print "="*120
-                        self.__export_comparison([(record1, record2, verdict, result)])
+            # Export the result of this comparison to file.
+            if self.do_log_comparisons:
+                if (verdict == 0 and result['n'][0] > 1 and  result['e'][0] > 1 and result['o'][0] > 1):
+                    # print record1.toString()
+                    # print record2.toString()
+                    # print "="*120
+                    self.__export_comparison([(record1, record2, verdict, result)])
 
 
 
@@ -511,20 +511,23 @@ class Disambiguator():
         @param comparison_data: a list of tuples of the form (record1, record2, verdict, result).
         '''
 
-        for record1, record2, verdict, result in comparison_data:
-            data = [record1.id, record2.id, verdict, result]
-            s = json.dumps(data, sort_keys=True)
-            s1 = record1.toString()
-            s2 = record2.toString()
-
-            self.file_comparison_results.write(s + "\n")
-            self.file_comparison_results.write(s1 + "\n")
-            self.file_comparison_results.write(s2 + "\n")
-            self.file_comparison_results.write("="*120 + "\n")
-
-            # Save the json object to file logging near misses
-            self.file_near_misses.write(s + "\n")
-
+        try:
+            for record1, record2, verdict, result in comparison_data:
+                data = [record1.id, record2.id, verdict, result]
+                s = json.dumps(data, sort_keys=True)
+                s1 = record1.toString()
+                s2 = record2.toString()
+    
+                self.file_comparison_results.write(s + "\n")
+                self.file_comparison_results.write(s1 + "\n")
+                self.file_comparison_results.write(s2 + "\n")
+                self.file_comparison_results.write("="*120 + "\n")
+    
+                # Save the json object to file logging near misses
+                self.file_near_misses.write(s + "\n")
+        except Exception, e:
+            utils.Log(str(e))
+            
     def __update_nearest_neighbors_single_proc(self, B, hashes=None, allow_repeats=False):
         '''
         Given a list of strings or hashes, this function finds

@@ -44,7 +44,7 @@ import disambiguation.init as init
 
 from collections import OrderedDict
 
-from disambiguation.core import Project
+from disambiguation.core import Project, search
 from disambiguation.core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUndirected
 from disambiguation.core.Database import FecRetriever, FecRetrieverByID
 import disambiguation.core.Disambiguator as Disambiguator
@@ -300,7 +300,17 @@ def test_retriever_by_id():
     print list_ids
 
 
-
+def test_searchengine():
+    sdb = search.SearchEngine()
+    
+    sdb.search_regex(name="FLANIGAN.*PETER", employer="", city="")
+    dict_ids = {r.id: r for r in sdb.list_of_records}
+    
+    result = sdb.get_identities(sdb.list_of_records)
+    result.sort(key=lambda x:x[1])
+    for rid ,identity in result:
+        print rid,identity, dict_ids[rid].toString()
+        
 
 if __name__ == "__main__":
 
@@ -314,6 +324,9 @@ if __name__ == "__main__":
 
 
     #INIT()
+
+    test_searchengine()
+    quit()
 
     DISAMBIGUATE_stage_2()
     quit()
