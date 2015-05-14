@@ -196,6 +196,7 @@ def worker_disambiguate_subset_of_edgelist(filename):
 
 
 from disambiguation.core import Person
+from disambiguation.core import Record
 
 def __update_tokendata_with_person(list_normalized_attrs, tokendata, list_virtual_records):
     '''
@@ -277,7 +278,10 @@ def compute_person_tokens():
                 # Here we treat the values of dict_normalized_attributes
                 # which are dicts of normalized attr: value as "virtual
                 # records". They will suffice for our purposes here.
-                list_virtual_records = [dict_normalized_attributes[rid] for rid in list_r_ids]
+                
+                # Add an "id" key to each value of dict_normalized_attributes
+                [dict_normalized_attributes[rid].update({"id":rid}) for rid in list_r_ids]
+                list_virtual_records = [Record.Record(dict_normalized_attributes[rid]) for rid in list_r_ids]
                 __update_tokendata_with_person(list_normalized_attrs, tokendata, list_virtual_records)
 
     # export to file.

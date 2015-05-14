@@ -56,7 +56,14 @@ class Record(dict):
     employer_str_tolerance = 0.3
     occupation_str_tolerance = 0.2
     
-    def __init__(self):
+    def __init__(self, dict_attributes = {}):
+        '''
+        Optionally, Record can be initialized with a dict of attributes.
+        If so, this dict must contain an 'id' key which will be used
+        to set self.id
+        @param dict_attributes: optional dict of attributes. Must contain "id" key.
+        '''
+        
         # a dictionary {token_index: (0 or 1)} showing which tokens exist in the given record.
         # A token id is an integer assigned to each unique tuple (token_identifier, string) where a token identifier is an integer
         # indicating the type of the token (Last_NAME? FIRST_NAME? CONTRIBUTOR_ZIP? etc?)
@@ -97,6 +104,11 @@ class Record(dict):
         self['N_middle_name'] = []
         self['N_address'] = []
         self['N_zipcode'] = []
+        
+        if dict_attributes:
+            self.id = dict_attributes['id']
+            for attr,value in dict_attributes.iteritems():
+                self[attr] = value
       
 
     
