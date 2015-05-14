@@ -122,8 +122,12 @@ def DISAMBIGUATE_stage_2():
     # to a separate file for each subset.
     #stage2.partition_records( num_partitions = num_procs, state = 'USA')
 
+    # Compute token frequencies at the person level given the 
+    # identities computed in stage1
+    stage2.compute_person_tokens()
+    
     # Compare record pairs within each subset and save results.
-    stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=1)
+#     stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=1)
 
     pass
 
@@ -232,6 +236,8 @@ def INIT():
 
     # Using the national vectors and tokens, compute uniform national hashes
     init.INIT_compute_national_hashes(num_procs=10)
+    
+
 
 
 

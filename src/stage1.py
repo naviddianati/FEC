@@ -209,7 +209,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     print_resource_usage('---------------- after assigning list_of_records to project')
 
     # dimension of input vectors
-    dim = tokendata.no_of_tokens
+    dim = tokendata.no_of_tokens7
 
     D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode=method_id, num_procs=num_procs)
 #     D.tokenizer = tokenizer

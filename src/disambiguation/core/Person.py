@@ -50,6 +50,34 @@ class Person(object):
     
     
     
+    def get_dominant_attribute(self,attr):
+        '''
+        For a given record attribute including "N_first_name", "N_last_name",
+        "N_middle_name", "N_employer", "N_occupation", find the dominant value
+        among the records in this person. We don't need to be too rigorous here. 
+        @param attr: a string can be "N_last_name","N_middle_name", "N_employer",
+             "N_occupation".
+        '''
+        dict_attr_freqs = {}
+        for record in self.set_of_records:
+            try:
+                value = record[attr]
+            except KeyError:
+                continue
+            try:
+                dict_attr_freqs[value] += 1
+            except KeyError:
+                dict_attr_freqs[value] = 1
+        try:
+            dominant_attr = sorted(dict_attr_freqs.items(), key=lambda item:item[1],reverse = True)[0][0]
+        except:
+            dominant_attr = None
+        return dominant_attr
+    
+    
+    
+    
+    
     # Add the given record's object id to self.set_of_records    
     def addRecord(self, r):
         self.set_of_records.add(r)
@@ -115,7 +143,7 @@ class Person(object):
             
     def setAlreadyCompared(self, other):
         '''
-        Werecord other as having already been compared with self.
+        We record other as having already been compared with self.
         '''
         self.set_compared.add(other)
 
