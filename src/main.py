@@ -124,10 +124,10 @@ def DISAMBIGUATE_stage_2():
 
     # Compute token frequencies at the person level given the 
     # identities computed in stage1
-    stage2.compute_person_tokens()
+    #stage2.compute_person_tokens()
     
     # Compare record pairs within each subset and save results.
-#     stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=1)
+    stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=1)
 
     pass
 
@@ -331,8 +331,8 @@ if __name__ == "__main__":
 
     #INIT()
 
-    test_searchengine()
-    quit()
+    #test_searchengine()
+    #quit()
 
     DISAMBIGUATE_stage_2()
     quit()

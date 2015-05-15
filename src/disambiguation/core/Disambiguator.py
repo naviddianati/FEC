@@ -467,10 +467,12 @@ class Disambiguator():
             # Comparison (matching) mode is passed to the Record's compare method.
             verdict, result = record1.compare(record2, mode=self.matching_mode)
 
-            print verdict, str(result), "="*70
-            print record1.toString(), "'%s'" % record1['N_last_name']
-            print record2.toString(), "'%s'" % record1['N_last_name']
-            print 
+            #if record1['NAME'] == "ANTHONY, ELIZABETH":
+            if True:
+                print verdict, str(result), "="*70
+                print record1.toString(), "'%s'" % record1['N_last_name'], record1['ZIP_CODE']
+                print record2.toString(), "'%s'" % record2['N_last_name'], record2['ZIP_CODE']
+                print record1.compare_zipcodes(record1,record2) 
             if verdict > 0:
                 self.match_count += 1
                 try:

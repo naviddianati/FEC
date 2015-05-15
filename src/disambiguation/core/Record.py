@@ -593,7 +593,7 @@ class Record(dict):
             
             # If cities are the same or if zipcodes are the same
             # if zipcodes are the same, then treat as if cities are the same
-            if r1['CITY'] == r2['CITY'] or self.compare_zipcodes(r1, r2) == 2:
+            if r1['CITY'] == r2['CITY'] or self.compare_zipcodes(r1, r2)[0] == 2:
                 result['c'] = (1, None)
             
                 # If both have addresses
