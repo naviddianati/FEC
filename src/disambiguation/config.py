@@ -71,6 +71,11 @@ candidate_pairs_file_template = dict_paths["data_path_candidate_pairs"] + "%s-ca
 candidate_pairs_partitioned_file_template = dict_paths["data_path_candidate_pairs"] + "%s-candidate_pairs_partition-%d.txt"
 
 
+# Affiliation graph file name templates
+affiliation_employer_file_template = dict_paths["data_path_affiliations_employer"] + "%s-employer_graph.gml"
+affiliation_occupation_file_template = dict_paths["data_path_affiliations_occupation"] + "%s-occupation_graph.gml"
+
+
 # Name of the table containing all records with addresses.
 # This table is the concatenation of all <state>_combined tables
 MySQL_tablename_all_records = 'usa_combined' 

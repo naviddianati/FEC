@@ -22,6 +22,7 @@ import states
 from .. import config
 import math
 from ast import literal_eval
+import filters
 
 # list of all alphanumeric characters
 abcd = 'abcdefghijklmnopqrstuvwxz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'

@@ -76,6 +76,12 @@ def DISAMBIGUATE_stage_1():
     '''
     import stage1
 
+    #TODO: compute affiliations
+    
+    
+    #Combine affiliation graphs into a national one.
+    stage1.combine_affiliation_graphs()
+
     # Disambiguate every state separately in parallel.
     stage1.disambiguate_multiple_states(list_states=[], num_procs=12)
 
@@ -124,10 +130,10 @@ def DISAMBIGUATE_stage_2():
 
     # Compute token frequencies at the person level given the 
     # identities computed in stage1
-    stage2.compute_person_tokens()
+#     stage2.compute_person_tokens()
     
     # Compare record pairs within each subset and save results.
-#     stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=1)
+    stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=1)
 
     pass
 

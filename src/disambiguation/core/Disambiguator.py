@@ -458,8 +458,6 @@ class Disambiguator():
             record1 = dict_records[rid1]
             record2 = dict_records[rid2]
             
-
-
             index1 = dict_rid_2_index[rid1]
             index2 = dict_rid_2_index[rid2]
 
@@ -471,6 +469,7 @@ class Disambiguator():
             print record1.toString(), "'%s'" % record1['N_last_name']
             print record2.toString(), "'%s'" % record1['N_last_name']
             print 
+
             if verdict > 0:
                 self.match_count += 1
                 try:

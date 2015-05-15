@@ -15,6 +15,10 @@ def pvalue(mode="undirected", **params):
     Compute the p-value of a given edge according the appropriate null model.
 
     @param mode: can be "directed" or "undirected".
+    @kwarg w: integer weight of the edge.
+    @kwarg ku: weighted degree of one end node.
+    @kwarg kv: weighted degree of the other end node.
+    @kwarg q: sum of all weighted degrees in graph dividd by 2.
 
     Other parameters are different for the B{directed} and B{undirected} cases.
     See L{__pvalue_directed} and L{__pvalue_undirected} for detailed description of parameters.
@@ -66,12 +70,12 @@ def __pvalue_directed(**params):
     @param kv_in: Total incoming weight of the destination vertex.
     @param q: Total sum of all edge weights in the graph.
     """
-    
+
     w_uv = params.get("w_uv")
     ku_out = params.get("ku_out")
     kv_in = params.get("kv_in")
     q = params.get("q")
-    
+
     p = 1.0 * ku_out * kv_in / q / q / 1.0
     print "p = %f" % p
     return binom_test(count=w_uv , nobs=q  , prop=p , alternative="larger")
@@ -87,7 +91,7 @@ def prune(G, field='significance', percent=None, num_remove=None):
     @param field: the edge attribute to prune with respect to.
     @param percent: percentage of the edges with the highest field value to retain.
     @param num_remove: number of edges to remove. Used only if percent is None.
-    """ 
+    """
 
     # # This is a little experiment where instead of "weight",
     # # I prune based on 'kk' which is k_u * k_v.
@@ -97,7 +101,7 @@ def prune(G, field='significance', percent=None, num_remove=None):
     #    id0, id1 = e.source, e.target
     #    e['kk'] = - strengths[id0] * strengths[id1]
 
-    if percent: 
+    if percent:
         deathrow = []
         n = len(G.es)
         threshold_index = n - n * percent / 100
@@ -135,16 +139,16 @@ def compute_significance(G):
         except ValueError:
             # print e['weight'], ks[i0], ks[i1], total_degree, p
             e['significance'] = None
-        
+
             # print "error computing significance", p
-    
+
     max_sig = max(G.es['significance'])
     for e in G.es:
-        if e['significance'] is None: e['significance'] = max_sig  
+        if e['significance'] is None: e['significance'] = max_sig
 
 
 
- 
+
 
 
 if __name__ == "__main__":
