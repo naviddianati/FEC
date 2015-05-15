@@ -1,7 +1,7 @@
 
 import disambiguation.init as init
 
-from disambiguation.core import Project
+from disambiguation.core import Project, utils
 from disambiguation.core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUndirected
 from disambiguation.core.Database import FecRetriever
 import disambiguation.core.Disambiguator as Disambiguator
@@ -1122,7 +1122,98 @@ def disambiguate_multiple_states(list_states=[], num_procs=12):
 
 
 
+def combine_affiliation_graphs():
+    '''
+    Combine the affiliation graphs of states into a national one.
+    Recompute the edge significances.
+    '''
+    __combine_affiliation_graphs_occupation()
+    __combine_affiliation_graphs_employer()
+    
+    
+    
+    
+ 
+def __combine_affiliation_graphs_occupation():
+    # load all graphs
+    list_G = []
+    for abbr, state in utils.states.dict_state.iteritems():
+        print state
+        filename = config.affiliation_occupation_file_template % state
+        try:
+            list_G.append((state, utils.igraph.Graph.Read_GML(filename)))
+        except:
+            pass
 
+    edgelist = {}
+    for state, G in list_G:
+        for e in G.es:
+            v1 = G.vs[e.target]
+            v2 = G.vs[e.source]
+            l1 = v1['label']
+            l2 = v2['label']
+            labels = tuple(sorted([l1, l2]))
+            try:
+                weight = e['weight']
+            except:
+                continue
+            try:
+                edgelist[labels] += weight
+            except:
+                edgelist[labels] = weight
+    edgelist = [(x[0][0], x[0][1], x[1]) for x in edgelist.items()]
+    G = utils.igraph.Graph.TupleList(edgelist, edge_attrs='weight', vertex_name_attr="label")
+    filename = config.affiliation_occupation_file_template % "USA"
+    
+    # conmpute significances
+    utils.filters.compute_significance(G)
+    
+    G.write_gml(filename)
+ 
+ 
+ 
+ 
+    
+def __combine_affiliation_graphs_employer():
+    # load all graphs
+    list_G = []
+    for abbr, state in utils.states.dict_state.iteritems():
+        print state
+        filename = config.affiliation_employer_file_template % state
+        try:
+            list_G.append((state, utils.igraph.Graph.Read_GML(filename)))
+        except:
+            pass
+
+    edgelist = {}
+    for state, G in list_G:
+        for e in G.es:
+            v1 = G.vs[e.target]
+            v2 = G.vs[e.source]
+            l1 = v1['label']
+            l2 = v2['label']
+            labels = tuple(sorted([l1, l2]))
+            try:
+                weight = e['weight']
+            except:
+                continue
+            try:
+                edgelist[labels] += weight
+            except:
+                edgelist[labels] = weight
+    edgelist = [(x[0][0], x[0][1], x[1]) for x in edgelist.items()]
+    G = utils.igraph.Graph.TupleList(edgelist, edge_attrs='weight', vertex_name_attr="label")
+    filename = config.affiliation_employer_file_template % "USA"
+    
+    # conmpute significances
+    utils.filters.compute_significance(G)
+    
+    G.write_gml(filename)
+    
+    
+    
+    
+    
 
 import sys
 if __name__ == "__main__":
@@ -1178,5 +1269,7 @@ if __name__ == "__main__":
 
 
     quit()
+
+    pass
 
 

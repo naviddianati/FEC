@@ -12,12 +12,12 @@ relevant paths and will be available to disambiguation methods:
 - combined (national, "USA") hash file derived from Tokenizer (coarse) results.
 
 1. For fine-grained intra-state disambiguation:
-    - Tokenize and compute vectors for every state using TokenizerNgram. 
+    - Tokenize and compute vectors for every state using TokenizerNgram.
     - Compute hashes from the vectors computed above.
-2. For coarse-grained nationwide disambiguation:  
-    - Tokenize and compute vectors for every state using Tokenizer. 
+2. For coarse-grained nationwide disambiguation:
+    - Tokenize and compute vectors for every state using Tokenizer.
     - Combine Tokenizer tokendata into the "USA" files and update the vectors.
-    - Compute coarse national hashes from the vectors computed above.        
+    - Compute coarse national hashes from the vectors computed above.
 '''
 
 from core.utils import *
@@ -27,9 +27,9 @@ from core.Database import FecRetriever
 import core.Disambiguator as Disambiguator
 from core.Tokenizer import Tokenizer, TokenizerNgram, TokenData
 from core.states import *
-    
-    
-    
+
+
+
 
 def tokenize_records(list_of_records, project, TokenizerClass):
     '''
@@ -47,8 +47,8 @@ def tokenize_records(list_of_records, project, TokenizerClass):
     '''
     tokendata_file = config.tokendata_file_template % (project['state'], TokenizerClass.__name__)
     vectors_file = config.vectors_file_template % (project['state'], TokenizerClass.__name__)
-    
-    
+
+
     try:
         tokenizer = TokenizerClass()
         print 1
@@ -60,34 +60,34 @@ def tokenize_records(list_of_records, project, TokenizerClass):
         print 4
         tokenizer.setTokenizedFields(project['list_tokenized_fields'])
         print 5
-        
+
         tokenizer.load_from_file()
-        print 6        
+        print 6
         # Just make sure the vectors are also there.
         if os.stat(vectors_file).st_size == 0:
             raise Exception("vectors file not found.")
         list_of_records = tokenizer.getRecords()
-    
+
     except Exception as e:
         print "error occurred"
         print str(e)
-                
+
         tokenizer = TokenizerClass()
         project.tokenizer = tokenizer
         tokenizer.project = project
         tokenizer.setRecords(list_of_records)
         tokenizer.setTokenizedFields(project['list_tokenized_fields'])
-        
-        
+
+
         print "Tokenizing records..."
         tokenizer.tokenize()
-        
+
         print "Saving token data to file..."
         tokenizer.tokens.save_to_file(tokendata_file)
         list_of_records = tokenizer.getRecords()
 
     return tokenizer, list_of_records
-        
+
 
 
 
@@ -95,20 +95,20 @@ def tokenize_records(list_of_records, project, TokenizerClass):
 def INIT_compute_national_hashes(num_procs=1):
     '''
     From the combined national vector and tokendata files, compute
-    LSH hashes and export to "USA" hash file. Use coarse feature 
-    vectors for this purpose. That is, take words as tokens not 
-    unigrams and bigrams. The goal is to be able to quickly and 
+    LSH hashes and export to "USA" hash file. Use coarse feature
+    vectors for this purpose. That is, take words as tokens not
+    unigrams and bigrams. The goal is to be able to quickly and
     easily detect identical names, employers, etc. across different states.
     '''
     project = Project.Project(1)
     project.putData('state' , 'USA')
-    
+
     filelabel = "USA"
     file_tokens = config.tokendata_file_template % (filelabel, 'Tokenizer')
     f = open(file_tokens)
     tokendata = cPickle.load(f)
     f.close()
-    
+
     # dimension of input vectors
     dim = tokendata.no_of_tokens
 
@@ -116,7 +116,7 @@ def INIT_compute_national_hashes(num_procs=1):
     project.D = D
     D.project = project
     D.tokenizer = Tokenizer()
-    
+
 
     # desired dimension (length) of hashes
     hash_dim = 60
@@ -124,15 +124,15 @@ def INIT_compute_national_hashes(num_procs=1):
 
     # In D, how many neighbors to examine?
     B = 40
-        
+
     print 'Generating the LSH hashes'
-    
+
     # compute the hashes
     D.compute_hashes(hash_dim, num_procs)
-    
+
     print "Done computing hashes."
 
-  
+
 
 
 def INIT_combine_state_tokens_and_vectors():
@@ -160,9 +160,9 @@ def INIT_combine_state_tokens_and_vectors():
                 vector[index_new] = 1
             compound_dict_vectors[r_id] = vector
         return compound_dict_vectors
-    
+
     filelabel = "USA"
-    
+
     # list of tokendata objects
     list_tokendata = []
     print " combining tokendata objects..."
@@ -174,16 +174,16 @@ def INIT_combine_state_tokens_and_vectors():
     compoundtokendata = TokenData.getCompoundTokenData(list_tokendata)
     del list_tokendata[:]
     print "Done combining state tokendata objects."
-    
-    
+
+
     # Save compound tokendata to file
     file_tokens = config.tokendata_file_template % (filelabel, 'Tokenizer')
     f = open(file_tokens, 'w')
     cPickle.dump(compoundtokendata, f)
     f.close()
-    
-    
-    
+
+
+
     # Load feature vector files for all states one at a time and
     # update the vectors.
     dict_vectors_all = {}
@@ -194,16 +194,16 @@ def INIT_combine_state_tokens_and_vectors():
         f = open(file_vectors)
         dict_vectors = cPickle.load(f)
         f.close()
-        
+
         file_tokens = config.tokendata_file_template % (param_state, 'Tokenizer')
         f = open(file_tokens)
         old_tokendata = cPickle.load(f)
         f.close()
-        
+
         dict_vectors = update_vectors(dict_vectors, compoundtokendata, old_tokendata)
         dict_vectors_all.update(dict_vectors)
     print "Done updating feature vectors."
-        
+
     # Export computed vectors to file
     vectors_file = config.vectors_file_template % (filelabel, 'Tokenizer')
 
@@ -217,57 +217,57 @@ def INIT_combine_state_tokens_and_vectors():
 
 
 
-def INIT_process_single_state(state=None, TokenizerClass=None,  list_tokenized_fields = [], record_limit=(0, 50000000), whereclause='', num_procs=1):
+def INIT_process_single_state(state=None, TokenizerClass=None, list_tokenized_fields=[], record_limit=(0, 50000000), whereclause='', num_procs=1):
     '''
-    Using the TokenizerClass specified, tokenize all records from the specified 
-    state, save the tokendata as well as the feature vectors to files. 
+    Using the TokenizerClass specified, tokenize all records from the specified
+    state, save the tokendata as well as the feature vectors to files.
     Then, compute the LSH hashes and save to file.
-    
+
     '''
-    
+
     batch_id = 1
     project = Project.Project(batch_id)
     project.putData('batch_id' , batch_id)
 
-    
-    if state is None: 
+
+    if state is None:
         raise Exception("Error: you must specify the state to tokenize.")
     param_state = state
-        
-    print "Tokenizing state %s using TokenizerClass: %s ", (param_state, TokenizerClass.__name__) 
-    
+
+    print "Tokenizing state %s using TokenizerClass: %s ", (param_state, TokenizerClass.__name__)
+
     table_name = param_state + "_combined"
-  
+
     project.putData('state' , param_state)
-    
+
     record_start = record_limit[0]
     record_no = record_limit[1]
-    
+
     if not list_tokenized_fields:
         list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
 
     project.putData("list_tokenized_fields", list_tokenized_fields)
-    
+
     list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
     project.putData("list_auxiliary_fields", list_auxiliary_fields)
-    
-    all_fields = list_tokenized_fields + list_auxiliary_fields 
+
+    all_fields = list_tokenized_fields + list_auxiliary_fields
     project.putData('all_fields' , all_fields)
-    
+
     # dictionaries indicating the index numbers associated with all fields
 #     index_2_field = { all_fields.index(s):s for s in all_fields}
 #     project.putData("index_2_field", index_2_field)
-#     
+#
 #     field_2_index = { s:all_fields.index(s) for s in all_fields}
 #     project.putData("field_2_index", field_2_index)
-    
-    
+
+
     if whereclause == "":
         whereclause = " WHERE ENTITY_TP='IND' "
     else:
         whereclause = whereclause + " AND ENTITY_TP='IND' "
         print "whereclasue: ", whereclause
-    
+
     retriever = FecRetriever(table_name=table_name,
                       query_fields=all_fields,
                       limit=(record_start, record_no),
@@ -275,14 +275,14 @@ def INIT_process_single_state(state=None, TokenizerClass=None,  list_tokenized_f
                       where_clause=whereclause)
     retriever.retrieve()
     project.putData("query", retriever.getQuery())
-    
+
     list_of_records = retriever.getRecords()
-    
+
     # Tokenize, and save tokendata and vectors to file.
     tokenizer, list_of_records = tokenize_records(list_of_records, project, TokenizerClass)
     tokendata = tokenizer.tokens
-    
-   
+
+
     # dimension of input vectors
     dim = tokendata.no_of_tokens
 
@@ -290,20 +290,20 @@ def INIT_process_single_state(state=None, TokenizerClass=None,  list_tokenized_f
     project.D = D
     D.project = project
     D.tokenizer = tokenizer
-    
+
     # desired dimension (length) of hashes
     hash_dim = 60
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
     B = 40
-    
+
     # Number of times the hashes are permutated and sorted
     no_of_permutations = 20
     project.putData('number_of_permutations' , str(no_of_permutations))
-    
+
     # compute the hashes
-    print "Computing LSH hashes for state %s using TokenizerClass: %s" % (param_state, TokenizerClass.__name__) 
+    print "Computing LSH hashes for state %s using TokenizerClass: %s" % (param_state, TokenizerClass.__name__)
     D.compute_hashes(hash_dim, num_procs)
     print "Done computing LSH hashes."
 
@@ -315,32 +315,32 @@ def worker_process_multiple_states(conn):
     '''
     data = conn.recv()
     proc_name = multiprocessing.current_process().name
-    
+
     print proc_name, data['list_states']
-    
-    
+
+
     for state in data['list_states']:
         try:
             INIT_process_single_state(state, data['TokenizerClass'],
-                                       list_tokenized_fields = data['list_tokenized_fields'],
-                                       num_procs = 1)
+                                       list_tokenized_fields=data['list_tokenized_fields'],
+                                       num_procs=1)
         except Exception as e:
             print "Failed to run INIT_process_single_state for state ", state
             print "Error ", e
 
 
- 
 
-def INIT_process_multiple_states(list_states = [], TokenizerClass=None, list_tokenized_fields = [], num_procs = 12):
+
+def INIT_process_multiple_states(list_states=[], TokenizerClass=None, list_tokenized_fields=[], num_procs=12):
     '''
     Using multiple processes, perform INIT_process_single_state for multiple
-    states at the same time. 
-    
+    states at the same time.
+
     @param list_states: list of states. If empty, all states are processed.
     @param TokenizerClass: the tokenizer class to be used. For fine-grained
         intra state disambiguation, use TokenizerNgram. For coarse national
         disambiguation use Tokenizer.
-    @parm num_procs: total number of processes we can use in different stages. 
+    @parm num_procs: total number of processes we can use in different stages.
     '''
 
 
@@ -351,15 +351,15 @@ def INIT_process_multiple_states(list_states = [], TokenizerClass=None, list_tok
         list_states = states.get_states_sorted()
 
     list_states.reverse()
-    
+
     # Number of states to be processed.
     N = len(list_states)
 
     # No more than num_procs processes
     number_of_processes = min(N, num_procs)
-    
+
     dict_states = {}
-    
+
     # dictionary of connections to child processes.
     dict_conns = {}
 
@@ -375,11 +375,11 @@ def INIT_process_multiple_states(list_states = [], TokenizerClass=None, list_tok
         print id, dict_states[id]
 
 
-    # Run fresh state-wide disambiguation batches. 
+    # Run fresh state-wide disambiguation batches.
     for id in dict_states:
         # queue = multiprocessing.Queue()
         conn_parent, conn_child = multiprocessing.Pipe()
-        dict_conns[id] = (conn_parent, conn_child)        
+        dict_conns[id] = (conn_parent, conn_child)
 
         p = multiprocessing.Process(target=worker_process_multiple_states, name=str(id), args=(conn_child,))
 
@@ -393,30 +393,30 @@ def INIT_process_multiple_states(list_states = [], TokenizerClass=None, list_tok
 
     for p in list_jobs:
         p.join()
-    
+
 
 
 
 
 if __name__ == "__main__":
-    
-    
+
+
     '''State level data preparation (for fine-grained intra state disambiguation)'''
     # Tokenize, vectorize and hashify all states using TokenizerNgram
-    #INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
-    
+    # INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
+
     ''' National level data preparation: '''
     # Tokenize, vectorize and hashify all states using Tokenizer
-    #INIT_process_multiple_states(TokenizerClass = Tokenizer, num_procs = 12)
+    # INIT_process_multiple_states(TokenizerClass = Tokenizer, num_procs = 12)
 
-    
+
     # combine the vectors and tokens from all states into the national data files.
-    #INIT_combine_state_tokens_and_vectors()
-    
+    # INIT_combine_state_tokens_and_vectors()
+
     # Using the national vectors and tokens, compute uniform national hashes
     INIT_compute_national_hashes(num_procs=10)
-    
-    
-    
-    
-    
+
+
+
+
+

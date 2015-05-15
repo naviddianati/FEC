@@ -139,6 +139,14 @@ def worker_disambiguate_subset_of_edgelist(filename):
         on normalized names, etc.
     @param filename: filename in which on partition of the edgelist is stored.
     '''
+    
+    # Load Normalized token data
+    normalized_tokendata_file = config.tokendata_file_template %("USA", "Normalized")
+    with open(normalized_tokendata_file) as f:
+        tokendata_usa = utils.cPickle.load(f)
+    
+    
+    
     list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
     list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
     all_fields = list_tokenized_fields + list_auxiliary_fields
@@ -178,7 +186,7 @@ def worker_disambiguate_subset_of_edgelist(filename):
         D.tokenizer = tokenizer
 
         print "Running D.disambiguate_list_of_pairs(list_of_pairs)"
-        D.disambiguate_list_of_pairs(list_of_pairs)
+        D.disambiguate_list_of_pairs(list_of_pairs, tokendata_usa)
 
 
 

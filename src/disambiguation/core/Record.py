@@ -875,10 +875,21 @@ class Record(dict):
         identical = (3, None)
         # if both have middlenames, they should be the same
         if r1['N_middle_name'] and r2['N_middle_name']:
-            if r1['N_middle_name'][0] != r2['N_middle_name'][0]: 
+            middlename1, middlename2 = r1['N_middle_name'], r2['N_middle_name']
+            
+            # The first letters of middle names must be the same
+            if middlename1[0] != middlename2[0]: 
                 if Record.debug: print "middle names are different"
                 identical = (Record.LARGE_NEGATIVE, None)
                 return identical
+            
+            # but that's not enough. If they are full words, the
+            # full words should match.
+            elif len(middlename1) > 1 and len(middlename2) > 1:
+                if middlename1 != middlename2:
+                    identical = (Record.LARGE_NEGATIVE, None)
+                    return identical
+                
         
 #         # if 1 doesn't have a middle name but 2 does, then 2 is not the "parent" of 1
 #         if not r1['N_middle_name'] and r2['N_middle_name']: 

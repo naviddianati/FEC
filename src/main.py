@@ -76,6 +76,12 @@ def DISAMBIGUATE_stage_1():
     '''
     import stage1
 
+    #TODO: compute affiliations
+    
+    
+    #Combine affiliation graphs into a national one.
+    stage1.combine_affiliation_graphs()
+
     # Disambiguate every state separately in parallel.
     stage1.disambiguate_multiple_states(list_states=[], num_procs=12)
 

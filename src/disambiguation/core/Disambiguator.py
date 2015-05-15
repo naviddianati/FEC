@@ -458,8 +458,6 @@ class Disambiguator():
             record1 = dict_records[rid1]
             record2 = dict_records[rid2]
             
-
-
             index1 = dict_rid_2_index[rid1]
             index2 = dict_rid_2_index[rid2]
 
