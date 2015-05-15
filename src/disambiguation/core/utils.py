@@ -31,6 +31,61 @@ random.seed()
 
 
 
+def loadAffiliationNetwork(state, affiliation, percent=5):
+    '''
+    Loads the saved output of AffiliatoinAnalyzer from file: the affiliation network.
+    It also adds a new attribute to the graph instance that contains a dictionary from
+    affiliation identifier strings to the index of their corresponding vertex in the graph object.
+
+    TODO: allow filtering based on value of an edge (or vertex) parameter
+    '''
+
+    def prune(G, field='significance', percent=5):
+        '''
+        Remove all but the top X percent of the edges with respect to the value of their field.
+        '''
+        deathrow = []
+        n = len(G.es)
+        threshold_index = n - n * percent / 100
+        threshold_value = sorted(G.es[field])[threshold_index]
+
+        for e in G.es:
+            if e[field] < threshold_value:
+                deathrow.append(e.index)
+        G.delete_edges(deathrow)
+        return G
+
+    try:
+        if affiliation == 'employer':
+            filename = config.affiliation_employer_file_template % state
+        elif affiliation == 'occupation':
+            filename = config.affiliation_occupation_file_template % state
+        else:
+            raise Exception("Unable to load affiliation graphs. Affiliation must be 'occupation' or 'employer'")
+#         filename = f = data_path + label + affiliation + '_graph.gml'
+        print filename
+        G = igraph.Graph.Read_GML(filename)
+
+        try:
+            G = prune(G, field='significance', percent=percent)
+        except Exception, e:
+            print e
+            print "Error pruning the affiliation graph. Reloading the full graph."
+            G = igraph.Graph.Read_GML(filename)
+
+        dict_string_2_ind = {v['label']:v.index for v in G.vs}
+        G.dict_string_2_ind = dict_string_2_ind
+    except IOError:
+        print "ERROR: Affiliation Network data not found."
+        G = None
+
+    # Not really necessary any more. I construct a {string: index} dictionary from the loaded Graph myself.
+    # metadata = json.load(open(data_path + label + '-' + affiliation + '-metadata.json'))
+    return G
+
+
+
+
 
 def Log(message, msg_type="Error"):
     '''
