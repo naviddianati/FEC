@@ -140,6 +140,10 @@ def worker_disambiguate_subset_of_edgelist(filename):
     @param filename: filename in which on partition of the edgelist is stored.
     '''
     
+    # What percentage of affiliation graph links to retain.
+    percent_occupations = 5 
+    percent_employers = 5
+    
     # Load Normalized token data
     normalized_tokendata_file = config.tokendata_file_template %("USA", "Normalized")
     with open(normalized_tokendata_file) as f:
@@ -178,6 +182,24 @@ def worker_disambiguate_subset_of_edgelist(filename):
         print "Tokenizing records..."
         tokenizer.tokenize()
         list_of_records = tokenizer.getRecords()
+
+        print "Loading affiliation networks..."
+        # Load affiliation networks
+        G_employer = utils.loadAffiliationNetwork('USA' , 'employer', percent=percent_employers)
+        if G_employer:
+            for record in list_of_records:
+                record.list_G_employer = [G_employer]
+        else:
+            utils.Log("EMPLOYER network not found.", "Warning")
+    
+    
+        G_occupation = utils.loadAffiliationNetwork('USA' , 'occupation', percent=percent_occupations)
+        if G_occupation:
+            for record in list_of_records:
+                record.list_G_occupation = [G_occupation]
+        else:
+            utils.Log("OCCUPATION network not found.", "Warning")
+    
 
         print "Instantiating Disambiguator."
         D = Disambiguator.Disambiguator(list_of_records, vector_dimension=None, matching_mode='thorough', num_procs=1)

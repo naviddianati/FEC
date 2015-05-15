@@ -16,61 +16,6 @@ from copy import copy
 
 
 
-def loadAffiliationNetwork(state, affiliation, percent=5):
-    '''
-    Loads the saved output of AffiliatoinAnalyzer from file: the affiliation network.
-    It also adds a new attribute to the graph instance that contains a dictionary from
-    affiliation identifier strings to the index of their corresponding vertex in the graph object.
-
-    TODO: allow filtering based on value of an edge (or vertex) parameter
-    '''
-
-    def prune(G, field='significance', percent=5):
-        '''
-        Remove all but the top X percent of the edges with respect to the value of their field.
-        '''
-        deathrow = []
-        n = len(G.es)
-        threshold_index = n - n * percent / 100
-        threshold_value = sorted(G.es[field])[threshold_index]
-
-        for e in G.es:
-            if e[field] < threshold_value:
-                deathrow.append(e.index)
-        G.delete_edges(deathrow)
-        return G
-
-    try:
-        if affiliation == 'employer':
-            filename = config.affiliation_employer_file_template % state
-        elif affiliation == 'occupation':
-            filename = config.affiliation_occupation_file_template % state
-        else:
-            raise Exception("Unable to load affiliation graphs. Affiliation must be 'occupation' or 'employer'")
-#         filename = f = data_path + label + affiliation + '_graph.gml'
-        print filename
-        G = igraph.Graph.Read_GML(filename)
-
-        try:
-            G = prune(G, field='significance', percent=percent)
-        except Exception, e:
-            print e
-            print "Error pruning the affiliation graph. Reloading the full graph."
-            G = igraph.Graph.Read_GML(filename)
-
-        dict_string_2_ind = {v['label']:v.index for v in G.vs}
-        G.dict_string_2_ind = dict_string_2_ind
-    except IOError:
-        print "ERROR: Affiliation Network data not found."
-        G = None
-
-    # Not really necessary any more. I construct a {string: index} dictionary from the loaded Graph myself.
-    # metadata = json.load(open(data_path + label + '-' + affiliation + '-metadata.json'))
-    return G
-
-
-
-
 
 
 def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", logstats=False, whereclause='', num_procs=1, percent_employers=5, percent_occupations=5):
@@ -185,7 +130,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     interpreted as True.   Affiliations on the <state>_addresses data.
     '''
 
-    G_employer = loadAffiliationNetwork(param_state , 'employer', percent=percent_employers)
+    G_employer = utils.loadAffiliationNetwork(param_state , 'employer', percent=percent_employers)
     if G_employer:
         for record in list_of_records:
             record.list_G_employer = [G_employer]
@@ -195,7 +140,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 
 
 
-    G_occupation = loadAffiliationNetwork(param_state , 'occupation', percent=percent_occupations)
+    G_occupation = utils.loadAffiliationNetwork(param_state , 'occupation', percent=percent_occupations)
     if G_occupation:
         for record in list_of_records:
             record.list_G_occupation = [G_occupation]
@@ -822,7 +767,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     interpreted as True.   Affiliations on the <state>_addresses data.
     '''
 
-    G_employer = loadAffiliationNetwork(param_state, 'employer')
+    G_employer = utils.loadAffiliationNetwork(param_state, 'employer')
     if G_employer:
         for record in list_of_records:
             record.list_G_employer = [G_employer]
@@ -833,7 +778,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
 
 
 
-    G_occupation = loadAffiliationNetwork(param_state, 'occupation')
+    G_occupation = utils.loadAffiliationNetwork(param_state, 'occupation')
     if G_occupation:
         for record in list_of_records:
             record.list_G_occupation = [G_occupation]
