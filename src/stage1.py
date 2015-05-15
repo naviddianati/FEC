@@ -16,7 +16,7 @@ from copy import copy
 
 
 
-def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
+def loadAffiliationNetwork(state, affiliation, percent=5):
     '''
     Loads the saved output of AffiliatoinAnalyzer from file: the affiliation network.
     It also adds a new attribute to the graph instance that contains a dictionary from
@@ -41,7 +41,13 @@ def loadAffiliationNetwork(label, data_path, affiliation, percent=5):
         return G
 
     try:
-        filename = f = data_path + label + affiliation + '_graph.gml'
+        if affiliation == 'employer':
+            filename = config.affiliation_employer_file_template % state
+        elif affiliation == 'occupation':
+            filename = config.affiliation_occupation_file_template % state
+        else:
+            raise Exception("Unable to load affiliation graphs. Affiliation must be 'occupation' or 'employer'")
+#         filename = f = data_path + label + affiliation + '_graph.gml'
         print filename
         G = igraph.Graph.Read_GML(filename)
 
@@ -179,7 +185,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     interpreted as True.   Affiliations on the <state>_addresses data.
     '''
 
-    G_employer = loadAffiliationNetwork(param_state + "-", config.dict_paths["data_path_affiliations_employer"], 'employer', percent=percent_employers)
+    G_employer = loadAffiliationNetwork(param_state , 'employer', percent=percent_employers)
     if G_employer:
         for record in list_of_records:
             record.list_G_employer = [G_employer]
@@ -189,7 +195,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 
 
 
-    G_occupation = loadAffiliationNetwork(param_state + "-" , config.dict_paths["data_path_affiliations_occupation"], 'occupation', percent=percent_occupations)
+    G_occupation = loadAffiliationNetwork(param_state , 'occupation', percent=percent_occupations)
     if G_occupation:
         for record in list_of_records:
             record.list_G_occupation = [G_occupation]
@@ -816,7 +822,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
     interpreted as True.   Affiliations on the <state>_addresses data.
     '''
 
-    G_employer = loadAffiliationNetwork(param_state, config.dict_paths["data_path_affiliations_employer"], 'employer')
+    G_employer = loadAffiliationNetwork(param_state, 'employer')
     if G_employer:
         for record in list_of_records:
             record.list_G_employer = [G_employer]
@@ -827,7 +833,7 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
 
 
 
-    G_occupation = loadAffiliationNetwork(param_state, config.dict_paths["data_path_affiliations_occupation"], 'occupation')
+    G_occupation = loadAffiliationNetwork(param_state, 'occupation')
     if G_occupation:
         for record in list_of_records:
             record.list_G_occupation = [G_occupation]
@@ -1129,11 +1135,11 @@ def combine_affiliation_graphs():
     '''
     __combine_affiliation_graphs_occupation()
     __combine_affiliation_graphs_employer()
-    
-    
-    
-    
- 
+
+
+
+
+
 def __combine_affiliation_graphs_occupation():
     # load all graphs
     list_G = []
@@ -1164,16 +1170,16 @@ def __combine_affiliation_graphs_occupation():
     edgelist = [(x[0][0], x[0][1], x[1]) for x in edgelist.items()]
     G = utils.igraph.Graph.TupleList(edgelist, edge_attrs='weight', vertex_name_attr="label")
     filename = config.affiliation_occupation_file_template % "USA"
-    
+
     # conmpute significances
     utils.filters.compute_significance(G)
-    
+
     G.write_gml(filename)
- 
- 
- 
- 
-    
+
+
+
+
+
 def __combine_affiliation_graphs_employer():
     # load all graphs
     list_G = []
@@ -1204,16 +1210,16 @@ def __combine_affiliation_graphs_employer():
     edgelist = [(x[0][0], x[0][1], x[1]) for x in edgelist.items()]
     G = utils.igraph.Graph.TupleList(edgelist, edge_attrs='weight', vertex_name_attr="label")
     filename = config.affiliation_employer_file_template % "USA"
-    
+
     # conmpute significances
     utils.filters.compute_significance(G)
-    
+
     G.write_gml(filename)
-    
-    
-    
-    
-    
+
+
+
+
+
 
 import sys
 if __name__ == "__main__":
