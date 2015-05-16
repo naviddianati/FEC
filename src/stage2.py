@@ -144,7 +144,7 @@ def worker_disambiguate_subset_of_edgelist(filename):
     percent_occupations = 5 
     percent_employers = 5
     
-    # Load Normalized token data
+    # Load National Normalized token data
     normalized_tokendata_file = config.tokendata_file_template %("USA", "Normalized")
     with open(normalized_tokendata_file) as f:
         tokendata_usa = utils.cPickle.load(f)
@@ -172,12 +172,19 @@ def worker_disambiguate_subset_of_edgelist(filename):
 
         project = Project.Project(1)
 
+
+        # This Tokenier object servers to tokenize the current
+        # records. However, for token frequency data when compating
+        # records, we use a different tokendata instance which is
+        # for the entire country and is loaded from file: tokendata_usa
         tokenizer = Tokenizer.Tokenizer()
         project.tokenizer = tokenizer
         tokenizer.project = project
         tokenizer.setRecords(list_of_records)
         tokenizer.setTokenizedFields(list_tokenized_fields)
-
+        
+        # Insert the USA tokendata object into tokenizer.
+        tokenizer.tokendata = tokendata_usa
 
         print "Tokenizing records..."
         tokenizer.tokenize()
@@ -208,7 +215,7 @@ def worker_disambiguate_subset_of_edgelist(filename):
         D.tokenizer = tokenizer
 
         print "Running D.disambiguate_list_of_pairs(list_of_pairs)"
-        D.disambiguate_list_of_pairs(list_of_pairs, tokendata_usa)
+        D.disambiguate_list_of_pairs(list_of_pairs)
 
 
 
