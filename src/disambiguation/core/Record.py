@@ -35,7 +35,8 @@ When can we use name frequency in record comparison?
 
 import json
 
-from common import bad_identifier
+
+import utils
 from Person import Person
 # from Tokenizer import TokenData
 import Tokenizer
@@ -174,6 +175,8 @@ class Record(dict):
             if Record.debug:
                 print decision
             return decision
+        elif mode == "national":
+            decision = (self._compare_THOROUGH(self, otherRecord, method_id="national"))
 
 
         elif mode == "1":
@@ -367,54 +370,58 @@ class Record(dict):
     def _verdict_addressN_zipY(self, c_n, c_e, c_o, method_id=None):
         ''' If addresses are different and zipcodes are the same'''
         if method_id is None:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
-
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
+        elif method_id == "national":
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         # strict
         elif method_id == 1:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 2:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 3:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 4:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
 
 
         elif method_id == 5:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 6:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 7:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 8:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
 
 
 
     def _verdict_addressN_zipN(self, c_n, c_e, c_o, method_id=None):
         ''' If addresses are different and zipcodes are different'''
         if method_id is None:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
+        elif method_id == "national":
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
 
+        
         elif method_id == 1:
-            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3)
+            return (c_e[0] >= 4 and c_o[0] >= 4) and (c_n[0] >= 3)
         elif method_id == 2:
-            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3)
+            return (c_e[0] >= 4 and c_o[0] >= 4) and (c_n[0] >= 3)
 
         elif method_id == 3:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 4:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
 
         elif method_id == 5:
-            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3)
+            return (c_e[0] >= 4 and c_o[0] >= 4) and (c_n[0] >= 3)
         elif method_id == 6:
-            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3)
+            return (c_e[0] >= 4 and c_o[0] >= 4) and (c_n[0] >= 3)
 
         elif method_id == 7:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 8:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
 
 
 
@@ -422,27 +429,29 @@ class Record(dict):
     def _verdict_addressNA_zipY(self, c_n, c_e, c_o , method_id=None):
         ''' If at least one address is None  and zipcodes are the same'''
         if method_id is None:
-            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] == 3)
-
+            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] >= 3)
+        elif method_id == "national":
+            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] >= 3)
+        
         elif method_id == 1:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 2:
-            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 1) and (c_n[0] >= 3)
 
         elif method_id == 3:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 4:
-            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 1) and (c_n[0] >= 3)
 
         elif method_id == 5:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 6:
-            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 1) and (c_n[0] >= 3)
 
         elif method_id == 7:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 8:
-            return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] == 3)
+            return (c_e[0] >= 2 or c_o[0] >= 1) and (c_n[0] >= 3)
 
 
 
@@ -450,73 +459,88 @@ class Record(dict):
         ''' If at least one address is None  and zipcodes are different'''
         # All are the same
         if method_id is None:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
+        elif method_id == "national":
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
+        
         elif method_id == 1:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 2:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 3:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 4:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 5:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 6:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 7:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 8:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
 
 
 
     def _verdict_cityN(self, c_n, c_e, c_o, method_id=None):
-        ''' If cities are different '''
+        '''
+        If cities are different.
+        '''
         # All are the same
         if method_id is None:
-            return ((c_e[0] >= 2 and c_o[0] >= 2) or (c_o[0] == 3) or (c_e[0] == 3)) and (c_n[0] == 3)
+            verdict = ((c_e[0] >= 3 and c_o[0] >= 3) or (c_o[0] == 4) or (c_e[0] == 4)) and (c_n[0] >= 3)
+            return verdict
+        elif method_id == "national":
+            verdict = ((c_e[0] >= 3 and c_o[0] >= 3) or (c_o[0] == 4) or (c_e[0] == 4)) and (c_n[0] >= 3)
+            return verdict
         elif method_id == 1:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 2:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 3:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 4:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 5:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 6:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 7:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 8:
-            return (c_e[0] >= 2 and c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
 
 
 
     def _verdict_stateN(self, c_n, c_e, c_o, method_id=None):
-        ''' If states are different '''
+        '''
+        If states are different.
+        '''
         # All are the same
         if method_id is None:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
+        elif method_id == "national":
+            verdict = (c_n[0] == 4 and c_o[0] >= 2 and c_e[0] >= 2) or ((c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] == 3))
+            return verdict
+
         elif method_id == 1:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 2:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 4:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 3:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 4:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 5:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 6:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 7:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 8:
-            return (c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 3)
+            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
 
 
 
@@ -537,17 +561,16 @@ class Record(dict):
         result = {
         'o':  # occupation
                0: they both exist but are unrelated
-               1: at least one doesn't have the field
-               2: connected in the affiliations network
-               3: exactly the same but not "bad_identifier"
+               1: at least one doesn't have the field, or at least one has a bad identifier but the two aren't the same.
+               2: exactly the same, but "bad_identifier" (e.g.: RETIRED)
+               3: connected in the affiliations network
+               4: exactly the same but not "bad_identifier"
         'e':  # employer
                0: they both exist but are unrelated
-               1: at least one doesn't have the field, or there is no
-                  affiliation graph that contains both.
-               2: connected in the affiliations network or
-                  employer1/2 == occupation2/1 or otherwise so
-                  close that they are considered the same.
-               3: exactly the same, but not 'bad_identifier'
+               1: at least one doesn't have the field, or at least one has a bad identifier but the two aren't the same.
+               2: exactly the same, but "bad_identifier" (e.g.: SELF-EMPLOYED)
+               3: connected in the affiliations network or strings very close, or employer mistakenly reported as occupation.
+               4: exactly the same, but not 'bad_identifier'
         'n':  # name
                0: names are not related
                1: uncertain: at least one last name doesn't exist
@@ -690,7 +713,9 @@ class Record(dict):
             # Return LARGE_NEGATIVE if middle names are different
             if c_n[0] < 0: return Record.LARGE_NEGATIVE, result
 
-            # Actually, we will relax the conditions at this point. Cross-state consistency will be resolved on the Person level.
+            # Actually, we will relax the conditions at this point. Cross-state
+            # consistency will be resolved at the national level stage2) using
+            # the "national" method_id
             return self._verdict_stateN(c_n, c_e, c_o, method_id=method_id), result
         return False, result
 
@@ -718,10 +743,11 @@ class Record(dict):
     def compare_occupations(self, r1, r2):
         '''
         Returns a number:
-        0: they both exist but are unrelated
-        1: at least one doesn't have the field
-        2: connected in the affiliations network
-        3: exactly the same but not "bad_identifier"
+        0: they both exist, aren't bad identifiers, but are unrelated
+        1: at least one doesn't have the field, or at least one has a bad identifier but the two aren't the same.
+        2: exactly the same, but "bad_identifier" (e.g.: RETIRED)
+        3: connected in the affiliations network, or strings very close, or employer mistakenly reported as occupation.
+        4: exactly the same but not "bad_identifier"
         '''
         try:
             occupation1 = r1['OCCUPATION']
@@ -736,12 +762,17 @@ class Record(dict):
             return (1, None)
 
 
-        if bad_identifier(occupation1, type="occupation") or bad_identifier(occupation2, type="occupation"):
+        # Check if they are bad identifiers.
+        bi1, bi2 = utils.bad_identifier(occupation1, type="occupation"), utils.bad_identifier(occupation2, type="occupation")
+        if bi1 and bi2 and occupation1 == occupation2:
+            return (2, None)
+        if bi1 or bi2:
             return (1, None)
+
 
         if occupation1 == occupation2:
             if Record.debug: print "occupations are the same"
-            return (3, None)
+            return (4, None)
         else:
             found_both = False
             for G_occupation in self.list_G_occupation:
@@ -761,7 +792,7 @@ class Record(dict):
                     # They are adjacent in at least one affiliation graph
                     if Record.debug: print "-------------", occupation1, occupation2
                     if Record.debug: print "ADJACENT"
-                    return (2, significance)
+                    return (3, significance)
 
 
             # Either there was no graph that contained both
@@ -775,10 +806,10 @@ class Record(dict):
             # Not adjacent. Check if strings are close
             if editdist.distance(occupation1, occupation2) < max(len(occupation1), len(occupation2)) * Record.occupation_str_tolerance:
                 # Strings are close enough even though not linked on the affiliation graph
-                return (2, None)
+                return (3, None)
             # Check if one's employer is mistakenly reported as its occupation
             elif occupation1 == r2['EMPLOYER'] or occupation2 == r1['EMPLOYER']:
-                return (2, None)
+                return (3, None)
             else:
                 # String distances not close enough
                 if Record.debug: print "occupations are different and not adjacent"
@@ -795,9 +826,9 @@ class Record(dict):
         Returns a number:
         0: they both exist but are unrelated
         1: at least one doesn't have the field, or there is no affiliation graph that contains both
-        2: connected in the affiliations network or employer1/2 == occupation2/1 or
-        otherwise so close that they are considered the same.
-        3: exactly the same, but not "bad_identifier"
+        2: exactly the same, but "bad_identifiers"
+        3: connected in the affiliations network or strings very close, or employer mistakenly reported as occupation.
+        4: exactly the same, but not "bad_identifier"
         '''
         try:
             employer1 = r1['EMPLOYER']
@@ -812,9 +843,14 @@ class Record(dict):
             return (1, None)
 
 
-        if bad_identifier(employer1, type="employer") or bad_identifier(employer2, type="employer"):
-            return (1, None)
 
+
+        # Check if they are bad identifiers.
+        bi1, bi2 = utils.bad_identifier(employer1, type="employer"), utils.bad_identifier(employer2, type="employer")
+        if bi1 and bi2 and employer1 == employer2:
+            return (2, None)
+        if bi1 or bi2:
+            return (1, None)
 
 
         if Record.debug: print "Both have employer field"
@@ -822,7 +858,7 @@ class Record(dict):
 
         if employer1 == employer2:
             if Record.debug: print "employers are the same"
-            return (3, None)
+            return (4, None)
         else:
             found_both = False
 
@@ -843,7 +879,7 @@ class Record(dict):
                     # They are adjacent in at least one affiliation graph
                     if Record.debug: print "-------------", employer1, employer2
                     if Record.debug: print "ADJACENT"
-                    return (2, significance)
+                    return (3, significance)
 
 
             # Either there was no graph that contained both
@@ -856,11 +892,11 @@ class Record(dict):
             # Not adjacent. Check if strings are close
             if editdist.distance(employer1, employer2) < max(len(employer1), len(employer2)) * Record.employer_str_tolerance:
                 # Strings are close enough even though not linked on the affiliation graph
-                return (2, None)
+                return (3, None)
 
             # Check if one's employer is mistakenly reported as its occupation
             elif employer1 == r2['OCCUPATION'] or employer2 == r1['OCCUPATION']:
-                return (2, None)
+                return (3, None)
             else:
                 # String distances not close enough
                 if Record.debug: print "employers are not adjacent in graph, and strings aren't close."
@@ -880,10 +916,12 @@ class Record(dict):
         1: uncertain: at least one last name doesn't exist
         2: names are similar, but we can't verify if they are variants or misspelling. Let verdict functions decide. (useful when addresses are exactly identical)
         3: names are identical
+        4: names are identical AND they have matching middle names.
 
         NOTE: you can't ever treat the output as a boolean in if statements: if (-1000) is True, if(0) is False.
         '''
         identical = (3, None)
+        identical_middle_names = False
         # if both have middlenames, they should be the same
         if r1['N_middle_name'] and r2['N_middle_name']:
             middlename1, middlename2 = r1['N_middle_name'], r2['N_middle_name']
@@ -901,6 +939,8 @@ class Record(dict):
                     identical = (Record.LARGE_NEGATIVE, None)
                     return identical
 
+            else:
+                identical_middle_names = True
 
 #         # if 1 doesn't have a middle name but 2 does, then 2 is not the "parent" of 1
 #         if not r1['N_middle_name'] and r2['N_middle_name']:
@@ -927,7 +967,7 @@ class Record(dict):
 
             if f1 <= Tokenizer.TokenData.RARE_FREQUENCY or f2 <= Tokenizer.TokenData.RARE_FREQUENCY:
                 # They are very similar and at least one is rare. Must be misspelling. Accept
-                identical = (3, None)
+                identical = (4, None) if identical_middle_names else (3, None)
             else:
                 # Don't reject out of hand. Simply report that they are different byt not too different.
                 # Useful when records are otherwise very similar, e.g., have identical addresses.
@@ -976,7 +1016,7 @@ class Record(dict):
                 if Record.debug:
                     print "first names ARE variants of each other"
                     print "VARIANTS:    ", firstname1, "-------------", firstname2
-                identical = (3, None)
+                identical = (4, None) if identical_middle_names else (3, None)
             else:
                 # If first names are different and neither is a variant of the other
                 if Record.debug: print "first names aren't variants of each other"
@@ -1019,7 +1059,8 @@ class Record(dict):
                             identical = (2, None)
                     else: identical = (0, None)
 
-
+        if identical == (3, None):
+            identical = (4, None) if identical_middle_names else (3, None)
         return identical
 
 

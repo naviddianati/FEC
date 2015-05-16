@@ -31,6 +31,35 @@ random.seed()
 
 
 
+def bad_identifier(identifier, type='employer'):
+    '''
+    Decide if the affiliation identifier is a "bad" or "low-information"
+    identifier.
+    '''
+    if identifier == '': return True
+    if type == 'employer':
+        regex = r'\bNA\b|N\.A|employ|self|N\/A|\
+                |information request|retired|teacher\b|scientist\b|\
+                |applicable|not employed|none|\
+                |homemaker|requested|executive|educator\b|\
+                |attorney\b|physician|real estate|\
+                |student\b|unemployed|professor|refused|doctor|housewife|\
+                |at home|president|best effort|consultant\b|\
+                |email sent|letter sent|software engineer|CEO|founder|lawyer\b|\
+                |instructor\b|chairman\b'
+    elif type == 'occupation':
+        regex = r'unknown|requested|retired|none|retire|retited|ret\b|declined|N.A\b|refused|NA\b|employed|self'
+    else:
+        print 'invalid identifier type'
+        raise Exception("Identifier type must be either 'employer' or 'occupation'")
+    if re.search(regex, identifier, flags=re.IGNORECASE):
+        return True
+    else:
+        return False
+
+
+
+
 def loadAffiliationNetwork(state, affiliation, percent=5):
     '''
     Loads the saved output of AffiliatoinAnalyzer from file: the affiliation network.
