@@ -133,7 +133,7 @@ def DISAMBIGUATE_stage_2():
     #stage2.compute_person_tokens()
     
     # Compare record pairs within each subset and save results.
-    stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=1)
+    stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=10)
 
     pass
 
