@@ -373,7 +373,7 @@ class Record(dict):
         if method_id is None:
             return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == "national":
-            return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
+            return ((c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] == 3)) or ((c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 4)) 
         # strict
         elif method_id == 1:
             return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
@@ -462,7 +462,7 @@ class Record(dict):
         if method_id is None:
             return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == "national":
-            return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
+            return ((c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3))  or ((c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 4)) 
         
         elif method_id == 1:
             return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
