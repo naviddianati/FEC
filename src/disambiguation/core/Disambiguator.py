@@ -1,15 +1,15 @@
 # import visual as vs
 ''' This class receives a list of records and computes a similarity matrix between the nodes. Each record has a "vector".
-    Each vector is a dictionary {index:(0 or 1)} where index is a unique integer representing a feature or token in the record.
-    The tokens themselves can be specified via index_2_token and token_2_index.
+    Each vector is a dictionary C{{index:(0 or 1)}} where index is a unique integer representing a feature or token in the record.
+    The tokens themselves can be specified via C{index_2_token} and C{token_2_index}.
 
     The core action of the class is by finding candidates for approximate nearest neighbors for each vector based simply on euclidean
     distance.
 
-    This can be further augmented by overriding  the member function __is_close_enough(v1,v2). This functions takes two vectors as inputs
+    This can be further augmented by overriding  the member function C{__is_close_enough(v1,v2)}. This functions takes two vectors as inputs
     and decides if they should be linked or not, and uses additional information about the features/tokens as well. This is where
-    index_2_token and token_2_index can be used.
-    matching_mode can be "strict_address" or "strict_affiliation" or "thorough"
+    C{index_2_token} and C{token_2_index} can be used.
+    C{matching_mode} can be "strict_address" or "strict_affiliation" or "thorough"
     '''
 from utils import *
 from multiprocessing.process import Process
@@ -35,6 +35,17 @@ import disambiguation.data
 class Disambiguator():
 
     def __init__(self, list_of_records, vector_dimension, matching_mode="strict_address", num_procs=1):
+        '''
+        @param matching_mode:
+            - "strict_address": strict matching where addresses must exist and match.
+            used for extracting affiliation networks.
+            - "thorough": for state level. All different record fields are considered,
+            but name frequencies aren't taken into account. This is still somewhat conservative.
+            - "national": for the national level. Here, we use token frequencies computed
+            at the "person" level, using the state-level identities computed in stage1.In
+            this stage, it is expected that the tokendata object contains frequencies for 
+            an additional normalized attribute too, namely "N_full_name". The frequencies
+        '''
 
         self.list_of_records = list_of_records
         self.sort_list_of_records()
@@ -137,7 +148,7 @@ class Disambiguator():
         '''
         sord the records in place by their id (other field(s)). The
         default ordering is by r.id which makes it easier to reconstruct
-        list_of_records from a partitioning of it. Usefull mainly for
+        C{list_of_records} from a partitioning of it. Usefull mainly for
         multi-processing.
         '''
         if orderby == 'id':
@@ -179,11 +190,11 @@ class Disambiguator():
     def getCompoundDisambiguator(cls, list_of_Ds, num_procs=1):
         '''
         Receive a list of Disambiguator objects and combine them into one fresh object
-        Records of each D have a separate TokenData object. Those need to be combined
+        Records of each C{D} have a separate TokenData object. Those need to be combined
         Each record has a vector. Those need to be updated according to the new unified TokenData
-        Each D has a separate G_employer and G_occupation. They need to be combined.
-        update self.input_dimension
-        TODO: Towns need to be combined too
+        Each D has a separate C{G_employer} and C{G_occupation}. They need to be combined.
+        update C{self.input_dimension}
+        @todo: Towns need to be combined too
         '''
         D_new = Disambiguator([], 0, num_procs=num_procs)
 
@@ -235,15 +246,15 @@ class Disambiguator():
 
 
     def imshow_adjacency_matrix(self, r=()):
-        ''' public wrapper for __dict_imshow '''
+        ''' public wrapper for C{__dict_imshow} '''
         self.__dict_imshow(self.index_adjacency, rng=r)
 
     def __dict_imshow(self, dict1, rng):
         '''
         This function draws a plot similar to imshow for a sparse matrix
-        represented as a dictionary of x:y key-values.
-        Designed to be used with sparse index_adjacency matrices produced by
-        the method get_nearest_neighbors.
+        represented as a dictionary of C{x:y} key-values.
+        Designed to be used with sparse C{index_adjacency} matrices produced by
+        the method C{get_nearest_neighbors}.
         '''
         X, Y = [], []
 
@@ -273,8 +284,8 @@ class Disambiguator():
 
 
     def __update_dict_of_sets(self, dict1, dict_add):
-        ''' This function updates dict1 in place so that the corresponding values of dict_add are
-            added to and merged with the values in dict1.
+        ''' This function updates dict1 in place so that the corresponding values of C{dict_add} are
+            added to and merged with the values in C{dict1}.
             It's assumed that the values of the dicts are sets.
             '''
         for s in dict_add:
@@ -370,12 +381,12 @@ class Disambiguator():
 
     def __chunk_padded_list_of_records(self, num_chunks, overlap):
         '''
-        Divide self.list_or_records (which is assumed to be sorted according to the LSH Hashes)
+        Divide C{self.list_or_records} (which is assumed to be sorted according to the LSH Hashes)
         into chunks of equal size, and as each one is generated, delete the corresponding slice
-        from self.list_of_records.
-        @return: A list of dictionaries, where each dictionary X maps an integer to a record
-            such that X[i] = self.list_of_records[i] (with self.list_of_records now sorted according to the hashes)
-            as defined in update_nearest_neighbors().
+        from C{self.list_of_records}.
+        @return: A list of dictionaries, where each dictionary C{X} maps an integer to a record
+            such that C{X[i] = self.list_of_records[i]} (with self.list_of_records now sorted according to the hashes)
+            as defined in C{update_nearest_neighbors()}.
 
         '''
         n = len(self.list_of_records)
@@ -405,9 +416,9 @@ class Disambiguator():
 
     def __reconstruct_list_of_records(self, list_chunks, overlap):
         '''
-        Reconstruct self.list_of_records by concatenating the values of the dictionaries in list_chunks.
-        list_chunks is assumed to be generated by self.__chunk_padded_list_of_records()
-        Note: the chunks in list_chunks overlap. You must take this into account.
+        Reconstruct C{self.list_of_records} by concatenating the values of the dictionaries in C{list_chunks}.
+        C{list_chunks} is assumed to be generated by C{self.__chunk_padded_list_of_records()}
+        Note: the chunks in C{list_chunks} overlap. You must take this into account.
         '''
         if self.list_of_records:
             raise Exception("ERROR: self.list_of_records is not empty. Can't reconstruct it.")
@@ -443,11 +454,11 @@ class Disambiguator():
     def disambiguate_list_of_pairs(self,list_of_pairs):
         '''
         Disambiguate by perform comparisons between a given list of record
-        pairs. Can be used instead of compute_similarity, when we know which
+        pairs. Can be used instead of C{compute_similarity}, when we know which
         pairs of records we should compare already, for example because we've
         already processed the hashes and found the nearest neighbors.
         The same instance variables are set by this function as with 
-        update_nearest_neighbors.
+        C{update_nearest_neighbors}.
 
         @param list_of_pairs: list of tuples (rid1,rid2)
         '''
@@ -511,7 +522,7 @@ class Disambiguator():
         '''
         Export the results of a pairwise record comparison to
         a file.
-        @param comparison_data: a list of tuples of the form (record1, record2, verdict, result).
+        @param comparison_data: a list of tuples of the form C{(record1, record2, verdict, result)}.
         '''
 
         try:
@@ -611,40 +622,39 @@ class Disambiguator():
         multiple processes.
 
         @param B: an even integer. The number of adjacent strings
-            to check for proximity for each string.
+        to check for proximity for each string.
         @param hashes: a list of strings of same length. The default
-             is self.LSH_hashes: the strings comprise 0 and 1. pass
-             non-default hashes to perform the updating using a custom
-             ordering of the records.
+        is self.LSH_hashes: the strings comprise 0 and 1. pass
+        non-default hashes to perform the updating using a custom
+        ordering of the records.
         @param allow_repeats: Boolean. whether to compare record pairs
-            that have been compared before.
+        that have been compared before.
         @param num_procs: number of processes to use.
 
         @return: dictionary of indices. For each key (string index),
-            the value is a list of indices of all its nearest neighbors.
+        the value is a list of indices of all its nearest neighbors.
 
 
         Data passed to worker functions:
+            - C{data['pid']}: process id
+            - C{data['queue']}: queue for communication with parent process
+            - C{data['matching_mode']}: same as C{self.matching_mode}
+            - C{data['do_stats']}: whether to log stats. same as C{self.do_stats}
+            - C{data['index_adjacency']}: a sub-dictionary of the full C{index_adjacency} with entries for records relevant to this process.
+            - C{data['sort_indices']}
+            - C{data['list_indices']}: list of indices for the chunk assigned to the child.
+            - C{data['B']}
+            - C{data['allow_repeats']}
+            - C{data['D_id']}: id of the Disambiguator instance that is spawning the child process. This is necessary so that the child worker
+        can call processManager and retrieve a reference to the Disambiguator instance that actually spawned it, as a global variable.
 
-        data['pid']: process id
-        data['queue']: queue for communication with parent process
-        data['matching_mode']: same as self.matching_mode
-        data['do_stats']: whether to log stats. same as self.do_stats
-        data['index_adjacency']: a sub-dictionary of the full index_adjacency with entries for records relevant to this process.
-        data['sort_indices']`
-        data['list_indices']: list of indices for the chunk assigned to the child.
-        data['B']
-        data['allow_repeats']
-        data['D_id']: id of the Disambiguator instance that is spawning the child process. This is necessary so that the child worker
-            can call processManager and retrieve a reference to the Disambiguator instance that actually spawned it, as a global variable.
+        @note: the largest piece of data needed by the child processes is C{self.list_of_records}. I no longer pass this to each child
+        separately, as it almost doubles the memory used. Instead, I will try to make the disambiguator instance C{D} visible to
+        all children as a global variable. They will only read this variable, so the system won't make any copies of it. This
+        will hopefully reduce memory usage substantially.
 
-        NOTE: the largest piece of data needed by the child processes is self.list_of_records. I no longer pass this to each child
-            separately, as it almost doubles the memory used. Instead, I will try to make the disambiguator instance D visible to
-            all children as a global variable. They will only read this variable, so the system won't make any copies of it. This
-            will hopefully reduce memory usage substantially.
-
-        NOTE: Passing lisrt_of_records to child processes as a global variable isn't going to work. The global namespace will still
-            be COPIED to each of the child processes.
+        @note: Passing C{lisrt_of_records} to child processes as a global variable isn't going to work. The global namespace will still
+        be COPIED to each of the child processes.
         '''
 
 
@@ -757,7 +767,6 @@ class Disambiguator():
 
     def __compute_LSH_hash_multi_proc(self, hash_dim, num_procs):
         '''
-        @param list_of_vectors:    list of vectors. Each vector is a dictionary {vector coordinate index, value}
         @param hash_dim: dimension of the generated hash.
         @param num_procs: number of processes to use
 
@@ -808,7 +817,7 @@ class Disambiguator():
         '''
         Load the list of hashes from file. Raise exception if fail.
         Also raise if the hashes found in file have length different
-        from self.hash_dim
+        from C{self.hash_dim}
         '''
         hash_file = config.hashes_file_template % (self.project['state'], self.tokenizer.__class__.__name__)
         f = open(hash_file)
@@ -835,7 +844,7 @@ class Disambiguator():
 
     def compute_hashes(self, hash_dim, num_procs, overwrite=False):
         '''
-        Load record vectors from file and compute self.dict_hashes and
+        Load record vectors from file and compute C{self.dict_hashes} and
         save this dictionary to file.
         '''
         # Load hashes from file if found
@@ -854,13 +863,13 @@ class Disambiguator():
 
     def get_LSH_hashes(self, hash_dim, num_procs=1):
         '''
-        Load hashes and set self.LSH_hash. If hases already exist in a
+        Load hashes and set C{self.LSH_hash}. If hases already exist in a
         file, load it. Otherwise, load record vectors from file and
         compute the hashes from them. If that fails, then raise.
-        This must be invoked only when self.list_of_records is set,
-        because that is necessary for computing self.LSH_hash from
+        This must be invoked only when C{self.list_of_records} is set,
+        because that is necessary for computing C{self.LSH_hash} from
         the dictionary that is loaded from the exported hash file.
-        If self.list_of_records is not set, raise.
+        If C{self.list_of_records} is not set, raise.
         '''
 
         # Expected hash dim
@@ -886,8 +895,8 @@ class Disambiguator():
 
     def __save_LSH_hash(self):
         '''
-        Save a dict of hashes to file: {r.id: hash for r in list_of_records}
-        It is expected that self.list_of_records and self.LSH_hash are aligned.
+        Save a dict of hashes to file: C{{r.id: hash for r in list_of_records}}
+        It is expected that C{self.list_of_records} and C{self.LSH_hash} are aligned.
         '''
         hash_file = config.hashes_file_template % (self.project['state'], self.tokenizer.__class__.__name__)
         with open(hash_file, 'w') as f:
@@ -897,10 +906,10 @@ class Disambiguator():
 
     def initialize_index_adjacency(self):
         ''' 
-        This function creates an empty self.index_adjacency dictionary and then populates it initially as follows:
+        This function creates an empty C{self.index_adjacency} dictionary and then populates it initially as follows:
         it goes over the list of (sorted) hashes and among adjacent entries it finds maximal groups of identical
         hashes, and creates complete subgraphs corresponding to them in self.index_adjacency.
-        This is necessary if the original list_of_vectors contains repeated entries, such as when we are dealing
+        This is necessary if the original C{list_of_vectors} contains repeated entries, such as when we are dealing
         with multiple transactions per person. 
         '''
         self.index_adjacency = {}
@@ -933,8 +942,8 @@ class Disambiguator():
     def compute_edgelist(self):
         '''
         Compute the edgelist of the graph of linked records.
-        Uses self.index_adjacency.
-        Sets self.index_adjacency_edgelist.
+        Uses C{self.index_adjacency}.
+        Sets C{self.index_adjacency_edgelist}.
         '''
 
         self.index_adjacency_edgelist = [(i, i) for i in self.index_adjacency]
@@ -947,7 +956,7 @@ class Disambiguator():
     def __export_match_buffer(self):
         '''
         Save the match buffer to a file. This will be basically
-        an edge list (r_id0, r_id1).
+        an edge list C{(r_id0, r_id1)}.
         '''
         with open(config.match_buffer_file_template % self.project['state'], 'w') as f:
             print "Saving match buffer to file..."
@@ -1010,7 +1019,7 @@ class Disambiguator():
 
     def print_index_adjacency(self):
         ''' 
-        print the similarity matrix (index_adjacency) 
+        print the similarity matrix C{index_adjacency} 
         '''
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(self.index_adjacency)
@@ -1044,9 +1053,9 @@ class Disambiguator():
 
     def generate_identities(self):
         '''
-        Generate Person objects from the records and the index_adjacency
+        Generate Person objects from the records and the C{index_adjacency}
         matrix. The main product is self.town
-        TODO: Generate each person's set of possible neighbors
+        @todo: Generate each person's set of possible neighbors
         '''
 
         self.compute_edgelist()
@@ -1223,7 +1232,7 @@ class Disambiguator():
 
 
     '''
-    Use self.new_matches_buffer to look for Person objects that are potentially connected.
+    Use C{self.new_matches_buffer} to look for Person objects that are potentially connected.
     If so, merge the Persons.
     '''
     def merge_identities(self):
@@ -1267,7 +1276,7 @@ class Disambiguator():
 
     def refine_identities_merge_similars(self, m):
         '''
-        Run self.update_nearest_neighbors() a few more times; 
+        Run C{self.update_nearest_neighbors()} a few more times; 
         this time consider matches across different Persons
         and if necessary merge the corresponding Persons.
         @param m: how many times to shuffle the hashes and recompute
@@ -1314,7 +1323,7 @@ class Disambiguator():
 
     def generator_identity_list(self):
         '''
-        generate tuples: [(record_id, Person_id)].
+        generate tuples: C{[(record_id, Person_id)]}.
         person id is an string unique string such as "NY-83472837"
         specifying the state and a unique integer id unique within this state.
         '''
@@ -1365,9 +1374,9 @@ class Disambiguator():
 
 def permute_inplace(X, Y):
     ''''
-    permute the list X inplace, according to Y.
-    Y is a dictionary {c_index : t_index } which means the value of X[c_index]
-    should end up in X[t_index].
+    permute the list C{X} inplace, according to C{Y}.
+    C{Y} is a dictionary C{{c_index : t_index }} which means the value of C{X[c_index]}
+    should end up in C{X[t_index]}.
     '''
     while Y:
         # key values to be deleted from Y at the end of each runthrough
@@ -1397,27 +1406,26 @@ def find_nearest_neighbors(data):
     '''
     The worker function run in each process spawed by Disambiguator.update_nearest_neighbors().
     This function finds the nearest neighbors for all records in a list of records it receives.
-    Parameters:
-        data: a dict of all the data needed by this worker function.
-        data['pid']: process id
-        data['queue']: queue for communication with parent process
-        data['matching_mode']: same as self.matching_mode
-        data['do_stats']: whether to log stats. same as self.do_stats
-        data['index_adjacency']: a sub-dictionary of the full index_adjacency with entries for records relevant to this process.
-        data['dict_of_records']: a dictionary that maps an index to a record. The indices form a contiguous set of integers, and
-            reflect the current ordering of self.list_of_records according the list of hashes. Therefore, here, we can simply
-            compare index i with index i+1 throughout the dict_of_records. That is, adjacency of the indices in dict_of_records
-            implies adjacency of the corresponding records in list of hashes.
-        data['sort_indices']
-        data['B']
-        data['allow_repeats']
-        data['list_indices']: list of the indices (in the sorted hashes list) to be processed by this child
+    @param data: a dict with the following keys:
+        - data: a dict of all the data needed by this worker function.
+        - data['pid']: process id
+        - data['queue']: queue for communication with parent process
+        - data['matching_mode']: same as C{self.matching_mode}
+        - data['do_stats']: whether to log stats. same as C{self.do_stats}
+        - data['index_adjacency']: a sub-dictionary of the full index_adjacency with entries for records relevant to this process.
+        - data['dict_of_records']: a dictionary that maps an index to a record. The indices form a contiguous set of integers, and
+        reflect the current ordering of self.list_of_records according the list of hashes. Therefore, here, we can simply
+        compare index i with index i+1 throughout the dict_of_records. That is, adjacency of the indices in dict_of_records
+        implies adjacency of the corresponding records in list of hashes.
+        - data['sort_indices']
+        - data['B']
+        - data['allow_repeats']
+        - data['list_indices']: list of the indices (in the sorted hashes list) to be processed by this child
 
-    Returns:
-        result: a dict of all output variables.
-        result['match_count']: number of matches found by this process
-        result['new_match_buffer']: Set of matched record id pairs
-        result['index_adjacency']: updated index_adjacency. Will be merged into self.index_adjacency in the calling process.
+    @return: a dict of all output variables:
+        - result['match_count']: number of matches found by this process
+        - result['new_match_buffer']: Set of matched record id pairs
+        - result['index_adjacency']: updated index_adjacency. Will be merged into self.index_adjacency in the calling process.
     '''
 
 

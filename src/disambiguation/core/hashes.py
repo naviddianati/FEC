@@ -100,7 +100,7 @@ def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_pr
 
     @param filename: filename where hashes are pickled.
     @param B: number of adjacency hashes to log.
-    @parma num_shuffles: total number of times to shuffle the hashes.
+    @param num_shuffles: total number of times to shuffle the hashes.
     @param nump_procs:  number of processes to use.
     '''
 

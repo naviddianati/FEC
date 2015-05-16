@@ -1,6 +1,14 @@
 '''
-This module defines global variables used
-uniformly by various scripts.
+This module defines global variables used uniformly by various scripts.
+
+@var data_path: the root path of the data tree structure.
+@var dict_paths: a dict of various sub-directories of the data directory.
+@var tokendata_file_template: template for fully qualified tokendata file. Takes two template parameters for state and Tokenizer class name.
+
+@var vectors_file_template: This file contains a pickled dictionary \{r.id: vector for r in list_of_records\}.
+@var hashes_file_template: This file contains the LSH hashes dictionary \{r.id: hash for r in list_of_records\}.
+@var MySQL_tablename_all_records: Name of the table containing all records with addresses. This table is the concatenation of all <state>_combined tables.
+@var log_filename: name of the log file.
 '''
 
 import os
