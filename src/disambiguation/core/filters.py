@@ -39,10 +39,10 @@ def __pvalue_undirected(**params):
     Compute the pvalue for the undirected edge null model.
     Use a standard binomial test from the statsmodels package
 
-    @param w: weight of the undirected edge.
-    @param ku: total incident weight (strength) of the first vertex.
-    @param kv: total incident weight (strength) of the second vertex.
-    @param q: total incident weight of all vertices divided by two. Similar to the total number of edges in the graph.
+    @keyword w: weight of the undirected edge.
+    @keyword ku: total incident weight (strength) of the first vertex.
+    @keyword kv: total incident weight (strength) of the second vertex.
+    @keyword q: total incident weight of all vertices divided by two. Similar to the total number of edges in the graph.
     """
     w = params.get("w")
     ku = params.get("ku")
@@ -65,10 +65,10 @@ def __pvalue_directed(**params):
     Compute the pvalue for the directed edge null model.
     Use a standard binomial test from the statsmodels package
 
-    @param w_uv: Weight of the directe edge.
-    @param ku_out: Total outgoing weight of the source vertex.
-    @param kv_in: Total incoming weight of the destination vertex.
-    @param q: Total sum of all edge weights in the graph.
+    @keyword w_uv: Weight of the directe edge.
+    @keyword ku_out: Total outgoing weight of the source vertex.
+    @keyword kv_in: Total incoming weight of the destination vertex.
+    @keyword q: Total sum of all edge weights in the graph.
     """
 
     w_uv = params.get("w_uv")

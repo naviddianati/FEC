@@ -3,21 +3,21 @@ This module contains methods that prepare data and export intermediate computati
 If all methods in this module are run once successfully, the following data files will exist in the
 relevant paths and will be available to disambiguation methods:
 
-- tokendata files for each state, both using Tokenizer and TokenizerNgram tokenization schemes.
-- feature vector files for each state both using Tokenizer and TokenizerNgram tokenization schemes.
-- LHS hash files for each state both using Tokenizer and TokenizerNgram tokenization schemes.
+    - tokendata files for each state, both using Tokenizer and TokenizerNgram tokenization schemes.
+    - feature vector files for each state both using Tokenizer and TokenizerNgram tokenization schemes.
+    - LHS hash files for each state both using Tokenizer and TokenizerNgram tokenization schemes.
+    
+    - combined (national, "USA") tokendata file derived from Tokenizer (coarse) results.
+    - combined (national, "USA") feature vector file derived from Tokenizer (coarse) results.
+    - combined (national, "USA") hash file derived from Tokenizer (coarse) results.
 
-- combined (national, "USA") tokendata file derived from Tokenizer (coarse) results.
-- combined (national, "USA") feature vector file derived from Tokenizer (coarse) results.
-- combined (national, "USA") hash file derived from Tokenizer (coarse) results.
-
-1. For fine-grained intra-state disambiguation:
-    - Tokenize and compute vectors for every state using TokenizerNgram.
-    - Compute hashes from the vectors computed above.
-2. For coarse-grained nationwide disambiguation:
-    - Tokenize and compute vectors for every state using Tokenizer.
-    - Combine Tokenizer tokendata into the "USA" files and update the vectors.
-    - Compute coarse national hashes from the vectors computed above.
+    1. For fine-grained intra-state disambiguation:
+        - Tokenize and compute vectors for every state using TokenizerNgram.
+        - Compute hashes from the vectors computed above.
+    2. For coarse-grained nationwide disambiguation:
+        - Tokenize and compute vectors for every state using Tokenizer.
+        - Combine Tokenizer tokendata into the "USA" files and update the vectors.
+        - Compute coarse national hashes from the vectors computed above.
 '''
 
 from core.utils import *
@@ -340,7 +340,7 @@ def INIT_process_multiple_states(list_states=[], TokenizerClass=None, list_token
     @param TokenizerClass: the tokenizer class to be used. For fine-grained
         intra state disambiguation, use TokenizerNgram. For coarse national
         disambiguation use Tokenizer.
-    @parm num_procs: total number of processes we can use in different stages.
+    @param num_procs: total number of processes we can use in different stages.
     '''
 
 

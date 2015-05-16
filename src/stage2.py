@@ -209,7 +209,7 @@ def worker_disambiguate_subset_of_edgelist(filename):
 
 
         print "Instantiating Disambiguator."
-        D = Disambiguator.Disambiguator(list_of_records, vector_dimension=None, matching_mode='thorough', num_procs=1)
+        D = Disambiguator.Disambiguator(list_of_records, vector_dimension=None, matching_mode='national', num_procs=1)
         project.D = D
         D.project = project
         D.tokenizer = tokenizer

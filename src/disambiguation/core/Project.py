@@ -236,10 +236,11 @@ class Project(dict):
 
     
     def save_data(self, r=[], verbose=False, with_tokens=False, file_label=""):
-            ''' This function does three things:
+            ''' 
+            This function does three things:
                 1- saves a full description of the nodes with all attributes in json format to a file <batch_id>-list_of_nodes.json
-                   This file, together with the <batch-id>-adjacency.txt file provides all the information about the graph and its
-                   node attributes.
+                This file, together with the <batch-id>-adjacency.txt file provides all the information about the graph and its
+                node attributes.
                 2- saves a formatted text representation of the adjacency matrix with identifier information
                 3- saves a formatted text representation of the adjacency matrix with auxiliary field information.
             '''
