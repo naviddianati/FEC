@@ -139,18 +139,18 @@ def worker_disambiguate_subset_of_edgelist(filename):
         on normalized names, etc.
     @param filename: filename in which on partition of the edgelist is stored.
     '''
-    
+
     # What percentage of affiliation graph links to retain.
-    percent_occupations = 5 
+    percent_occupations = 5
     percent_employers = 5
-    
-    # Load National Normalized token data
-    normalized_tokendata_file = config.tokendata_file_template %("USA", "Normalized")
+
+    # Load Normalized token data
+    normalized_tokendata_file = config.tokendata_file_template % ("USA", "Normalized")
     with open(normalized_tokendata_file) as f:
         tokendata_usa = utils.cPickle.load(f)
-    
-    
-    
+
+
+
     list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
     list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
     all_fields = list_tokenized_fields + list_auxiliary_fields
@@ -198,15 +198,15 @@ def worker_disambiguate_subset_of_edgelist(filename):
                 record.list_G_employer = [G_employer]
         else:
             utils.Log("EMPLOYER network not found.", "Warning")
-    
-    
+
+
         G_occupation = utils.loadAffiliationNetwork('USA' , 'occupation', percent=percent_occupations)
         if G_occupation:
             for record in list_of_records:
                 record.list_G_occupation = [G_occupation]
         else:
             utils.Log("OCCUPATION network not found.", "Warning")
-    
+
 
         print "Instantiating Disambiguator."
         D = Disambiguator.Disambiguator(list_of_records, vector_dimension=None, matching_mode='thorough', num_procs=1)
@@ -278,6 +278,7 @@ def compute_person_tokens():
                              'N_first_name',
                              'N_last_name',
                              'N_middle_name',
+                             'N_full_name',
                              # 'N_zipcode',
                              'N_employer',
                              'N_occupation']
@@ -286,10 +287,13 @@ def compute_person_tokens():
     tokendata = Tokenizer.TokenData()
 
     # Customize the token identifiers for this TokenData
-    # so they work for normalized attributes
+    # so they work for normalized attributes. In particular,
+    # Add "N_full_name".
+    # TODO: maybe all this can be done by subclassing Tokendata
     tokendata.token_identifiers = {'N_first_name':[2],
                                   'N_last_name':[1],
                                   'N_middle_name':[3],
+                                  'N_full_name':[123],
                                   'N_zipcode':[4],
                                   'N_occupation':[6],
                                   'N_employer':[7]}
@@ -315,9 +319,16 @@ def compute_person_tokens():
                 # Here we treat the values of dict_normalized_attributes
                 # which are dicts of normalized attr: value as "virtual
                 # records". They will suffice for our purposes here.
-                
+
                 # Add an "id" key to each value of dict_normalized_attributes
                 [dict_normalized_attributes[rid].update({"id":rid}) for rid in list_r_ids]
+
+                # Add an "N_full_name" key to each value of dict_normalized_attributes
+                for rid in list_r_ids:
+                    tmp = dict_normalized_attributes[rid]
+                    fullname = "%s %s %s" % (tmp['N_last_name'], tmp['N_middle_name'], tmp['N_first_name'])
+                    dict_normalized_attributes[rid]['N_full_name'] = fullname
+
                 list_virtual_records = [Record.Record(dict_normalized_attributes[rid]) for rid in list_r_ids]
                 __update_tokendata_with_person(list_normalized_attrs, tokendata, list_virtual_records)
 
