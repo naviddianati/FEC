@@ -177,6 +177,7 @@ class Record(dict):
             return decision
         elif mode == "national":
             decision = (self._compare_THOROUGH(self, otherRecord, method_id="national"))
+            return decision
 
 
         elif mode == "1":
@@ -493,6 +494,7 @@ class Record(dict):
         elif method_id == "national":
             verdict = ((c_e[0] >= 3 and c_o[0] >= 3) or (c_o[0] == 4) or (c_e[0] == 4)) and (c_n[0] >= 3)
             return verdict
+        
         elif method_id == 1:
             return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 2:
