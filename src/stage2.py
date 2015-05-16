@@ -139,7 +139,7 @@ def worker_disambiguate_subset_of_edgelist(filename):
         on normalized names, etc.
     @param filename: filename in which on partition of the edgelist is stored.
     '''
-
+    utils.sys.stdout = open("stdout-" + str(utils.os.getpid()) + ".out", "w")
     # What percentage of affiliation graph links to retain.
     percent_occupations = 5
     percent_employers = 5
