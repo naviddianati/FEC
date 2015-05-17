@@ -300,7 +300,7 @@ if __name__ == "__main__":
             id_random_focus = random.choice(dict_identity_2_list_ids[identity_main])
         else:
             id_random_nonfocus = None
-            id_random_focus = None:
+            id_random_focus = None
         
 
         # if identity_main already has only one record, then either

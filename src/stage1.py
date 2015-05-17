@@ -20,26 +20,34 @@ from copy import copy
 
 def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", logstats=False, whereclause='', num_procs=1, percent_employers=5, percent_occupations=5):
     '''
-    1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
+    For the given state, load all records, the affiliation graphs, and disambiguate the records using the specified
+    number of processes.
+    
+    Steps:
+        1. Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
-    2- Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the
+        2. Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the
         updated list of records. These records now have a reference to the Tokenizers TokenData object, and contain
         an attribute called record.vector.
-    3- Instantiate a Disambiguator object and pass to it the list of records. This Disambiguator will use the vector
+        3. Instantiate a Disambiguator object and pass to it the list of records. This Disambiguator will use the vector
         attributes of the records to find a set of approximate nearest neighbors for each one. The result is an adjacency
         matrix.
-    4- Instantiate a Project object, and set various parameters to it as instance variables. For example, the Disambiguator
+        4. Instantiate a Project object, and set various parameters to it as instance variables. For example, the Disambiguator
         object defined above is bound to the Project as an instance variable.
         This Project object will then do the book keeping: saves a settings file, saves the adjacency matrix to a file,
         saves a json version of all records to a file, etc.
-    5- The json files saved by Project, namely the adjacency matrix and the list of records, will be used by the code
+        5. The json files saved by Project, namely the adjacency matrix and the list of records, will be used by the code
         defined in the Affiliations module to extract
-
-
-
-    Parameters:
-        percent_employers: percentage of top edges in the employers network to use.
-        percent_occupations: percentage of top edges in the occupations network to use.
+        
+    @param state: The state to disambiguate. Must be the full name, all lowercase.
+    @param record_limit: a tuple C{(start, number)} specifying the records to retrieve from db. 
+    @param method_id: The record comparison method to use for matching records. Multiple methods
+    are avaliable, but for our current purpose, i.e., stage 1 statewide disambiguation, we use the
+    "thorough" method.
+    @param logstats: Whether or not to log statistics about mathces.
+    @param whereclause: whereclasue to use with the MySQL query.
+    @param percent_employers: percentage of top edges in the employers network to use.
+    @param percent_occupations: percentage of top edges in the occupations network to use.
 
     '''
     batch_id = get_next_batch_id()
@@ -264,20 +272,21 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
     data files which can be loaded by loadAffiliationNetwork().
     The comparison method used by Records here should be
     strict_address.
-
-    1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
+    
+    Steps: 
+        1. Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
         This produces a list of Record objects.
-    2- Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the
+        2. Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the
         updated list of records. These records now have a reference to the Tokenizers TokenData object, and contain
         an attribute called record.vector.
-    3- Instantiate a Disambiguator object and pass to it the list of records. This Disambiguator will use the vector
+        3. Instantiate a Disambiguator object and pass to it the list of records. This Disambiguator will use the vector
         attributes of the records to find a set of approximate nearest neighbors for each one. The result is an adjacency
         matrix.
-    4- Instantiate a Project object, and set various parameters to it as instance variables. For example, the Disambiguator
+        4. Instantiate a Project object, and set various parameters to it as instance variables. For example, the Disambiguator
         object defined above is bound to the Project as an instance variable.
         This Project object will then do the book keeping: saves a settings file, saves the adjacency matrix to a file,
         saves a json version of all records to a file, etc.
-    5- The json files saved by Project, namely the adjacency matrix and the list of records, will be used by the code
+        5. The json files saved by Project, namely the adjacency matrix and the list of records, will be used by the code
         defined in the Affiliations module to extract
     '''
     batch_id = get_next_batch_id()
@@ -464,19 +473,19 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
 def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000), whereclause='', num_procs=3):
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
-        This produces a list of Record objects.
+    This produces a list of Record objects.
     2- Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the
-        updated list of records. These records now have a reference to the Tokenizers TokenData object, and contain
-        an attribute called record.vector.
+    updated list of records. These records now have a reference to the Tokenizers TokenData object, and contain
+    an attribute called record.vector.
     3- Instantiate a Disambiguator object and pass to it the list of records. This Disambiguator will use the vector
-        attributes of the records to find a set of approximate nearest neighbors for each one. The result is an adjacency
-        matrix.
+    attributes of the records to find a set of approximate nearest neighbors for each one. The result is an adjacency
+    matrix.
     4- Instantiate a Project object, and set various parameters to it as instance variables. For example, the Disambiguator
-        object defined above is bound to the Project as an instance variable.
-        This Project object will then do the book keeping: saves a settings file, saves the adjacency matrix to a file,
-        saves a json version of all records to a file, etc.
+    object defined above is bound to the Project as an instance variable.
+    This Project object will then do the book keeping: saves a settings file, saves the adjacency matrix to a file,
+    saves a json version of all records to a file, etc.
     5- The json files saved by Project, namely the adjacency matrix and the list of records, will be used by the code
-        defined in the Affiliations module to extract
+    defined in the Affiliations module to extract
     '''
     batch_id = get_next_batch_id()
     project = Project.Project(batch_id=batch_id)
@@ -642,19 +651,19 @@ def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000
 def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="thorough", logstats=False):
     '''
     1- Pick a list of fields, pick a table and instantiate an FecRetriever object to fetch those fields from the table.
-        This produces a list of Record objects.
+    This produces a list of Record objects.
     2- Instantiate a Tokenizer object, and pass the list of records to the Tokenizer. Tokenize them, and retrieve the
-        updated list of records. These records now have a reference to the Tokenizers TokenData object, and contain
-        an attribute called record.vector.
+    updated list of records. These records now have a reference to the Tokenizers TokenData object, and contain
+    an attribute called record.vector.
     3- Instantiate a Disambiguator object and pass to it the list of records. This Disambiguator will use the vector
-        attributes of the records to find a set of approximate nearest neighbors for each one. The result is an adjacency
-        matrix.
+    attributes of the records to find a set of approximate nearest neighbors for each one. The result is an adjacency
+    matrix.
     4- Instantiate a Project object, and set various parameters to it as instance variables. For example, the Disambiguator
-        object defined above is bound to the Project as an instance variable.
-        This Project object will then do the book keeping: saves a settings file, saves the adjacency matrix to a file,
-        saves a json version of all records to a file, etc.
+    object defined above is bound to the Project as an instance variable.
+    This Project object will then do the book keeping: saves a settings file, saves the adjacency matrix to a file,
+    saves a json version of all records to a file, etc.
     5- The json files saved by Project, namely the adjacency matrix and the list of records, will be used by the code
-        defined in the Affiliations module to extract
+    defined in the Affiliations module to extract
     '''
     batch_id = get_next_batch_id()
     project = Project.Project(batch_id=batch_id)
@@ -759,11 +768,11 @@ def hand_code(state, record_limit=(0, 5000000), sample_size="10000", method_id="
 
 
     ''' Load affiliation graph data.
-        These graph objects also contain a dictionary G.dict_string_2_ind
-        for faster vertex access based on affiliation string.
+    These graph objects also contain a dictionary G.dict_string_2_ind
+    for faster vertex access based on affiliation string.
 
-        For affiliation data to exist, one must have previously executed
-      When used via self.compare(), a positive value is
+    For affiliation data to exist, one must have previously executed
+    When used via self.compare(), a positive value is
     interpreted as True.   Affiliations on the <state>_addresses data.
     '''
 
@@ -990,7 +999,7 @@ def print_resource_usage(msg):
 def worker_disambiguate_states(conn):
     '''
     Worker function that receives a list of states and
-    runs disambiguate_main for each one.
+    runs C{disambiguate_main} for each one.
     '''
     data = conn.recv()
     proc_name = multiprocessing.current_process().name
@@ -1016,7 +1025,7 @@ def worker_disambiguate_states(conn):
 def disambiguate_multiple_states(list_states=[], num_procs=12):
     '''
     Using multiple processes, disambiguate multiple states. Each process will run
-    the worker function worker_disambiguate_states()
+    the worker function L{worker_disambiguate_states}
     @param list_states: list of state strings. If empty, disambiguate all states.
     @param num_procs: number of processes to use.
     '''
@@ -1086,6 +1095,9 @@ def combine_affiliation_graphs():
 
 
 def __combine_affiliation_graphs_occupation():
+    '''
+    Combine the occupation graphs of all states into one national one.
+    '''
     # load all graphs
     list_G = []
     for abbr, state in utils.states.dict_state.iteritems():
@@ -1126,6 +1138,9 @@ def __combine_affiliation_graphs_occupation():
 
 
 def __combine_affiliation_graphs_employer():
+    '''
+    Combine the employer graphs of all states into one national one.
+    '''
     # load all graphs
     list_G = []
     for abbr, state in utils.states.dict_state.iteritems():
