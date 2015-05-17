@@ -1,16 +1,18 @@
 '''
-Created on May 12, 2015
-
-@author: navid
-
-This module provides methods for searching the FEC database.
-
+This module provides methods for searching the FEC database using 
+various types of queries.
 '''
 from disambiguation.core import Database, Record
 import utils
 
 
 class SearchEngine():
+    '''
+    Class for searching the FEC database (MySQL table) using various
+    queries, including those defined by regex patterns.
+    @status: currently we can use queries consisting of regex patterns
+    for different record fields. 
+    '''
     
     def __init__(self):
         self.db = Database.DatabaseManager()

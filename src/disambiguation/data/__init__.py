@@ -1,3 +1,11 @@
+'''
+This module defines variables used for accessing data files
+used internally by various modules.
+
+@var PATH_DATAFILES: Path to the folder containing this module.
+@var DICT_PATH_DATAFILES:  Dict of paths to data files internally used.
+'''
+
 import os
 
 PATH_DATAFILES, __this_filename = os.path.split(__file__)

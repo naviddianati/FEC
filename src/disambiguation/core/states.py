@@ -1,4 +1,14 @@
 # This module contains data on US states
+'''
+This module contains data on US states, and methods that retrieve data
+on US states.
+
+@var dict_state: a dict with uppercase state abbreviations as keys, and lower
+case state names as values.
+@var dict_state_abbr: a dict with lower-case state names as keys and upper-
+case state names as valus.
+
+'''
 
 import pandas as pd
 import os
@@ -166,7 +176,7 @@ def get_state_order(criterion='num_records'):
 
 def __get_state_order_population():
     '''
-    Return a dictionary {state: order} based on state
+    Return a dictionary C{{state: order}} based on state
     population. Lower order means higher population.
     '''
     populations = pd.read_csv(os.path.join(my_data_path, 'us-population.csv'))
@@ -185,7 +195,7 @@ def __get_state_order_population():
 
 def __get_state_order_record_number():
     '''
-    Return a dictionary {state: order} based on number
+    Return a dictionary C{{state: order}} based on number
     records. Lower order means higher number of records.
     '''
     dict_states_record_numbers = get_states_record_numbers()
@@ -201,7 +211,7 @@ def get_states_sorted(criterion='num_records'):
     or number of records. Lower index means higher population.
 
     @param criterion: can be 'num_records' or 'population'. If the former, use
-    get_states_record_numbers. Otherwise use population data.
+    L{get_states_record_numbers}. Otherwise use population data.
 
     '''
     dict_state_order = get_state_order(criterion)

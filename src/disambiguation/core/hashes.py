@@ -3,9 +3,7 @@ This module contains the worker function that computes
 the LSH hashes for the records. It is called by Disambiguator
 instances.
 '''
-from common import *
 import time
-# from utils import *
 import utils
 import Database
 
@@ -43,13 +41,13 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10):
     # ids = dict_hashes.keys()
     # ss = dict_hashes.values()
     n = len(ss)
-    random.seed()
+    utils.random.seed()
     for counter in range(num_shuffles):
         edgelist = set()
 
         utils.shuffle_list_of_str(ss)
         print "Done shuffling ss."
-        arg = np.argsort(ss, axis=0, kind='heapsort')
+        arg = utils.np.argsort(ss, axis=0, kind='heapsort')
         print "Done sorting."
 
         counter_linked = 0
@@ -96,12 +94,13 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10):
 def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_procs=12, num_pairs=1000):
     '''
     Using multiple child processes, load hashes, shuffle them multiple
-    times and compute edgelist. Worker function: worker_get_edgelist_from_hashes_file()
+    times and compute edgelist. Worker function: L{worker_get_edgelist_from_hashes_file}
 
     @param filename: filename where hashes are pickled.
+    @param state: the state.
     @param B: number of adjacency hashes to log.
     @param num_shuffles: total number of times to shuffle the hashes.
-    @param nump_procs:  number of processes to use.
+    @param num_procs:  number of processes to use.
     '''
 
     # The full adjacency matrix. A dict.
@@ -217,11 +216,11 @@ def worker_compute_hashes(data):
         vec_tmp = probe_vectors[k]
 
         # convert to sparse form
-        vec = sparse_vector(vec_tmp)
-        vec_n = vec_norm(vec)
+        vec = utils.sparse_vector(vec_tmp)
+        vec_n = utils.vec_norm(vec)
         # for record, i in zip(self.list_of_records, range(N)):
         for r_id, v in dict_vectors.iteritems():
-            c = '1' if inner_product(v, vec) > 0 else '0'
+            c = '1' if utils.inner_product(v, vec) > 0 else '0'
             dict_hashes[int(r_id)] += c
     return (pid, dict_hashes)
 
