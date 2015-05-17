@@ -5,37 +5,37 @@
 # My explanation is that lots of records that have unique identifier pairs in the <state> table,
 # occur multiple times in the contributor_addresses table, and therefore don't appear in its unique
 # version, namely contributor_addresses_unique.
-''' TODO:
-    1- (DONE: <state>_combined) We need a new table that combines <state> and <state>_addresses as follows:
+''' 
+    TODO:
+        1. (DONE: <state>_combined) We need a new table that combines <state> and <state>_addresses as follows:
         The table structure is like <state>_addresses, but it contains all the records found in <state>.
         For records that have address fields in <state>_addresses, use those. For others, use null.
-
-    2- This table will be analyzed in this code.
-
-    3- Add additional fields to each record:
+    
+        2. This table will be analyzed in this code.
+    
+        3. Add additional fields to each record:
         Name frequency, Timeline period (if exists), Size of neighborhood in employer graph?, Centrality in Employer graph? Size of neighborhood in occupation graph
-
-    4- Identify the right set of features of the records from this table to use with Disambiguator.
+    
+        4. Identify the right set of features of the records from this table to use with Disambiguator.
         Candidates: Name, Address, Employer, Occupation, CMTE_ID (may be confounding)
-
-    5- Define "possible match". Identifying possible matches will be the first stage of disambiguation. We will refine our knowledge starting from these "possible matches".
+    
+        5. Define "possible match". Identifying possible matches will be the first stage of disambiguation. We will refine our knowledge starting from these "possible matches".
         ? Name is similar (specify)
         ? Address is same
         ? Employer is
-        '''
+'''
 '''
 Strategy:
     - Using <state>_addresses, find possible matches (use Disambiguator)
     - Using the results, use AffiliationAnalyzer to derive network of affiliations
-    -
     - Query <state>_combined. Contains all records from <state>, and for some, additional data from <state>_addresses
     - Find possible matches using Disambiguator and additional attributes: frequencies, affiliations, etc.
     - A different comparison function is needed.
     -
 '''
 ''' Notes:
-    1- The <state> tables are 3~4 times as large as <state>_addresses tables.
-    2- The <state>_address and <state>_combined tables don't have all the FIRST_NAMEs and LAST_NAMEs so
+    1. The <state> tables are 3~4 times as large as <state>_addresses tables.
+    2. The <state>_address and <state>_combined tables don't have all the FIRST_NAMEs and LAST_NAMEs so
         if I use these tables to get names, some records won't have names.
 '''
 
@@ -65,13 +65,13 @@ from disambiguation.core.utils import *
 
 def DISAMBIGUATE_stage_1():
     '''
-    Run disambiguate_main for each state. The main products will be the following:
+    Run L{disambiguate_main} for each state. The main products will be the following:
 
-    - The preliminary identities inferred at the state level, stored in the
+        - The preliminary identities inferred at the state level, stored in the
         "identities" MySQL table.
-    - The full match buffers of all states. These are lists of all record pairs
+        - The full match buffers of all states. These are lists of all record pairs
         matched within each state.
-    - The near misses within each state. These can be used to revisit and refine
+        - The near misses within each state. These can be used to revisit and refine
         the clusters found, in the second round.
     '''
     import stage1
@@ -93,20 +93,20 @@ def DISAMBIGUATE_stage_2():
     Using results from state-level disambiguation, do a second run of comparisons
     on a national level. The goal is to match clusters across states and even within
     states. To do this, we use the following data:
-    - coarse hashes computed for the entire country using the Tokenizer class via
-        INIT_compute_national_hashes()
-    - The match buffer of each state, used to avoid double-checking records that are
+        - coarse hashes computed for the entire country using the Tokenizer class via
+        L{INIT_compute_national_hashes}
+        - The match buffer of each state, used to avoid double-checking records that are
         already matched. That would be stupid.
-    - The set of near miss record pairs found for each state. These pairs will be re-
+        - The set of near miss record pairs found for each state. These pairs will be re-
         examined if they aren't clustered together already. The point is that using the
         stage_1 identities, we now have access to new statistics that will let us
         assess the likelihood of these near-misses actually being matches.
-
-    The steps are roughly as follows:
-    - Using the uniform national hashes, find a list of similar record pairs across
+    
+        The steps are roughly as follows:
+        - Using the uniform national hashes, find a list of similar record pairs across
         the country. This list minus the match buffers from stage 1 will be the pairs
         we will be comparing in this round.
-    - Divide records into num_procs "independent" sets of roughly equal sizes. That is,
+        - Divide records into num_procs "independent" sets of roughly equal sizes. That is,
         divide into sets such that all pair comparisons we need to do fall within the
         sets. Each one of these sets will be sent to a child process for processing.
     '''
@@ -226,12 +226,31 @@ def view_vectors(state='delaware'):
 
 
 def INIT():
-
-    '''State level data preparation (for fine-grained intra state disambiguation)'''
+    '''
+    Initialize. Perform preliminary computations in preparation for the stage1
+    and stage2 disambiguations. We compute a number of things and export the resulting
+    data to files. These files will be loaded later by disambiguation methods.
+        - For each state, using the TokenizerNgram class, tokenize all records from the specified
+        state, save the tokendata as well as the feature vectors to files. Then, compute the LSH hashes
+        and save to file. This data will be used for the state-level (stage1) disambiguation where
+        candidate record pairs are selected based on hashes computed from file-grained (Ngram)
+        feature vectors.
+        -  For each state, using the Tokenizer class, tokenize all records from the specified
+        state, save the tokendata as well as the feature vectors to files. Then, compute the LSH hashes
+        and save to file. This data will be used for the national (stage2) disambiguation where
+        candidate record pairs are selected based on hashes computed from coarse-grained (word)
+        feature vectors.
+        - Combine the Tokenizer tokendata and feature vectors of all states into a national file
+        to be used in stage2 disambiguation.
+        - Using the national Tokenizer tokendata and feature vectors, compute new (and longer)
+        hashes, uniformly for the entire country. This will be used in stage2 to find candidate
+        pairs at a national level.
+    '''
+    # State level data preparation (for fine-grained intra state disambiguation)
     # Tokenize, vectorize and hashify all states using TokenizerNgram
     # init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
 
-    ''' National level data preparation: '''
+    # National level data preparation:
     # Tokenize, vectorize and hashify all states using Tokenizer
     ltf = ['NAME', 'EMPLOYER', 'OCCUPATION']
     init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields = ltf, num_procs=12)
@@ -249,8 +268,7 @@ def INIT():
 
 def test_memory1():
     '''
-    load the USA 20-char hashes to see memory
-    use.
+    load the USA 20-char hashes to see memory use.
     '''
     import disambiguation.core.utils as utils
     utils.time.sleep(10)

@@ -63,7 +63,8 @@ class html_table():
 def get_auxilliary_data(list_data):
     '''
     Return html code for the auxilliary data div.
-    @param dict_data: dictionary of the data items.
+    @param list_data: list of the data items. Each element must be a tuple 
+    of strings C{(title:content)}.
     '''
     html = ''
     for title,content in list_data:
