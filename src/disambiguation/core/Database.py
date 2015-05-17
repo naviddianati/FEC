@@ -1,7 +1,8 @@
 '''
-Created on Jun 26, 2014
-
-@author: navid
+This module defines the L{DatabaseManager} class and its subclasses,
+used for interacting with the MySQL server for retrieving records from
+the state and national tables, writing to the identities table, retrieving
+the computed identities from the C{identities} table, etc.
 '''
 
 import datetime
@@ -12,18 +13,19 @@ import states
 import utils
 
 class DatabaseManager:
-    '''Generic class for interacting with MySQL server '''
+    '''
+    Base class for interacting with MySQL server. It implements a connection
+    method and a runQuery method. 
+    '''
 
     def __init__(self):
-
-        # Establish connection
         self.connection = self.db_connect()
 
-        pass
 
-
-    # establish and return a connection to the MySql database server
     def db_connect(self):
+        '''
+        Extablish and return a connection to the MySQL database server.
+        '''
         con = None
         con = mdb.connect(host='localhost',  # hostname
                            user='navid',  # username
@@ -36,11 +38,13 @@ class DatabaseManager:
         return con
 
     def runQuery(self, query):
+        '''
+        Run a MySQL query and return the result.
+        '''
         if self.connection is None:
             print "No database connection. Aborting"
             return
         cur = self.connection.cursor()
-        # cur.execute("select NAME,ZIP_CODE,EMPLOYER,TRANSACTION_DT from newyork order by NAME limit 1000 ;")
         cur.execute(query)
         return  cur.fetchall()
 
@@ -155,8 +159,10 @@ class FecRetrieverByID(DatabaseManager):
 
 
 class FecRetriever(DatabaseManager):
-    ''' subclass of DatabaseManager with a method specifically to retrieve our desired data
-    from MySQL database.'''
+    ''' 
+    subclass of DatabaseManager with a method specifically to 
+    retrieve our desired data from MySQL database.
+    '''
     def __init__(self, table_name, query_fields, limit, list_order_by, where_clause='', require_id=True):
 
         DatabaseManager.__init__(self)
@@ -181,8 +187,6 @@ class FecRetriever(DatabaseManager):
         else:
             self.order_by = ""
 
-#         record_start,record = 1
-#         record_no = 5000
 
     def retrieve(self):
         # Get string list from MySQL query and set it as analyst's list_of_records_identifier

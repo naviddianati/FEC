@@ -19,17 +19,7 @@ class mplPalette(ig.Palette):
         color = (color_tmp[0],color_tmp[1],color_tmp[2])
     
         return color
-#         return(abs(2*x - 0.5),sin(3.1415*x),cos(3.1415/2*x),1)
-    
 
-#     # Accecpts parameter v in [0,1]
-#     def _getRGB255(self,v):
-#         x=v
-#         return(
-#             int(abs(2*x - 0.5)*self.n),
-#             int(sin(3.1415*x)*self.n),
-#             int(cos(3.1415/2*x)*self.n)
-#         )
 
 
 class gnuplotPalette1(ig.Palette):

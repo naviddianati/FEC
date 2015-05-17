@@ -1,8 +1,10 @@
 '''
-Created on Jun 30, 2014
-
-@author: navid
+This module implements classes used to generate the affiliation (employer/occupation)
+similarity graphs.
+@todo: documentation of the classes is VERY incomplete.
 '''
+
+
 import igraph
 import json
 from math import log
@@ -14,7 +16,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import binom
 from Database import FecRetriever
-from common import *
 import filters
 import utils
 

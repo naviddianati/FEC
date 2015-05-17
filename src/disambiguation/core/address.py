@@ -1,3 +1,8 @@
+'''
+@todo: This is a third party module. Find and credit the source properly.
+'''
+
+
 # Meant to parse out address lines, minus city,state,zip into a usable dict for address matching
 # Ignores periods and commas, because no one cares.
 

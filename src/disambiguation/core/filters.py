@@ -1,7 +1,6 @@
 """
 This module implements functions for computing the statistical significance of the weighted
-edges of the affiliation (employer/occupation) graphs using the U{Marginal Likelihood Filter
-of Dianati <http://arxiv.org/abs/1503.04085>}. This will be useful for assessing the similarity
+edges of the affiliation (employer/occupation) graphs using the U{Marginal Likelihood Filter <http://arxiv.org/abs/1503.04085>} of Dianati. This will be useful for assessing the similarity
 of different employer/occupation identifiers, used in record comparisons. This significance
 measure identifies related identifier pairs such as "ATTORNEY" and "LAWYER". 
 """

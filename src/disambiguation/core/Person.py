@@ -1,12 +1,15 @@
 '''
-Created on Jul 9, 2014
-
-@author: navid
+This module defines the L{Person} class which groups records together,
+representing an identity.
 '''
 
-''' Hashable '''
 class Person(object):
-    
+    '''
+    Hashable class representing a person (group of records). It implements
+    methods for measuring the compatibility between a pair of persons, splitting
+    a person into more than one if multiple middle names are detected inside,
+    and merging different Person objects if they are sufficiently compatible.
+    '''
     # Static compatibility threshold. Higher means more strict
     compatibility_threshold = 0.5
    

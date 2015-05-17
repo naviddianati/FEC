@@ -1,16 +1,11 @@
-# import visual as vs
-''' This class receives a list of records and computes a similarity matrix between the nodes. Each record has a "vector".
-    Each vector is a dictionary C{{index:(0 or 1)}} where index is a unique integer representing a feature or token in the record.
-    The tokens themselves can be specified via C{index_2_token} and C{token_2_index}.
+''' 
+This module defines the L{Disambiguator} class which is the working engine of
+the disambiguation process. This class receives a list of records, and using
+the feature vectors and LSH hashes, finds pairs of records that must be compared,
+then performs the comparison and builds an adjacency matrix between the records.
+From this adjacency matrix, identities are identified.
+'''
 
-    The core action of the class is by finding candidates for approximate nearest neighbors for each vector based simply on euclidean
-    distance.
-
-    This can be further augmented by overriding  the member function C{__is_close_enough(v1,v2)}. This functions takes two vectors as inputs
-    and decides if they should be linked or not, and uses additional information about the features/tokens as well. This is where
-    C{index_2_token} and C{token_2_index} can be used.
-    C{matching_mode} can be "strict_address" or "strict_affiliation" or "thorough"
-    '''
 from utils import *
 from multiprocessing.process import Process
 from multiprocessing import Pool, Manager
@@ -23,16 +18,26 @@ from Town import Town
 import editdist
 import pylab as pl
 from states import dict_state_abbr
-import resource
+# import resource
 from memory_spike import *
 from hashes import *
-from common import *
 import copy
 import disambiguation.config as config
 import disambiguation.data
 
 
 class Disambiguator():
+    ''' 
+    This class receives a list of records and computes a similarity matrix between
+    the nodes. Each record has a "vector". Each vector is a dictionary C{{index:(0 or 1)}} 
+    where index is a unique integer representing a feature or token in the record.
+    The tokens themselves can be specified via C{index_2_token} and C{token_2_index}.
+    
+    The core action of the class is finding candidates for approximate nearest neighbors
+    for each record using the feature vectr and the resulting LSH hash. The detailed
+    record comparison is then performed by instance methods of the records themselves.
+    This is where C{index_2_token} and C{token_2_index} can be used.
+    '''
 
     def __init__(self, list_of_records, vector_dimension, matching_mode="strict_address", num_procs=1):
         '''
@@ -673,7 +678,7 @@ class Disambiguator():
         #  Sort self.list_of_records using the hashes as keys. This way, when we're chunking it, we'll have
         # contiguous pieces, and we can efficiently delete the current chunk from self.list_of_records
         print "Number of records in self.list_of_records: ", len(self.list_of_records)
-        permute_inplace(self.list_of_records, sort_indices_dict_inv)
+        utils.permute_inplace(self.list_of_records, sort_indices_dict_inv)
 
 
         list_procs = []
@@ -1367,33 +1372,6 @@ class Disambiguator():
         db_manager.connection.close()
 
 
-
-
-
-
-
-def permute_inplace(X, Y):
-    ''''
-    permute the list C{X} inplace, according to C{Y}.
-    C{Y} is a dictionary C{{c_index : t_index }} which means the value of C{X[c_index]}
-    should end up in C{X[t_index]}.
-    '''
-    while Y:
-        # key values to be deleted from Y at the end of each runthrough
-        death_row_keys = []
-        # Iterate through current indexes
-        for c_index in Y:
-            # Target index
-            t_index = Y[c_index]
-            if c_index == t_index:
-                death_row_keys.append(c_index)
-                continue
-            # Swap values of the current and target indexes in X
-            X[t_index], X[c_index] = X[c_index], X[t_index]
-            Y[t_index], Y[c_index] = Y[c_index], Y[t_index]
-
-        for key in death_row_keys:
-            del Y[key]
 
 
 

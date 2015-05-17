@@ -1,44 +1,17 @@
 '''
-Created on Jun 25, 2014
+The module defines the L{Record} class which represents a record from 
+the database and implements various methods, most importantly for record
+comparison. 
 
-@author: navid
-'''
-'''
-Hashable class.
-'''
-
-
-'''
-When can we use name frequency in record comparison?
-
-1- city and zipcode are the same, some affiliation is missing:
-    ________________________________________________________________________________
-                        0       1      2     3                      4  5
-    0    BEAZLEY, MICHAEL  TOLEDO  43606  SELF             CONSULTANT
-    1  BEAZLEY, MICHAEL J  TOLEDO  43606        INFORMATION REQUESTED  J
-
-
-
-1- city and zipcode are different, no meaningful affiliation info, bu name VERY rare
-    ________________________________________________________________________________
-                          0            1      2                    3        4  5
-    0    CANCELLIERE, LAURA  BAY VILLAGE  44140              RETIRED  RETIRED
-    1  CANCELLIERE, LAURA N     WESTLAKE  44145  COMMUNITY VOLUNTEER           N
-
-
-1- CITY1 == CITY2:
-
-
-
-
+This is the heart of the disambiguation process, and one can adjust and
+fine-tune the process by modifying, subclassing or reimplementing the class
+defined in this module.
 '''
 
-import json
+
 
 
 import utils
-from Person import Person
-# from Tokenizer import TokenData
 import Tokenizer
 import editdist
 

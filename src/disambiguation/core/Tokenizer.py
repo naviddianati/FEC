@@ -1,21 +1,32 @@
 '''
-Created on Jul 1, 2014
+This module defines a number of classes used to parse and tokenize the data
+within records. Most importantly, the L{Tokenizer} class and its subclasses
+define methods for "normalizing" various record fields such as first name or
+last name. The normalized fields are added to the record as additional dict
+key-values. 
 
-@author: navid
+After normalizing the fields, Tokenizer also "tokenizes" the recods.
+For each field, the value is processed into tokens. Tokenizer defines tokens
+as full "words" separated by whitespace while TokenizerNgram defines it as
+character n-grams. Based on these tokens, for each record, a "feature vector"
+is computed that shows which of the tokens it possesses. These feature vectors
+will later allow us to compute LHS hashes for the records which are used to
+find similar records efficiently.
+
+The other class in this module is the L{TokenData} class which is instantiated
+by the Tokenizer class and contains the global data on the tokens discovered
+by Tokenizer such as their frequency, and an index of all tokens.
 '''
+
+
+
 import cPickle
-'''
-TODO:
-    The address tokenizer fails in the case of PO BOX addresses.
-'''
-
 import json
 import os
 import pickle
 import pprint
 import re
 from disambiguation.nameparser import HumanName
-
 from address import AddressParser
 from nltk.util import ngrams
 from .. import config
