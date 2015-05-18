@@ -5,20 +5,20 @@
 # My explanation is that lots of records that have unique identifier pairs in the <state> table,
 # occur multiple times in the contributor_addresses table, and therefore don't appear in its unique
 # version, namely contributor_addresses_unique.
-''' 
+'''
     TODO:
         1. (DONE: <state>_combined) We need a new table that combines <state> and <state>_addresses as follows:
         The table structure is like <state>_addresses, but it contains all the records found in <state>.
         For records that have address fields in <state>_addresses, use those. For others, use null.
-    
+
         2. This table will be analyzed in this code.
-    
+
         3. Add additional fields to each record:
         Name frequency, Timeline period (if exists), Size of neighborhood in employer graph?, Centrality in Employer graph? Size of neighborhood in occupation graph
-    
+
         4. Identify the right set of features of the records from this table to use with Disambiguator.
         Candidates: Name, Address, Employer, Occupation, CMTE_ID (may be confounding)
-    
+
         5. Define "possible match". Identifying possible matches will be the first stage of disambiguation. We will refine our knowledge starting from these "possible matches".
         ? Name is similar (specify)
         ? Address is same
@@ -76,10 +76,10 @@ def DISAMBIGUATE_stage_1():
     '''
     import stage1
 
-    #TODO: compute affiliations
-    
-    
-    #Combine affiliation graphs into a national one.
+    # TODO: compute affiliations
+
+
+    # Combine affiliation graphs into a national one.
     stage1.combine_affiliation_graphs()
 
     # Disambiguate every state separately in parallel.
@@ -101,7 +101,7 @@ def DISAMBIGUATE_stage_2():
         examined if they aren't clustered together already. The point is that using the
         stage_1 identities, we now have access to new statistics that will let us
         assess the likelihood of these near-misses actually being matches.
-    
+
         The steps are roughly as follows:
         - Using the uniform national hashes, find a list of similar record pairs across
         the country. This list minus the match buffers from stage 1 will be the pairs
@@ -126,14 +126,14 @@ def DISAMBIGUATE_stage_2():
     # Partition the full record set into num_procs subsets
     # with minimal inter-set links, and export the record ids
     # to a separate file for each subset.
-    #stage2.partition_records( num_partitions = num_procs, state = 'USA')
+    # stage2.partition_records( num_partitions = num_procs, state = 'USA')
 
-    # Compute token frequencies at the person level given the 
+    # Compute token frequencies at the person level given the
     # identities computed in stage1
-    #stage2.compute_person_tokens()
-    
+    # stage2.compute_person_tokens()
+
     # Compare record pairs within each subset and save results.
-    stage2.disambiguate_subsets_multiproc(num_partitions = num_procs, state="USA", num_procs=10)
+    stage2.disambiguate_subsets_multiproc(num_partitions=num_procs, state="USA", num_procs=10)
 
     pass
 
@@ -253,7 +253,7 @@ def INIT():
     # National level data preparation:
     # Tokenize, vectorize and hashify all states using Tokenizer
     ltf = ['NAME', 'EMPLOYER', 'OCCUPATION']
-    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields = ltf, num_procs=12)
+    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields=ltf, num_procs=12)
 
 
     # combine the vectors and tokens from all states into the national data files.
@@ -261,7 +261,7 @@ def INIT():
 
     # Using the national vectors and tokens, compute uniform national hashes
     init.INIT_compute_national_hashes(num_procs=10)
-    
+
 
 
 
@@ -312,7 +312,7 @@ def test_identity_manager2():
     idm = IdentityManager(state='USA')
     idm.fetch_dict_id_2_identity()
     print len(idm.dict_id_2_identity)
-    
+
 
 
 def test_retriever_by_id():
@@ -332,9 +332,9 @@ def test_retriever_by_id():
                       list_order_by='')
     db.retrieve()
     list_ids = [int(r.id) for r in db.getRecords()]
-    
-    
-    
+
+
+
     retriever.retrieve(list_ids, all_fields)
     for r in retriever.getRecords():
         print r.id
@@ -343,15 +343,15 @@ def test_retriever_by_id():
 
 def test_searchengine():
     sdb = search.SearchEngine()
-    
+
     sdb.search_regex(name="FLANIGAN.*PETER", employer="", city="")
     dict_ids = {r.id: r for r in sdb.list_of_records}
-    
+
     result = sdb.get_identities(sdb.list_of_records)
     result.sort(key=lambda x:x[1])
-    for rid ,identity in result:
-        print rid,identity, dict_ids[rid].toString()
-        
+    for rid , identity in result:
+        print rid, identity, dict_ids[rid].toString()
+
 
 if __name__ == "__main__":
 
@@ -364,10 +364,10 @@ if __name__ == "__main__":
 #     quit()
 
 
-    #INIT()
+    # INIT()
 
-    #test_searchengine()
-    #quit()
+    # test_searchengine()
+    # quit()
 
     DISAMBIGUATE_stage_2()
     quit()
@@ -375,7 +375,7 @@ if __name__ == "__main__":
     test_identity_manager2()
     quit()
 
-    
+
 
     test_retriever_by_id()
     quit()

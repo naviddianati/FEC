@@ -57,7 +57,9 @@ class DatabaseManager:
 
 class FecRetrieverByID(DatabaseManager):
     '''
-    Subclass that retrieves records with ids in a given list of ids.
+    Subclass that retrieves records with ids in a given list of ids. For
+    efficiency when a large number of record ids are requested, this task
+    is accomplished via a join operation with a temporary table.
     '''
 
     def __init__(self, table_name):
@@ -84,6 +86,7 @@ class FecRetrieverByID(DatabaseManager):
     def __populate_temp_table(self, list_ids):
         '''
         Insert the ids into the temp table.
+        @param list_ids: list of record ids tobe retrieved.
         '''
         print "inserting..."
         for rid in list_ids:
@@ -238,8 +241,8 @@ class FecRetriever(DatabaseManager):
 
 class IdentityManager(DatabaseManager):
     '''
-    DatabaseManager subclass that interacts with the 'identities' MySQL
-    table and retrieves cluster membership data.
+    DatabaseManager subclass that interacts with the 'identities' and
+    'identities_adjacency' MySQL tables and retrieves cluster membership data.
     @ivar dict_id_2_identity: dictionary mapping each record id to its
     corresponding identity.
     @ivar dict_identity_2_list_ids: dictionary mapping each identity to the
@@ -258,10 +261,10 @@ class IdentityManager(DatabaseManager):
     inferred relationships between identities. This table is defined by the columns:
     C{(identity1 VARCHAR(24), identity2 VARCHAR(24), no INT, maybe INT, yes INT, PRIMARY KEY ("identity1","identity2"))}.
     '''
-    
+
     table_name_identities = 'identities'
     table_name_identity_adjacency = 'identities_adjacency'
-    
+
 
     def __init__(self, state, list_order_by="", where_clause=''):
         DatabaseManager.__init__(self)
@@ -339,10 +342,10 @@ class IdentityManager(DatabaseManager):
         for r_pair, result in list_record_pairs:
             has_identity1 = True
             has_identity2 = True
-            
+
             # if records are completely unrelated. Don't bother
             # registering their relationship.
-            if result is None: 
+            if result is None:
                 counter_result_none += 1
                 continue
 
@@ -394,32 +397,32 @@ class IdentityManager(DatabaseManager):
                     result_maybe += 1
                 elif result > 0:
                     result_yes += 1
-                    
+
             self.dict_identity_adjacency[key] = (result_no, result_maybe, result_yes)
-            
+
 
 
 
 
     def export_identities_adjacency(self):
         '''
-        Export the contents of L{self.dict_identity_adjacency} to the 
+        Export the contents of L{self.dict_identity_adjacency} to the
         table defined by L{IdentityManager.table_name_identity_adjacency}.
         '''
-        for key,result in self.dict_identity_adjacency.iteritems():
-            #print 'key: ', key
-            identity1,identity2 = key
+        for key, result in self.dict_identity_adjacency.iteritems():
+            # print 'key: ', key
+            identity1, identity2 = key
             result_no, result_maybe, result_yes = result
             query = 'INSERT INTO %s (identity1,identity2,no,maybe,yes) VALUES ("%s", "%s", %d, %d, %d);' \
-                   % (IdentityManager.table_name_identity_adjacency, identity1,identity2, result_no, result_maybe, result_yes)
+                   % (IdentityManager.table_name_identity_adjacency, identity1, identity2, result_no, result_maybe, result_yes)
             self.runQuery(query)
         self.connection.commit()
-        self.connection.close() 
-        
-        
-        
-        
-        
+        self.connection.close()
+
+
+
+
+
 
     def drop_table_identities(self):
         '''

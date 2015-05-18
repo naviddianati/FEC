@@ -1,4 +1,4 @@
-''' 
+'''
 This module defines the L{Disambiguator} class which is the working engine of
 the disambiguation process. This class receives a list of records, and using
 the feature vectors and LSH hashes, finds pairs of records that must be compared,
@@ -27,12 +27,12 @@ import disambiguation.data
 
 
 class Disambiguator():
-    ''' 
+    '''
     This class receives a list of records and computes a similarity matrix between
-    the nodes. Each record has a "vector". Each vector is a dictionary C{{index:(0 or 1)}} 
+    the nodes. Each record has a "vector". Each vector is a dictionary C{{index:(0 or 1)}}
     where index is a unique integer representing a feature or token in the record.
     The tokens themselves can be specified via C{index_2_token} and C{token_2_index}.
-    
+
     The core action of the class is finding candidates for approximate nearest neighbors
     for each record using the feature vectr and the resulting LSH hash. The detailed
     record comparison is then performed by instance methods of the records themselves.
@@ -48,7 +48,7 @@ class Disambiguator():
             but name frequencies aren't taken into account. This is still somewhat conservative.
             - "national": for the national level. Here, we use token frequencies computed
             at the "person" level, using the state-level identities computed in stage1.In
-            this stage, it is expected that the tokendata object contains frequencies for 
+            this stage, it is expected that the tokendata object contains frequencies for
             an additional normalized attribute too, namely "N_full_name". The frequencies
         '''
 
@@ -456,39 +456,39 @@ class Disambiguator():
         print "NUMBER OF DISTINCT RECORDS IN list_of_records: ", len(tmp)
 
 
-    def compare_list_of_pairs(self,list_of_pairs):
+    def compare_list_of_pairs(self, list_of_pairs):
         '''
-        Disambiguate by perform comparisons between a given list of record
+        Disambiguate by performing comparisons between a given list of record
         pairs. Can be used instead of C{compute_similarity}, when we know which
         pairs of records we should compare already, for example because we've
         already processed the hashes and found the nearest neighbors.
-        The same instance variables are set by this function as with 
+        The same instance variables are set by this function as with
         C{update_nearest_neighbors}.
-        
+
         This is a "generator". It yields a tuple of 4 values:
         C{(verdict, result, rid1, rid2)}
-        
+
         @param list_of_pairs: list of tuples (rid1,rid2)
         '''
         # dict:  {record: index of record in self.list_of_records }
-        dict_records = {r.id:r for i,r in enumerate(self.list_of_records)}
-        for rid1,rid2 in list_of_pairs:
+        dict_records = {r.id:r for i, r in enumerate(self.list_of_records)}
+        for rid1, rid2 in list_of_pairs:
             record1 = dict_records[rid1]
             record2 = dict_records[rid2]
-            
+
             # New implementation: comparison is done via instance function of the Record class
             # Comparison (matching) mode is passed to the Record's compare method.
             verdict, result = record1.compare(record2, mode=self.matching_mode)
 
-            #if record1['NAME'] == "ANTHONY, ELIZABETH":
+            # if record1['NAME'] == "ANTHONY, ELIZABETH":
             if True:
                 print verdict, str(result), "="*70
                 print record1.toString(), "'%s'" % record1['N_last_name'], record1['ZIP_CODE']
                 print record2.toString(), "'%s'" % record2['N_last_name'], record2['ZIP_CODE']
-                print record1.compare_zipcodes(record1,record2) 
-            
-            yield verdict,result, rid1, rid2
-            
+                print record1.compare_zipcodes(record1, record2)
+
+            yield verdict, result, rid1, rid2
+
 
 
 
@@ -514,17 +514,17 @@ class Disambiguator():
                 s = json.dumps(data, sort_keys=True)
                 s1 = record1.toString()
                 s2 = record2.toString()
-    
+
                 self.file_comparison_results.write(s + "\n")
                 self.file_comparison_results.write(s1 + "\n")
                 self.file_comparison_results.write(s2 + "\n")
                 self.file_comparison_results.write("="*120 + "\n")
-    
+
                 # Save the json object to file logging near misses
                 self.file_near_misses.write(s + "\n")
         except Exception, e:
             utils.Log(str(e))
-            
+
     def __update_nearest_neighbors_single_proc(self, B, hashes=None, allow_repeats=False):
         '''
         Given a list of strings or hashes, this function finds
@@ -575,7 +575,7 @@ class Disambiguator():
                 # Comparison (matching) mode is passed to the Record's compare method.
                 verdict, result = record1.compare(record2, mode=self.matching_mode)
 
-                #if record1['N_first_name'] == 'RICHARD' and record2['N_first_name'] == "ROBERT" and verdict > 0:
+                # if record1['N_first_name'] == 'RICHARD' and record2['N_first_name'] == "ROBERT" and verdict > 0:
                 #    print record1.toString(), '--', record2.toString(), verdict, result
 
                 if verdict > 0:
@@ -888,12 +888,12 @@ class Disambiguator():
 
 
     def initialize_index_adjacency(self):
-        ''' 
+        '''
         This function creates an empty C{self.index_adjacency} dictionary and then populates it initially as follows:
         it goes over the list of (sorted) hashes and among adjacent entries it finds maximal groups of identical
         hashes, and creates complete subgraphs corresponding to them in self.index_adjacency.
         This is necessary if the original C{list_of_vectors} contains repeated entries, such as when we are dealing
-        with multiple transactions per person. 
+        with multiple transactions per person.
         '''
         self.index_adjacency = {}
         i = 0
@@ -1001,8 +1001,8 @@ class Disambiguator():
 
 
     def print_index_adjacency(self):
-        ''' 
-        print the similarity matrix C{index_adjacency} 
+        '''
+        print the similarity matrix C{index_adjacency}
         '''
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(self.index_adjacency)
@@ -1038,7 +1038,7 @@ class Disambiguator():
         '''
         Generate Person objects from the records and the C{index_adjacency}
         matrix. The main product is self.town
-        @todo: Generate each person's set of possible neighbors
+        @todo: finding neighbors is unnecessary now that we have stage 2.
         '''
 
         self.compute_edgelist()
@@ -1214,11 +1214,11 @@ class Disambiguator():
 
 
 
-    '''
-    Use C{self.new_matches_buffer} to look for Person objects that are potentially connected.
-    If so, merge the Persons.
-    '''
     def merge_identities(self):
+        '''
+        Use C{self.new_matches_buffer} to look for Person objects
+        that are potentially connected. If so, merge the Persons.
+        '''
 
 
         for count, pair in enumerate(self.new_match_buffer):
@@ -1259,7 +1259,7 @@ class Disambiguator():
 
     def refine_identities_merge_similars(self, m):
         '''
-        Run C{self.update_nearest_neighbors()} a few more times; 
+        Run C{self.update_nearest_neighbors()} a few more times;
         this time consider matches across different Persons
         and if necessary merge the corresponding Persons.
         @param m: how many times to shuffle the hashes and recompute
@@ -1334,8 +1334,10 @@ class Disambiguator():
 
     def save_identities_to_db(self, overwrite=False):
         '''
-        Export the calculated identities of the records to 
+        Export the calculated identities of the records to
         a database table called "identities".
+        @param overwrite: It True, drop the identities table
+        and create an empty one.
         '''
         db_manager = DatabaseManager()
 

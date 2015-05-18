@@ -38,7 +38,7 @@ random.seed()
 def permute_inplace(X, Y):
     ''''
     permute the list C{X} inplace, according to C{Y}. C{Y} is a dictionary
-    C{{c_index : t_index }} which means the value of C{X[c_index]} should 
+    C{{c_index : t_index }} which means the value of C{X[c_index]} should
     end up in C{X[t_index]}.
     '''
     while Y:

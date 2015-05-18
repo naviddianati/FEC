@@ -18,8 +18,8 @@
  */
 
 em.summary {font-style:normal}
-body                        { background: #ffffff; color: #000000; font-family:sans-serif}
-p                           { margin-top: 0.5em; margin-bottom: 0.5em; }
+body                        { background: #ffffff; color: #000000; font-family:sans-serif; max-width:1200px;margin-right:auto;margin-left:auto; background:aliceblue}
+p                           { margin-top: 0.5em; margin-bottom: 0.5em; padding: 0.2em;}
 a:link                      { color: #0000ff; }
 a:visited                   { color: #204080; }
 dt                          { font-weight: bold; }

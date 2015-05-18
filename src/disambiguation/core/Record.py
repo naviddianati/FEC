@@ -536,14 +536,14 @@ class Record(dict):
         Dictionary of the possible values for the result keys:
             - B{'o'} (occupation):
                 - 0: they both exist but are unrelated
-                - 1: at least one doesn't have the field, or at least one has a bad 
+                - 1: at least one doesn't have the field, or at least one has a bad
                 identifier but the two aren't the same.
                 - 2: exactly the same, but "bad_identifier" (e.g.: RETIRED)
                 - 3: connected in the affiliations network
                 - 4: exactly the same but not "bad_identifier"
             - B{'e'} (employer):
                 - 0: they both exist but are unrelated
-                - 1: at least one doesn't have the field, or at least one has a bad 
+                - 1: at least one doesn't have the field, or at least one has a bad
                 identifier but the two aren't the same.
                 - 2: exactly the same, but "bad_identifier" (e.g.: SELF-EMPLOYED)
                 - 3: connected in the affiliations network or strings very close, or
