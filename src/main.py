@@ -309,7 +309,9 @@ def test_identity_manager2():
     from disambiguation.core.Database import IdentityManager
     from disambiguation.core import utils
 
-    idm = IdentityManager(state='delaware')
+    idm = IdentityManager(state='USA')
+    idm.fetch_dict_id_2_identity()
+    print len(idm.dict_id_2_identity)
     
 
 
@@ -367,12 +369,12 @@ if __name__ == "__main__":
     #test_searchengine()
     #quit()
 
+    DISAMBIGUATE_stage_2()
+    quit()
 
     test_identity_manager2()
     quit()
 
-    DISAMBIGUATE_stage_2()
-    quit()
     
 
     test_retriever_by_id()

@@ -117,20 +117,22 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12):
     list_filenames = [config.candidate_pairs_partitioned_file_template % (state, counter)\
                        for counter in range(num_partitions)]
 
+    list_list_record_pairs = []
     if num_procs == 1:
         for i, filename in enumerate(list_filenames):
-            list_list_record_pairs = [worker_disambiguate_subset_of_edgelist(filename)]
+            list_list_record_pairs.append(worker_disambiguate_subset_of_edgelist(filename))
     else:
         pool = utils.multiprocessing.Pool(num_procs)
         list_list_record_pairs = pool.map(worker_disambiguate_subset_of_edgelist, list_filenames)
 
+    print "length of list_list_record_pairs: ", len(list_list_record_pairs)
     # Concatenate all sublists
     list_record_pairs = []
     while list_list_record_pairs:
         list_record_pairs += list_list_record_pairs.pop()
 
 
-
+    print "final len of list_record_pairs:", len(list_record_pairs)
     # Create an IdentityManager instance, then given the record
     # paris just found, compute the identity_adjacency.
     idm = Database.IdentityManager('USA')
@@ -169,7 +171,7 @@ def __get_customized_verdict(verdict, detailed_comparison_result):
         - B{None}: records are't similar, just ignore them.
     '''
     if verdict < 0 : return -1
-    if verdict == False and  detailed_comparison_result['n'] == 3: return 0
+    if verdict == False and  detailed_comparison_result['n'] >= 3: return 0
     if verdict == True: return 1
     return None
 
@@ -216,7 +218,7 @@ def worker_disambiguate_subset_of_edgelist(filename):
         retriever.retrieve(list_record_ids, all_fields)
         list_of_records = retriever.getRecords()
 
-
+ 
         project = Project.Project(1)
 
 

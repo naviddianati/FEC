@@ -138,7 +138,7 @@ class FecRetrieverByID(DatabaseManager):
 
             # I require that each row have a unique "id" column
             try:
-                r.id = r['id']
+                r.id = int(r['id'])
             except KeyError:
                 if self.require_id :
                     raise Exception("ERROR: record does not have 'id' column")
@@ -321,9 +321,8 @@ class IdentityManager(DatabaseManager):
         pair comparison.
         @requires: a populated "identities" table.
         '''
-        has_identity1 = True
-        has_identity2 = True
-
+        counter_has_identity = 0
+        counter_result_none = 0
         # tmp dict that will map each identity pair to a list
         # of results from all their inter-cluster record pair
         # comparison results. Each list will be interpreted to
@@ -338,10 +337,14 @@ class IdentityManager(DatabaseManager):
 
         # Loop through the list of record pairs and their result.
         for r_pair, result in list_record_pairs:
+            has_identity1 = True
+            has_identity2 = True
             
             # if records are completely unrelated. Don't bother
             # registering their relationship.
-            if result is None: continue
+            if result is None: 
+                counter_result_none += 1
+                continue
 
             rid1, rid2 = r_pair
             try:
@@ -357,6 +360,7 @@ class IdentityManager(DatabaseManager):
             # If both have associateed identities, add result
             # to the list of results for that pair of identities.
             if has_identity1 and has_identity2:
+                counter_has_identity += 1
                 key = tuple(sorted([identity1, identity2]))
                 try:
                     dict_tmp[key].append(result)
@@ -391,7 +395,8 @@ class IdentityManager(DatabaseManager):
                 elif result > 0:
                     result_yes += 1
                     
-            self.dict_identity_adjacency[key] = (result_no, result_maybe, result_no)
+            self.dict_identity_adjacency[key] = (result_no, result_maybe, result_yes)
+            
 
 
 
@@ -401,13 +406,15 @@ class IdentityManager(DatabaseManager):
         Export the contents of L{self.dict_identity_adjacency} to the 
         table defined by L{IdentityManager.table_name_identity_adjacency}.
         '''
-        for key,result in self.dict_identity_adjacency:
+        for key,result in self.dict_identity_adjacency.iteritems():
+            #print 'key: ', key
             identity1,identity2 = key
             result_no, result_maybe, result_yes = result
-            query = 'INSERT INTO %s (identity1,identity2,no,maybe,yes) VALUES (%s, %s, %d, %d, %d);' \
+            query = 'INSERT INTO %s (identity1,identity2,no,maybe,yes) VALUES ("%s", "%s", %d, %d, %d);' \
                    % (IdentityManager.table_name_identity_adjacency, identity1,identity2, result_no, result_maybe, result_yes)
             self.runQuery(query)
-        
+        self.connection.commit()
+        self.connection.close() 
         
         
         
@@ -463,6 +470,11 @@ class IdentityManager(DatabaseManager):
             self.runQuery(self.query_create_table_identities_adjacency)
         else:
             print "Table 'identities_adjacency' exists."
+            self.__truncate_table_identities_adjacency()
+
+    def __truncate_table_identities_adjacency(self):
+        query = "TRUNCATE TABLE %s;" % IdentityManager.table_name_identity_adjacency
+        self.runQuery(query)
 
 
     def fetch_dict_id_2_identity(self):

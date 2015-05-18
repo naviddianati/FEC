@@ -487,7 +487,7 @@ class Disambiguator():
                 print record2.toString(), "'%s'" % record2['N_last_name'], record2['ZIP_CODE']
                 print record1.compare_zipcodes(record1,record2) 
             
-            yield verdict,result, record1.id, record2.id
+            yield verdict,result, rid1, rid2
             
 
 
