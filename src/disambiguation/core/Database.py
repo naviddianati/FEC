@@ -325,6 +325,8 @@ class IdentityManager(DatabaseManager):
         @param identity: a string. The stage1 identity of a cluster.
         @return: a dict of C{other_identity: relation} key-value pairs.
         '''
+        if not self.dict_identity_2_identities:
+            self.load_dict_identity_2_identities()
         try:
             result = self.dict_identity_2_identities[identity]
         except KeyError:
