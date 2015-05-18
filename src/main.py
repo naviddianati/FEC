@@ -290,7 +290,7 @@ def test_memory1():
 
 
 
-def test_identity_manager():
+def test_identity_manager1():
     from disambiguation.core.Database import IdentityManager
     from disambiguation.core import utils
 
@@ -302,6 +302,15 @@ def test_identity_manager():
     for identity, rids in idm.dict_identity_2_list_ids.iteritems():
         print identity, rids
 
+
+def test_identity_manager2():
+    '''
+    '''
+    from disambiguation.core.Database import IdentityManager
+    from disambiguation.core import utils
+
+    idm = IdentityManager(state='delaware')
+    
 
 
 def test_retriever_by_id():
@@ -357,6 +366,10 @@ if __name__ == "__main__":
 
     #test_searchengine()
     #quit()
+
+
+    test_identity_manager2()
+    quit()
 
     DISAMBIGUATE_stage_2()
     quit()
