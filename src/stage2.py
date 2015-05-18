@@ -89,8 +89,6 @@ def partition_records(num_partitions, state="USA"):
     ig = utils.igraph
     with open(candidate_pairs_file) as f:
         g = ig.Graph.Read_Ncol(f, names=True, weights="if_present", directed=False)
-#         print g.vcount(), g.ecount()
-
 
 
     list_components = g.components().subgraphs()

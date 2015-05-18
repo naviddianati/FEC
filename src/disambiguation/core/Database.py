@@ -255,6 +255,11 @@ class IdentityManager(DatabaseManager):
     the two identities with a strong inconsistency. C{mayberelated} counts the number
     of results that aren't conclusive either way but suggest some similarity.
     C{related} counts the number of results that indicate a clear/strong link.
+    @ivar dict_identity_2_identities: dict mapping a each identity to others it's related to.
+    Each value is a dict of C{other_identity: relationship} key-value pairs. More convenient
+    to use in place of L{self.dict_identity_adjacency} when we  have a single identity
+    and need to find all related identities.
+
     @cvar table_name_identities: name of the MySQL table containing the identities,
     that is, a unique record id "id" column and an "identity" column.
     @cvar table_name_identity_adjacency: name of the MySQL table containing the
@@ -279,7 +284,11 @@ class IdentityManager(DatabaseManager):
         # to a numerical score indicating their relationship.
         self.dict_identity_adjacency = {}
 
-
+        # dict mapping a each identity to others it's related to
+        # Each value is a dict of  other_identity:relationship key-value pairs.
+        # Easier to use in place of self.dict_identity_adjacency when
+        # we have a single identity and need to find all related identities.
+        self.dict_identity_2_identities = {}
 
         # Query that will create table identities
         self.query_create_table_identities = 'CREATE TABLE %s ( id INT PRIMARY KEY, identity VARCHAR(24));' % IdentityManager.table_name_identities
@@ -308,6 +317,86 @@ class IdentityManager(DatabaseManager):
         # Initialize the "identities" and "identities_adjacency" tables
         self.__init_table_identities()
         self.__init_table_identities_adjacency()
+
+
+    def get_related_identities(self, identity):
+        '''
+        Return a list of all identities related to the given identy.
+        @param identity: a string. The stage1 identity of a cluster.
+        @return: a dict of C{other_identity: relation} key-value pairs.
+        '''
+        try:
+            result = self.dict_identity_2_identities[identity]
+        except KeyError:
+            result = None
+        return result
+
+
+
+    def fetch_dict_identity_adjacency(self):
+        '''
+        Load the L{table_name_identity_adjacency} table into
+        L{self.dict_identity_adjacency}.
+        '''
+        query = "SELECT identity1,identity2, no,maybe,yes from " + IdentityManager.table_name_identity_adjacency + ";"
+        print query
+        query_result = self.runQuery(query)
+        # Populate self.dict_identity_adjacency
+        self.dict_identity_adjacency = {(identity1, identity2) : (no, maybe, yes) for identity1, identity2, no, maybe, yes in query_result}
+        del query_result
+
+    def get_ids(self, identity):
+        '''
+        For the specified identity, return a list of all
+        record ids contained in that identity, from
+        L{self.dict_identity_2_ids}
+        '''
+        if not self.dict_identity_2_list_ids:
+            print "dict_identity_2_list_ids not loaded. Loading now..."
+            self.fetch_dict_identity_2_id()
+        try:
+            return self.dict_identity_2_list_ids[identity]
+        except:
+            return None
+
+
+
+    def get_identity(self, rid):
+        '''
+        For the specified record id, retrieve the identity
+        from L{self.dict_id_2_identity}.
+        '''
+        if not self.dict_id_2_identity:
+            print "dict_id_2_identity not loaded. Loading now..."
+            self.fetch_dict_id_2_identity()
+
+        try:
+            return self.dict_id_2_identity[rid]
+        except:
+            return None
+
+
+    def load_dict_identity_2_identities(self):
+        '''
+        Using L{self.dict_identity_adjacency}, populate
+        L{self.dict_identity_2_identities}.
+        '''
+        if not self.dict_identity_adjacency:
+            self.fetch_dict_identity_adjacency()
+        self.dict_identity_2_identities = {}
+        for pair, relationship in self.dict_identity_adjacency.iteritems():
+            identity1, identity2 = pair
+            if identity1 not in self.dict_identity_2_identities:
+                self.dict_identity_2_identities[identity1] = {identity2, relationship}
+            else:
+                self.dict_identity_2_identities[identity1][identity2] = relationship
+
+            if identity2 not in self.dict_identity_2_identities:
+                self.dict_identity_2_identities[identity2] = {identity1, relationship}
+            else:
+                self.dict_identity_2_identities[identity2][identity1] = relationship
+
+
 
 
 
