@@ -1,7 +1,7 @@
 '''
-The module defines the L{Record} class which represents a record from 
+The module defines the L{Record} class which represents a record from
 the database and implements various methods, most importantly for record
-comparison. 
+comparison.
 
 This is the heart of the disambiguation process, and one can adjust and
 fine-tune the process by modifying, subclassing or reimplementing the class
@@ -346,7 +346,7 @@ class Record(dict):
         if method_id is None:
             return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == "national":
-            return ((c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] == 3)) or ((c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 4)) 
+            return ((c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] == 3)) or ((c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 4))
         # strict
         elif method_id == 1:
             return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
@@ -376,7 +376,7 @@ class Record(dict):
         elif method_id == "national":
             return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
 
-        
+
         elif method_id == 1:
             return (c_e[0] >= 4 and c_o[0] >= 4) and (c_n[0] >= 3)
         elif method_id == 2:
@@ -406,7 +406,7 @@ class Record(dict):
             return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] >= 3)
         elif method_id == "national":
             return (c_e[0] >= 1 or c_o[0] >= 1) and (c_n[0] >= 3)
-        
+
         elif method_id == 1:
             return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 2:
@@ -435,8 +435,8 @@ class Record(dict):
         if method_id is None:
             return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == "national":
-            return ((c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3))  or ((c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 4)) 
-        
+            return ((c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3))  or ((c_e[0] >= 2 or c_o[0] >= 2) and (c_n[0] == 4))
+
         elif method_id == 1:
             return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 2:
@@ -467,7 +467,7 @@ class Record(dict):
         elif method_id == "national":
             verdict = ((c_e[0] >= 3 and c_o[0] >= 3) or (c_o[0] == 4) or (c_e[0] == 4)) and (c_n[0] >= 3)
             return verdict
-        
+
         elif method_id == 1:
             return (c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == 2:
@@ -531,56 +531,52 @@ class Record(dict):
 
         The "result" dictionary returns the details of the sub-comparisons,
         namely, the return values of the name, occupation and employer
-        comparison functions used to reach the verdict
+        comparison functions used to reach the verdict.
 
-        result = {
-        'o':  # occupation
-               0: they both exist but are unrelated
-               1: at least one doesn't have the field, or at least one has a bad identifier but the two aren't the same.
-               2: exactly the same, but "bad_identifier" (e.g.: RETIRED)
-               3: connected in the affiliations network
-               4: exactly the same but not "bad_identifier"
-        'e':  # employer
-               0: they both exist but are unrelated
-               1: at least one doesn't have the field, or at least one has a bad identifier but the two aren't the same.
-               2: exactly the same, but "bad_identifier" (e.g.: SELF-EMPLOYED)
-               3: connected in the affiliations network or strings very close, or employer mistakenly reported as occupation.
-               4: exactly the same, but not 'bad_identifier'
-        'n':  # name
-               0: names are not related
-               1: uncertain: at least one last name doesn't exist
-               2: names are similar, but we can't verify if they are
-                  variants or misspelling. Let verdict functions decide.
-                  (useful when addresses are exactly identical)
-               3: names are identical
-        'a':  # address
-               0: addresses are not the same
-               1: addresses are the same
-        's':  # state
-               0: states different
-               1: states the same
-        'c':  # city
-               0: cities are different
-               1: cities are the same
-         }
+        Dictionary of the possible values for the result keys:
+            - B{'o'} (occupation):
+                - 0: they both exist but are unrelated
+                - 1: at least one doesn't have the field, or at least one has a bad 
+                identifier but the two aren't the same.
+                - 2: exactly the same, but "bad_identifier" (e.g.: RETIRED)
+                - 3: connected in the affiliations network
+                - 4: exactly the same but not "bad_identifier"
+            - B{'e'} (employer):
+                - 0: they both exist but are unrelated
+                - 1: at least one doesn't have the field, or at least one has a bad 
+                identifier but the two aren't the same.
+                - 2: exactly the same, but "bad_identifier" (e.g.: SELF-EMPLOYED)
+                - 3: connected in the affiliations network or strings very close, or
+                employer mistakenly reported as occupation.
+                - 4: exactly the same, but not 'bad_identifier'
+            - B{'n'} (name):
+                - 0: names are not related
+                - 1: uncertain: at least one last name doesn't exist
+                - 2: names are similar, but we can't verify if they are
+                variants or misspelling. Let verdict functions decide.
+                (useful when addresses are exactly identical)
+                - 3: names are identical
+            - B{'a'} (address):
+                - 0: addresses are not the same
+                - 1: addresses are the same
+            - B{'s'} (state):
+                - 0: states different
+                - 1: states the same
+            - B{'c'} (city):
+                - 0: cities are different
+                - 1: cities are the same
 
-
+        @return: a tuple C{(verdict, result)}. C{verdict} is either a boolean or
+        L{Record.LARGE_NEGATIVE} which indicates irreconcilable difference such
+        as different middle name. C{result} is a dict of the decision codes returned
+        for different fields of the record, such as name, employer, occupation.
+        @note: When evaluating the return value, keep in mind that C{False == 0},
+        and C{False > -1} and C{True > 0}.
 
         @todo:
-            1- (DONE) full middlenames and middlename initials aren't
-                matched correctly
-            2- (DONE) CITY misspellings aren't detected. Pay attention to
-                zipcode in this case. Maybe if zipcodes are the same, treat
-                as if cities are the same.
-            3- When city and zipcode are slightly different but affiliations
-                are the same, should accept. When affiliaiton score is 1, dig deeper!
-            4- In general, employer string distance should also be taken into account.
-            4- if cities are different but employers are identical, then accept
+            - In general, employer string distance should also be taken into account.
         '''
-        if Record.debug:
-            print "_"*70
-            print r1
-            print r2
+
 
         result = {'o':None,  # occupation
                   'e':None,  # employer
@@ -589,13 +585,6 @@ class Record(dict):
                   's':None,  # state
                   'c':None  # city
                   }
-
-
-
-
-        firstname1 = r1['N_first_name']
-        firstname2 = r2['N_first_name']
-
 
         if r1['STATE'] == r2['STATE']:
             result['s'] = (1, None)

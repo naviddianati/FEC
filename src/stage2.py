@@ -119,14 +119,59 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12):
 
     if num_procs == 1:
         for i, filename in enumerate(list_filenames):
-            worker_disambiguate_subset_of_edgelist(filename)
+            list_list_record_pairs = [worker_disambiguate_subset_of_edgelist(filename)]
     else:
         pool = utils.multiprocessing.Pool(num_procs)
-        pool.map(worker_disambiguate_subset_of_edgelist, list_filenames)
+        list_list_record_pairs = pool.map(worker_disambiguate_subset_of_edgelist, list_filenames)
+
+    # Concatenate all sublists
+    list_record_pairs = []
+    while list_list_record_pairs:
+        list_record_pairs += list_list_record_pairs.pop()
 
 
 
+    # Create an IdentityManager instance, then given the record
+    # paris just found, compute the identity_adjacency.
+    idm = Database.IdentityManager('USA')
+    idm.generate_dict_identity_adjacency(list_record_pairs, overwrite=True)
+    idm.export_identities_adjacency()
+    
+    
 
+def __get_customized_verdict(verdict, detailed_comparison_result):
+    '''
+    Function that makes the final judgment on the relationship between two
+    records. It receives the output of the L{Record.compare} method consisting
+    of a (preliminary) verdict and the detailed comparison results which
+    provide information about the comparison results for the various fields
+    of the records. Implement this method to define how these preliminary
+    comparison results are to be interpreted ultimately. The output of this
+    function will be used to determine the relationship between a pair of
+    stage1 identities when a pair of records one from each are compared.
+    The output of this function will determine if the two identities are
+    to be merged, to be kept as irreconcilably separate, or as inconclusively
+    similar.
+
+    @param verdict: the verdict issued by L{Record.compare}. It can be True,
+    False, or a large negative number. In the latter case, we have an
+    irreconcilable difference such as different middle names.
+    @param detailed_comparison_result: the result of comparisons of the
+    various fields of the records. See L{Record._compare_THOROUGH} for the
+    details.
+
+    @return: a simple numerical verdict:
+        - B{-1}: strongly inconsistent, such as when middle names are different.
+        - B{0}: records are similar, but we don't have a conclusive verdict
+        either way. We don't know that they're clearly a match, or clearly
+        not a match.
+        - B{1}: records are clearly a match.
+        - B{None}: records are't similar, just ignore them.
+    '''
+    if verdict < 0 : return -1
+    if verdict == False and  detailed_comparison_result['n'] == 3: return 0
+    if verdict == True: return 1
+    return None
 
 
 def worker_disambiguate_subset_of_edgelist(filename):
@@ -139,7 +184,9 @@ def worker_disambiguate_subset_of_edgelist(filename):
     on normalized names, etc.
     @param filename: filename in which on partition of the edgelist is stored.
     '''
+    # Redirect the stdout of this process to a dedicated file.
     utils.sys.stdout = open("stdout-" + str(utils.os.getpid()) + ".out", "w", 10000)
+
     # What percentage of affiliation graph links to retain.
     percent_occupations = 50
     percent_employers = 50
@@ -182,7 +229,7 @@ def worker_disambiguate_subset_of_edgelist(filename):
         tokenizer.project = project
         tokenizer.setRecords(list_of_records)
         tokenizer.setTokenizedFields(list_tokenized_fields)
-        
+
         # Insert the USA tokendata object into tokenizer.
         tokenizer.tokendata = tokendata_usa
 
@@ -214,9 +261,18 @@ def worker_disambiguate_subset_of_edgelist(filename):
         D.project = project
         D.tokenizer = tokenizer
 
-        print "Running D.disambiguate_list_of_pairs(list_of_pairs)"
-        D.disambiguate_list_of_pairs(list_of_pairs)
+        # This is the list which can be passed to Database.IdentityManager.generate_dict_identity_adjacency()
+        list_record_pairs = []
 
+        print "Running D.compare_list_of_pairs(list_of_pairs)"
+        # D.compare_list_of_pairs is a generator: it yields the full results of
+        # the pairwise comparisons and we are able to perform one last analysis and
+        # decide what whether the math is a "no", "maybe" or "yes".
+        for verdict, detailed_comparison_result, rid1, rid2 in  D.compare_list_of_pairs(list_of_pairs):
+            final_result = __get_customized_verdict(verdict, detailed_comparison_result)
+            list_record_pairs.append(((rid1, rid2), final_result))
+
+        return list_record_pairs
 
 
 

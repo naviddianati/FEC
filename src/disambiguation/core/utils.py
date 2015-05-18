@@ -70,12 +70,12 @@ def bad_identifier(identifier, type='employer'):
     '''
     if identifier == '': return True
     if type == 'employer':
-        regex = r'\bNA\b|N\.A|employ|self|N\/A|\
+        regex = r'\bNA\b|N\.A|employed|self|N\/A|\
                 |information request|retired|teacher\b|scientist\b|\
                 |applicable|not employed|none|\
                 |homemaker|requested|executive|educator\b|\
                 |attorney\b|physician|real estate|\
-                |student\b|unemployed|professor|refused|doctor|housewife|\
+                |student\b|unemployed|professor\b|refused|docto\br|housewife|\
                 |at home|president|best effort|consultant\b|\
                 |email sent|letter sent|software engineer|CEO|founder|lawyer\b|\
                 |instructor\b|chairman\b'

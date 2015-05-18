@@ -456,7 +456,7 @@ class Disambiguator():
         print "NUMBER OF DISTINCT RECORDS IN list_of_records: ", len(tmp)
 
 
-    def disambiguate_list_of_pairs(self,list_of_pairs):
+    def compare_list_of_pairs(self,list_of_pairs):
         '''
         Disambiguate by perform comparisons between a given list of record
         pairs. Can be used instead of C{compute_similarity}, when we know which
@@ -464,55 +464,31 @@ class Disambiguator():
         already processed the hashes and found the nearest neighbors.
         The same instance variables are set by this function as with 
         C{update_nearest_neighbors}.
-
+        
+        This is a "generator". It yields a tuple of 4 values:
+        C{(verdict, result, rid1, rid2)}
+        
         @param list_of_pairs: list of tuples (rid1,rid2)
         '''
         # dict:  {record: index of record in self.list_of_records }
         dict_records = {r.id:r for i,r in enumerate(self.list_of_records)}
-        dict_rid_2_index = {r.id:i for i,r in enumerate(self.list_of_records)}
         for rid1,rid2 in list_of_pairs:
             record1 = dict_records[rid1]
             record2 = dict_records[rid2]
             
-            index1 = dict_rid_2_index[rid1]
-            index2 = dict_rid_2_index[rid2]
-
             # New implementation: comparison is done via instance function of the Record class
             # Comparison (matching) mode is passed to the Record's compare method.
             verdict, result = record1.compare(record2, mode=self.matching_mode)
 
             #if record1['NAME'] == "ANTHONY, ELIZABETH":
-            r1,r2 = record1,record2
-            if verdict > 0 or (r1['N_first_name'] == r2['N_first_name'] and r1['N_last_name'] == r2['N_last_name']): 
-                print "="*70
-                print "       ", verdict, str(result)
-                print record1.toString()  
-                print record2.toString()  
-                print 
-            if verdict > 0:
-                self.match_count += 1
-                try:
-                    self.index_adjacency[index1].add(index2)
-                except:
-                    self.index_adjacency[index1] = set([index2])
-
-                self.new_match_buffer.add((index1, index2))
-                #print record1.toString()
-                #print record2.toString()
-                #print "="*120
-
-            # compute some statistics about the records
-            if self.do_stats:
-                self.logstats(record1, record2, verdict, result)
-
-            # Export the result of this comparison to file.
-            if self.do_log_comparisons:
-                if (verdict == 0 and result['n'][0] > 1 and  result['e'][0] > 1 and result['o'][0] > 1):
-                    # print record1.toString()
-                    # print record2.toString()
-                    # print "="*120
-                    self.__export_comparison([(record1, record2, verdict, result)])
-
+            if True:
+                print verdict, str(result), "="*70
+                print record1.toString(), "'%s'" % record1['N_last_name'], record1['ZIP_CODE']
+                print record2.toString(), "'%s'" % record2['N_last_name'], record2['ZIP_CODE']
+                print record1.compare_zipcodes(record1,record2) 
+            
+            yield verdict,result, record1.id, record2.id
+            
 
 
 
