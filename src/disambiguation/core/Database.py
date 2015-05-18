@@ -314,7 +314,7 @@ class IdentityManager(DatabaseManager):
         else:
             self.order_by = ""
 
-        # Initialize the "identities" and "identities_adjacency" tables
+        # Initialize the "identities" and tables
         self.__init_table_identities()
         self.__init_table_identities_adjacency()
 
@@ -498,6 +498,7 @@ class IdentityManager(DatabaseManager):
         Export the contents of L{self.dict_identity_adjacency} to the
         table defined by L{IdentityManager.table_name_identity_adjacency}.
         '''
+        self.__truncate_table_identities_adjacency()
         for key, result in self.dict_identity_adjacency.iteritems():
             # print 'key: ', key
             identity1, identity2 = key
@@ -562,7 +563,8 @@ class IdentityManager(DatabaseManager):
             self.runQuery(self.query_create_table_identities_adjacency)
         else:
             print "Table 'identities_adjacency' exists."
-            self.__truncate_table_identities_adjacency()
+            
+            
 
     def __truncate_table_identities_adjacency(self):
         query = "TRUNCATE TABLE %s;" % IdentityManager.table_name_identity_adjacency
