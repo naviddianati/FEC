@@ -178,13 +178,17 @@ class FecRetriever(DatabaseManager):
     subclass of DatabaseManager with a method specifically to
     retrieve our desired data from MySQL database.
     '''
-    def __init__(self, table_name, query_fields, limit, list_order_by, where_clause='', require_id=True):
+    def __init__(self, table_name, query_fields = [], limit = "", list_order_by = "", where_clause='', require_id=True):
 
         DatabaseManager.__init__(self)
+        
+        list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+        list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
+        self.all_fields = list_tokenized_fields + list_auxiliary_fields
 
         # process the table_name arg
         self.table_name = table_name
-        self.query_fields = query_fields
+        self.query_fields = query_fields if query_fields else self.all_fields
         self.list_of_records = []
         self.query = ''
         self.where_clause = where_clause
