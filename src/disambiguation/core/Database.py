@@ -67,8 +67,11 @@ class FecRetrieverByID(DatabaseManager):
 
         self.temp_table = ''
         self.table_name = table_name
+        self.require_id = False
 
-
+        list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+        list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
+        self.all_fields = list_tokenized_fields + list_auxiliary_fields
 
     def __get_temp_table(self):
         '''
@@ -105,10 +108,11 @@ class FecRetrieverByID(DatabaseManager):
         self.runQuery(query)
 
 
-    def retrieve(self, list_ids, query_fields):
+    def retrieve(self, list_ids, query_fields=[]):
         '''
         Retrieve the rows with ids in list_ids.
         '''
+
 
         self.__get_temp_table()
 
@@ -117,8 +121,12 @@ class FecRetrieverByID(DatabaseManager):
         t2 = utils.time.time()
         print "Done in %f seconds" % (t2 - t1)
 
+        if query_fields == []:
+            query_fields = self.all_fields
+            
+        fields = ','.join(query_fields)
         # Retrieve the rows from the join
-        query = "SELECT " + ','.join(query_fields) + " FROM " + self.table_name + " JOIN " + self.temp_table + " USING (id) ;"
+        query = "SELECT " + fields + " FROM " + self.table_name + " JOIN " + self.temp_table + " USING (id) ;"
         print query
         t1 = utils.time.time()
         query_result = self.runQuery(query)
@@ -136,8 +144,11 @@ class FecRetrieverByID(DatabaseManager):
         self.list_of_records = []
         for counter, item in enumerate(tmp_list):
             r = Record.Record()
-            for i, field in enumerate(query_fields):
-                r[field] = item[i]
+            for i, field in enumerate(self.all_fields):
+                try:
+                    r[field] = item[i]
+                except:
+                    pass
 
             # I require that each row have a unique "id" column
             try:
@@ -389,12 +400,12 @@ class IdentityManager(DatabaseManager):
         for pair, relationship in self.dict_identity_adjacency.iteritems():
             identity1, identity2 = pair
             if identity1 not in self.dict_identity_2_identities:
-                self.dict_identity_2_identities[identity1] = {identity2, relationship}
+                self.dict_identity_2_identities[identity1] = {identity2: relationship}
             else:
                 self.dict_identity_2_identities[identity1][identity2] = relationship
 
             if identity2 not in self.dict_identity_2_identities:
-                self.dict_identity_2_identities[identity2] = {identity1, relationship}
+                self.dict_identity_2_identities[identity2] = {identity1: relationship}
             else:
                 self.dict_identity_2_identities[identity2][identity1] = relationship
 
