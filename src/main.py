@@ -130,10 +130,10 @@ def DISAMBIGUATE_stage_2():
 
     # Compute token frequencies at the person level given the
     # identities computed in stage1
-    # stage2.compute_person_tokens()
+    stage2.compute_person_tokens()
 
     # Compare record pairs within each subset and save results.
-    stage2.disambiguate_subsets_multiproc(num_partitions=num_procs, state="USA", num_procs=10)
+    #stage2.disambiguate_subsets_multiproc(num_partitions=num_procs, state="USA", num_procs=10)
 
     pass
 
@@ -316,8 +316,9 @@ def test_identity_manager2():
     idm.fetch_dict_identity_adjacency()
     idm.load_dict_identity_2_identities()
     
-    list_identities = sorted(idm.dict_identity_2_identities.keys(), key = lambda identity:len(idm.dict_identity_2_identities[identity]), reverse = True)[:2000]
-    sample_identities = [random.choice(list_identities) for i in range(500)]
+    list_identities = sorted(idm.dict_identity_2_identities.keys(), key = lambda identity:len(idm.dict_identity_2_identities[identity]), reverse = True)
+    # sample_identities = [random.choice(list_identities) for i in range(500)]
+    sample_identities = list_identities
 
     list_ids = []    
 
@@ -408,8 +409,8 @@ if __name__ == "__main__":
     # test_searchengine()
     # quit()
 
-    test_identity_manager2()
-    quit()
+    #test_identity_manager2()
+    #quit()
 
     
     DISAMBIGUATE_stage_2()
