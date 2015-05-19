@@ -933,13 +933,14 @@ class Record(dict):
 
         # Compute edit distance of last names
         distance = editdist.distance(r1['N_last_name'], r2['N_last_name'])
-
+        
         # TODO: if both have last names take into account their frequencies
 
         if 0 < distance < 3 :
             # get the tokens' frequencies.
             f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r1['N_last_name']))
             f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r2['N_last_name']))
+            
 
             if f1 <= Tokenizer.TokenData.RARE_FREQUENCY or f2 <= Tokenizer.TokenData.RARE_FREQUENCY:
                 # They are very similar and at least one is rare. Must be misspelling. Accept
@@ -1037,6 +1038,38 @@ class Record(dict):
 
         if identical == (3, None):
             identical = (4, None) if identical_middle_names else (3, None)
+        
+        # In stage1
+        if 'N_full_name' not in self.tokendata.token_identifiers:
+            return identical
+            
+        
+        match_code = identical[0]
+        if match_code == 3 or match_code == 4:
+            middlename = r1['N_middle_name'] or r2['N_middle_name'] 
+            lastname = r1['N_last_name'] or r2['N_last_name'] 
+            firstname = r1['N_first_name'] or r2['N_first_name'] 
+            
+            fullname_with_middlename = "%s|%s|%s" % (lastname,middlename,firstname)
+            fullname_without_middlename = "%s|%s|%s" % (lastname,'',firstname)
+            
+            freq_with_middlename = 0
+            freq_without_middlename = 0
+            
+            # We only need this in stage two when tokendata has a toke_identifier for "N_full_name"
+            # Othersie, just skip
+            
+            try:
+                if middlename:
+                    freq_with_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_with_middlename))
+                freq_without_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_without_middlename))
+            except:
+                pass
+            
+            identical = (match_code, (freq_with_middlename,freq_without_middlename))
+                
+                
+            
         return identical
 
 
