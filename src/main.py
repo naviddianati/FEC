@@ -339,7 +339,7 @@ def test_identity_manager2():
     for identity in sample_identities:
         dict_related_identities = idm.get_related_identities(identity)
         if not dict_related_identities: continue
-        related_identities =  [x for x,y in idm.get_related_identities(identity).iteritems() if y[2] > 0]
+        related_identities =  [x for x,y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0]==0) ]
         related_identities.append(identity)
         for related_identity in related_identities:
              ids = idm.get_ids(related_identity)
