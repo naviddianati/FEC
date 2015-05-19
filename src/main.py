@@ -311,8 +311,8 @@ def test_identity_manager2():
     import random
 
     idm = IdentityManager(state='USA')
-    idm.fetch_dict_id_2_identity()       
-    idm.fetch_dict_identity_2_id()     
+    idm.fetch_dict_id_2_identity()
+    idm.fetch_dict_identity_2_id()
     idm.fetch_dict_identity_adjacency()
     idm.load_dict_identity_2_identities()
     
@@ -320,40 +320,40 @@ def test_identity_manager2():
     # sample_identities = [random.choice(list_identities) for i in range(500)]
     sample_identities = list_identities
 
-    list_ids = []    
+    list_ids = []
 
     for identity in sample_identities:
         dict_related_identities = idm.get_related_identities(identity)
         if not dict_related_identities: continue
-        related_identities =  [x for x,y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0]==0) ]
+        related_identities = [x for x, y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0] == 0)]
         related_identities.append(identity)
         for related_identity in related_identities:
-             ids = idm.get_ids(related_identity)
-             list_ids += ids
+            ids = idm.get_ids(related_identity)
+            list_ids += ids
 
     list_ids = list(set(list_ids))
     db = FecRetrieverByID('usa_combined')
     db.retrieve(list_ids)
     list_of_records = db.getRecords()
     dict_records = {r.id:r for r in list_of_records}
-    
+
     for identity in sample_identities:
         dict_related_identities = idm.get_related_identities(identity)
         if not dict_related_identities: continue
-        related_identities =  [x for x,y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0]==0) ]
+        related_identities = [x for x, y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0] == 0)]
         related_identities.append(identity)
         for related_identity in related_identities:
-             ids = idm.get_ids(related_identity)
-             for rid in ids:
+            ids = idm.get_ids(related_identity)
+            for rid in ids:
                 print dict_records[rid].toString()
-             print
+            print
         print "=" * 70
-        print "\n\n" 
-        
-                
+        print "\n\n"
 
-    
-    
+
+
+
+
 
 def test_retriever_by_id():
     from disambiguation.core import Database
@@ -412,7 +412,7 @@ if __name__ == "__main__":
     #test_identity_manager2()
     #quit()
 
-    
+
     DISAMBIGUATE_stage_2()
     quit()
 
