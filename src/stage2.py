@@ -386,7 +386,7 @@ def compute_person_tokens():
                 # Add an "N_full_name" key to each value of dict_normalized_attributes
                 for rid in list_r_ids:
                     tmp = dict_normalized_attributes[rid]
-                    fullname = "%s %s %s" % (tmp['N_last_name'], tmp['N_middle_name'], tmp['N_first_name'])
+                    fullname = "%s|%s|%s" % (tmp['N_last_name'], tmp['N_middle_name'], tmp['N_first_name'])
                     dict_normalized_attributes[rid]['N_full_name'] = fullname
 
                 list_virtual_records = [Record.Record(dict_normalized_attributes[rid]) for rid in list_r_ids]

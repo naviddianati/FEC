@@ -874,18 +874,30 @@ class Record(dict):
 
     def compare_names(self, r1, r2):
         '''
-        TODO: Returns a number:
-        LARGENEGATIVE: middle names are different
-        0: names are not related
-        1: uncertain: at least one last name doesn't exist
-        2: names are similar, but we can't verify if they are variants or misspelling. Let verdict functions decide. (useful when addresses are exactly identical)
-        3: names are identical
-        4: names are identical AND they have matching middle names.
+        Compare the names and return a tuple C{(result_code, match_score)}.
+        
+        Values of C{result_code}:
+            - B{LARGENEGATIVE}: middle names are different
+            - B{0}: names are not related
+            - B{1}: uncertain: at least one last name doesn't exist
+            - B{2}: names are similar, but we can't verify if they are variants
+            or misspelling. Let verdict functions decide. (useful when addresses
+            are exactly identical)
+            - B{3}: names are identical
+            - B{4}: names are identical AND they have matching middle names.
 
-        NOTE: you can't ever treat the output as a boolean in if statements: if (-1000) is True, if(0) is False.
+        @note: you can't ever treat the C{result_code} as a boolean in if
+        statements: C{if (-1000)} is C{True}, C{if(0)} is C{False}.
         '''
         identical = (3, None)
+        
+        # Numerical value that reflects the rareness of the name.
+        # Only reported only whe result_code is C{3} or C{4}.
+        match_score = None
+        
         identical_middle_names = False
+        
+        
         # if both have middlenames, they should be the same
         if r1['N_middle_name'] and r2['N_middle_name']:
             middlename1, middlename2 = r1['N_middle_name'], r2['N_middle_name']
@@ -933,7 +945,7 @@ class Record(dict):
                 # They are very similar and at least one is rare. Must be misspelling. Accept
                 identical = (4, None) if identical_middle_names else (3, None)
             else:
-                # Don't reject out of hand. Simply report that they are different byt not too different.
+                # Don't reject out of hand. Simply report that they are different but not too different.
                 # Useful when records are otherwise very similar, e.g., have identical addresses.
                 identical = (2, None)
                 # return identical
