@@ -816,12 +816,19 @@ class TokenData():
             self.set_all_names = set(json.load(f))
         
         self.token_identifiers = {'NAME':[1, 2, 3],
+                                   'N_full_name':[123],
+                                   'N_last_name': [1],
                                    'LAST_NAME':[1],
+                                   'N_first_name':[2],
                                    'FIRST_NAME':[2],
+                                   'N_middle_name':[3],
+                                   'MIDDLE_NAME':[3],
                                    'CONTRIBUTOR_ZIP':[4],
                                    'ZIP_CODE':[4],
                                    'CONTRIBUTOR_STREET_1':[5],
+                                   'N_occupation':[6],
                                    'OCCUPATION':[6],
+                                   'N_employer':[7],
                                    'EMPLOYER': [7]}
     
     def save_to_file(self, filename):

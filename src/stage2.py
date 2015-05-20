@@ -204,7 +204,7 @@ def worker_disambiguate_subset_of_edgelist(filename):
     @param filename: filename in which on partition of the edgelist is stored.
     '''
     # Redirect the stdout of this process to a dedicated file.
-    utils.sys.stdout = open("stdout-" + str(utils.os.getpid()) + ".out", "w", 10000)
+    utils.sys.stdout = open("stdout-" + str(utils.os.getpid()) + ".out", "w", 0)
 
     # What percentage of affiliation graph links to retain.
     percent_occupations = 50
