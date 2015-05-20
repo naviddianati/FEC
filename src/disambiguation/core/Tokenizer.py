@@ -826,7 +826,7 @@ class TokenData():
                                    'CONTRIBUTOR_ZIP':[4],
                                    'ZIP_CODE':[4],
                                    'CONTRIBUTOR_STREET_1':[5],
-                                   'N_occupatoin':[6],
+                                   'N_occupation':[6],
                                    'OCCUPATION':[6],
                                    'N_employer':[7],
                                    'EMPLOYER': [7]}
