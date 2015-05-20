@@ -157,6 +157,8 @@ def __get_customized_verdict(verdict, detailed_comparison_result):
     to be merged, to be kept as irreconcilably separate, or as inconclusively
     similar.
 
+    As an exmple, the fullname frequencies can be used to compute a positive
+    score if C{verdict == True}.
     @param verdict: the verdict issued by L{Record.compare}. It can be True,
     False, or a large negative number. In the latter case, we have an
     irreconcilable difference such as different middle names.
@@ -169,13 +171,26 @@ def __get_customized_verdict(verdict, detailed_comparison_result):
         - B{0}: records are similar, but we don't have a conclusive verdict
         either way. We don't know that they're clearly a match, or clearly
         not a match.
-        - B{1}: records are clearly a match.
+        - B{>0}: records are a match.
         - B{None}: records are't similar, just ignore them.
     '''
     if verdict < 0 : return -1
-    if verdict == False and  detailed_comparison_result['n'] >= 3: return 0
-    if verdict == True: return 1
+    if verdict == False and  detailed_comparison_result['n'][0] >= 3: return 0
+    if verdict == True: 
+        # This is a tuple (freq_fullname_with_middlename, freq_fullname_without_middlename)
+        # This tuple definitely has a value since True verdict is only issued when
+        # match_code is 3 or 4.
+        print detailed_comparison_result
+        freq1, freq2 = detailed_comparison_result['n'][1]
+
+        try:
+            score = 1./(freq1 + freq2)
+        except:
+            score = 0
+        return score
+
     return None
+
 
 
 def worker_disambiguate_subset_of_edgelist(filename):
@@ -234,12 +249,16 @@ def worker_disambiguate_subset_of_edgelist(filename):
         tokenizer.setRecords(list_of_records)
         tokenizer.setTokenizedFields(list_tokenized_fields)
 
-        # Insert the USA tokendata object into tokenizer.
-        tokenizer.tokendata = tokendata_usa
 
         print "Tokenizing records..."
         tokenizer.tokenize()
         list_of_records = tokenizer.getRecords()
+
+        # Insert the USA tokendata object into tokenizer.
+        tokenizer.tokendata = tokendata_usa
+
+        for r in list_of_records:
+            r.tokendata = tokendata_usa
 
         print "Loading affiliation networks..."
         # Load affiliation networks

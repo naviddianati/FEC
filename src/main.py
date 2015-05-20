@@ -130,10 +130,10 @@ def DISAMBIGUATE_stage_2():
 
     # Compute token frequencies at the person level given the
     # identities computed in stage1
-    stage2.compute_person_tokens()
+    #stage2.compute_person_tokens()
 
     # Compare record pairs within each subset and save results.
-    #stage2.disambiguate_subsets_multiproc(num_partitions=num_procs, state="USA", num_procs=10)
+    stage2.disambiguate_subsets_multiproc(num_partitions=num_procs, state="USA", num_procs=1)
 
     pass
 
@@ -305,10 +305,13 @@ def test_identity_manager1():
 
 def test_identity_manager2():
     '''
+    Load identities and identity_adjacency and print out the connected components of the 
+    inter-cluster network.
     '''
     from disambiguation.core.Database import IdentityManager, FecRetrieverByID
     from disambiguation.core import utils
     import random
+    from pprint import pprint
 
     idm = IdentityManager(state='USA')
     idm.fetch_dict_id_2_identity()
@@ -341,13 +344,18 @@ def test_identity_manager2():
         dict_related_identities = idm.get_related_identities(identity)
         if not dict_related_identities: continue
         related_identities = [x for x, y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0] == 0)]
+        related_identities_scores = [(x,y) for x, y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0] == 0)]
         related_identities.append(identity)
+        print "="*80
+        pprint(related_identities_score)
         for related_identity in related_identities:
             ids = idm.get_ids(related_identity)
+            print "        " + "-"*20
+            print "        " + related_identity
+            print "        " + "-"*20
             for rid in ids:
-                print dict_records[rid].toString()
+                print "        ", dict_records[rid].toString()
             print
-        print "=" * 70
         print "\n\n"
 
 
