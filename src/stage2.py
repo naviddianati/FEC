@@ -182,8 +182,12 @@ def worker_disambiguate_subset_of_edgelist(filename):
     '''
     Disambiguate by comparing the record pairs in filename. To do this
     first extract the list of all record ids, generate a temp MySQL table
-    with thos in it, then extract the full records from individual_contributions
+    with thos in it, then extract the full records from C{individual_contributions}
     by joining it with the temp table.
+    The record comparisons performed in this function use the C{"national"} C{method_id}.
+    This comparison method is slightly more lax than the stage1 comparisons, but we make
+    additional judgments based on token frequencies here in L{__get_customized_verdict}.
+    
     @note: the records need to be tokenized first, since record comparison relies
     on normalized names, etc.
     @param filename: filename in which on partition of the edgelist is stored.

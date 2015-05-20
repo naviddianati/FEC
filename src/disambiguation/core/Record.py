@@ -454,10 +454,15 @@ class Record(dict):
         '''
         # All are the same
         if method_id is None:
-            verdict = ((c_e[0] >= 3 and c_o[0] >= 3) or (c_o[0] == 4) or (c_e[0] == 4)) and (c_n[0] >= 3)
+            verdict = (c_n[0] >= 3) and ((c_e[0] >= 3 and c_o[0] >= 3) or (c_o[0] == 4) or (c_e[0] == 4))
             return verdict
         elif method_id == "national":
-            verdict = ((c_e[0] >= 3 and c_o[0] >= 3) or (c_o[0] == 4) or (c_e[0] == 4)) and (c_n[0] >= 3)
+            # Names must be the same, and either: one of the affiliations is identical, or,
+            # both affiliations are connected on the graphs.
+
+            # One affiliation is low-info (but identical) while the other is connected on the graph.
+            one_bad_one_connected = (c_e[0] == 2 and c_o[0] >= 3) or (c_o[0] == 2 and c_e[0] >= 3)
+            verdict = (c_n[0] >= 3) and ((c_e[0] >= 3 and c_o[0] >= 3) or (c_o[0] == 4) or (c_e[0] == 4) or one_bad_one_connected)
             return verdict
 
         elif method_id == 1:
@@ -487,7 +492,9 @@ class Record(dict):
         if method_id is None:
             return (c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] >= 3)
         elif method_id == "national":
-            verdict = (c_n[0] == 4 and c_o[0] >= 2 and c_e[0] >= 2) or ((c_e[0] >= 3 or c_o[0] >= 3) and (c_n[0] == 3))
+            # One affiliation is low-info (but identical) while the other is connected on the graph.
+            one_bad_one_connected = (c_e[0] == 2 and c_o[0] >= 3) or (c_o[0] == 2 and c_e[0] >= 3)
+            verdict = (c_n[0] == 4 and one_bad_one_connected) or ((c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3))
             return verdict
 
         elif method_id == 1:
@@ -513,6 +520,25 @@ class Record(dict):
 
 
 
+
+    def _verdict_addressY(self, c_n, c_e, c_o, method_id):
+        '''
+        If addresses are the same. Very lax.
+        '''
+        if method_id is None:
+            # used to be just c_n[0] >= 2
+            return (c_n[0] >= 2 and (c_e[0] >= 2 or c_o[0] >= 2))
+        elif method_id == "national":
+            # names have to be at least very similar, and at least
+            # one of the affiliations must be bad_but_identical or better.
+            return (c_n[0] >= 2 and (c_e[0] >= 2 or c_o[0] >= 2))
+        else:
+            # Nothing different here.
+            return (c_n[0] >= 2 and (c_e[0] >= 2 or c_o[0] >= 2))
+
+
+
+        pass
 
     def _compare_THOROUGH(self, r1, r2, method_id=None):
         '''
@@ -593,10 +619,11 @@ class Record(dict):
                     # TODO: need finer comparison of addresses
                     if r1['N_address'] == r2['N_address']:
                         result['a'] = (1, None)
-                        c_n = self.compare_names(r1, r2)
-                        result['n'] = c_n
-                        # TODO: if states are the same and addresses are the same
-                        return (c_n[0] >= 2), result
+                        # if states are the same and addresses are the same
+                        (c_e, c_o, c_n) = self.compare_employers(r1, r2), self.compare_occupations(r1, r2), \
+                                            self.compare_names(r1, r2)
+                        result['e'], result['o'], result['n'] = c_e, c_o, c_n
+                        return self._verdict_addressY(c_n, c_e , c_o , method_id=method_id), result
 
                     # If addresses aren't the same
                     else:
@@ -867,7 +894,7 @@ class Record(dict):
     def compare_names(self, r1, r2):
         '''
         Compare the names and return a tuple C{(result_code, match_score)}.
-        
+
         Values of C{result_code}:
             - B{LARGENEGATIVE}: middle names are different
             - B{0}: names are not related
@@ -882,14 +909,14 @@ class Record(dict):
         statements: C{if (-1000)} is C{True}, C{if(0)} is C{False}.
         '''
         identical = (3, None)
-        
+
         # Numerical value that reflects the rareness of the name.
         # Only reported only whe result_code is C{3} or C{4}.
         match_score = None
-        
+
         identical_middle_names = False
-        
-        
+
+
         # if both have middlenames, they should be the same
         if r1['N_middle_name'] and r2['N_middle_name']:
             middlename1, middlename2 = r1['N_middle_name'], r2['N_middle_name']
@@ -925,14 +952,14 @@ class Record(dict):
 
         # Compute edit distance of last names
         distance = editdist.distance(r1['N_last_name'], r2['N_last_name'])
-        
+
         # TODO: if both have last names take into account their frequencies
 
         if 0 < distance < 3 :
             # get the tokens' frequencies.
             f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_last_name'][0], r1['N_last_name']))
             f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_last_name'][0], r2['N_last_name']))
-            
+
 
             if f1 <= Tokenizer.TokenData.RARE_FREQUENCY or f2 <= Tokenizer.TokenData.RARE_FREQUENCY:
                 # They are very similar and at least one is rare. Must be misspelling. Accept
@@ -1030,36 +1057,87 @@ class Record(dict):
 
         if identical == (3, None):
             identical = (4, None) if identical_middle_names else (3, None)
-        
+
         # In stage1
         if 'N_full_name' not in self.tokendata.token_identifiers:
             return identical
-            
-        
+
+
         match_code = identical[0]
+
         if match_code == 3 or match_code == 4:
-            middlename = r1['N_middle_name'] or r2['N_middle_name'] 
-            lastname = r1['N_last_name'] or r2['N_last_name'] 
-            firstname = r1['N_first_name'] or r2['N_first_name'] 
-            
-            fullname_with_middlename = "%s|%s|%s" % (lastname,middlename,firstname)
-            fullname_without_middlename = "%s|%s|%s" % (lastname,'',firstname)
-            
+            middlename = r1['N_middle_name'] or r2['N_middle_name']
+            lastname = r1['N_last_name'] or r2['N_last_name']
+            firstname = r1['N_first_name'] or r2['N_first_name']
+
+            fullname_with_middlename = "%s|%s|%s" % (lastname, middlename, firstname)
+            fullname_without_middlename = "%s|%s|%s" % (lastname, '', firstname)
+
             freq_with_middlename = 0
             freq_without_middlename = 0
-            
+
             # We only need this in stage two when tokendata has a toke_identifier for "N_full_name"
             # Othersie, just skip
-            
-            try:
-                if middlename:
+
+            if middlename:
+                try:
                     freq_with_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_with_middlename))
-                freq_without_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_without_middlename))
-            except:
-                pass
+                except:
+                    pass
+                try:
+                    freq_without_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_without_middlename))
+                except:
+                    pass
             
-            identical = (match_code, (freq_with_middlename,freq_without_middlename))
+           
+
+            identical = (match_code, (freq_with_middlename, freq_without_middlename))
+
+        elif match_code == 2:
+            # names are similar but we can't verify if they are variants
+            # or misspeling or just different. Just report the frequencies
+            # And let the custom judgment at stage2 handle the decision.
+            middlename1, middlename2 = r1['N_middle_name'], r2['N_middle_name']
+            lastname1, lastname2 = r1['N_last_name'], r2['N_last_name']
+            firstname1, firstname2 = r1['N_first_name'], r2['N_first_name']
+
+            fullname_with_middlename1 = "%s|%s|%s" % (lastname1, middlename1, firstname1)
+            fullname_with_middlename2 = "%s|%s|%s" % (lastname2, middlename2, firstname2)
+            fullname_without_middlename1 = "%s|%s|%s" % (lastname1, '', firstname1)
+            fullname_without_middlename2 = "%s|%s|%s" % (lastname2, '', firstname2)
+
+            freq_with_middlename1 = 0
+            freq_without_middlename1 = 0
+            freq_with_middlename2 = 0
+            freq_without_middlename2 = 0
+
+            # We only need this in stage two when tokendata has a toke_identifier for "N_full_name"
+            # Othersie, just skip
+
+            if middlename1:
+                try:
+                    freq_with_middlename1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_with_middlename1))
+                except:
+                    pass
+                try:
+                    freq_without_middlename1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_without_middlename1))
+                except:
+                    pass
+            if middlename2:
+                try:
+                    freq_with_middlename2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_with_middlename2))
+                except:
+                    pass
+                try:
+                    freq_without_middlename2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_without_middlename2))
+                except:
+                    pass
+
+
+            identical = (match_code, ((freq_with_middlename1 + freq_with_middlename2) / 2 , (freq_without_middlename1 + freq_without_middlename2) / 2))
+
         return identical
+
 
 
 
