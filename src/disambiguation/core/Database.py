@@ -502,7 +502,7 @@ class IdentityManager(DatabaseManager):
                 elif result == 0:
                     result_maybe += 1
                 elif result > 0:
-                    result_yes += 1
+                    result_yes += result
 
             self.dict_identity_adjacency[key] = (result_no, result_maybe, result_yes)
 

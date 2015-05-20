@@ -305,16 +305,8 @@ class Record(dict):
 
         return identical, None
 
-#
-#     def pvalue(self, r1, r2):
-#
-#         f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r1['N_last_name']))
-#         f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r2['N_last_name']))
-#
-#         g1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], r1['N_first_name']))
-#         g2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], r2['N_first_name']))
-#
-#
+
+
 
     def get_name_pvalue(self, which='firstname'):
         '''Return the p-value of the firstname-lastname combination given the
@@ -938,8 +930,8 @@ class Record(dict):
 
         if 0 < distance < 3 :
             # get the tokens' frequencies.
-            f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r1['N_last_name']))
-            f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['LAST_NAME'][0], r2['N_last_name']))
+            f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_last_name'][0], r1['N_last_name']))
+            f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_last_name'][0], r2['N_last_name']))
             
 
             if f1 <= Tokenizer.TokenData.RARE_FREQUENCY or f2 <= Tokenizer.TokenData.RARE_FREQUENCY:
@@ -1025,8 +1017,8 @@ class Record(dict):
                     elif editdist.distance(firstname1, firstname2) < 2:
 
                         # get the tokens' frequencies.
-                        f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], firstname1))
-                        f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['FIRST_NAME'][0], firstname2))
+                        f1 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_first_name'][0], firstname1))
+                        f2 = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_first_name'][0], firstname2))
 
                         # Accept if one of the names is very rare
                         if f1 <= Tokenizer.TokenData.RARE_FREQUENCY or f2 <= Tokenizer.TokenData.RARE_FREQUENCY:
@@ -1067,10 +1059,9 @@ class Record(dict):
                 pass
             
             identical = (match_code, (freq_with_middlename,freq_without_middlename))
-                
-                
-            
         return identical
+
+
 
 
     def reformat_data(self):
