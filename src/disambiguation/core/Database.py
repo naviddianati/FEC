@@ -310,7 +310,7 @@ class IdentityManager(DatabaseManager):
 
         # Query that will create table identities_adjacency
         self.query_create_table_identities_adjacency = \
-            'CREATE TABLE identities_adjacency (identity1 VARCHAR(24), identity2 VARCHAR(24), no INT, maybe INT, yes INT, PRIMARY KEY (identity1,identity2)  );'
+            'CREATE TABLE identities_adjacency (identity1 VARCHAR(24), identity2 VARCHAR(24), no FLOAT, maybe FLOAT, yes FLOAT, PRIMARY KEY (identity1,identity2)  );'
 
         self.state = state
 
@@ -522,7 +522,7 @@ class IdentityManager(DatabaseManager):
             # print 'key: ', key
             identity1, identity2 = key
             result_no, result_maybe, result_yes = result
-            query = 'INSERT INTO %s (identity1,identity2,no,maybe,yes) VALUES ("%s", "%s", %d, %d, %d);' \
+            query = 'INSERT INTO %s (identity1,identity2,no,maybe,yes) VALUES ("%s", "%s", %f, %f, %f);' \
                    % (IdentityManager.table_name_identity_adjacency, identity1, identity2, result_no, result_maybe, result_yes)
             print query
             self.runQuery(query)
