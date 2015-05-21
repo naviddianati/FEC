@@ -494,7 +494,7 @@ class Record(dict):
         elif method_id == "national":
             # One affiliation is low-info (but identical) while the other is connected on the graph.
             one_bad_one_connected = (c_e[0] == 2 and c_o[0] >= 3) or (c_o[0] == 2 and c_e[0] >= 3)
-            verdict = (c_n[0] == 4 and one_bad_one_connected) or ((c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] == 3))
+            verdict = (c_n[0] == 4 and one_bad_one_connected) or ((c_e[0] >= 3 and c_o[0] >= 3) and (c_n[0] >= 3))
             return verdict
 
         elif method_id == 1:
@@ -726,11 +726,11 @@ class Record(dict):
     def compare_occupations(self, r1, r2):
         '''
         Returns a number:
-        0: they both exist, aren't bad identifiers, but are unrelated
-        1: at least one doesn't have the field, or at least one has a bad identifier but the two aren't the same.
-        2: exactly the same, but "bad_identifier" (e.g.: RETIRED)
-        3: connected in the affiliations network, or strings very close, or employer mistakenly reported as occupation.
-        4: exactly the same but not "bad_identifier"
+            - 0: they both exist, aren't bad identifiers, but are unrelated
+            - 1: at least one doesn't have the field, or at least one has a bad identifier but the two aren't the same.
+            - 2: exactly the same, but "bad_identifier" (e.g.: RETIRED)
+            - 3: connected in the affiliations network, or strings very close, or employer mistakenly reported as occupation.
+            - 4: exactly the same but not "bad_identifier"
         '''
         try:
             occupation1 = r1['OCCUPATION']
@@ -807,11 +807,11 @@ class Record(dict):
     def compare_employers(self, r1, r2):
         '''
         Returns a number:
-        0: they both exist but are unrelated
-        1: at least one doesn't have the field, or there is no affiliation graph that contains both
-        2: exactly the same, but "bad_identifiers"
-        3: connected in the affiliations network or strings very close, or employer mistakenly reported as occupation.
-        4: exactly the same, but not "bad_identifier"
+            - 0: they both exist but are unrelated
+            - 1: at least one doesn't have the field, or there is no affiliation graph that contains both
+            - 2: exactly the same, but "bad_identifiers"
+            - 3: connected in the affiliations network or strings very close, or employer mistakenly reported as occupation.
+            - 4: exactly the same, but not "bad_identifier"
         '''
         try:
             employer1 = r1['EMPLOYER']
@@ -1088,8 +1088,8 @@ class Record(dict):
                     freq_without_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_without_middlename))
                 except:
                     pass
-            
-           
+
+
 
             identical = (match_code, (freq_with_middlename, freq_without_middlename))
 
