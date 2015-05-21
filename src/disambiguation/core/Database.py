@@ -506,7 +506,7 @@ class IdentityManager(DatabaseManager):
 
             self.dict_identity_adjacency[key] = (result_no, result_maybe, result_yes)
 
-
+        print "Done generating identities_adjacency."
 
 
 
@@ -522,9 +522,12 @@ class IdentityManager(DatabaseManager):
             result_no, result_maybe, result_yes = result
             query = 'INSERT INTO %s (identity1,identity2,no,maybe,yes) VALUES ("%s", "%s", %d, %d, %d);' \
                    % (IdentityManager.table_name_identity_adjacency, identity1, identity2, result_no, result_maybe, result_yes)
+            print query
             self.runQuery(query)
+            
         self.connection.commit()
         self.connection.close()
+        print "identities_adjacency exported succesfully."
 
 
 
