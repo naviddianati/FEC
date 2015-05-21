@@ -515,7 +515,9 @@ class IdentityManager(DatabaseManager):
         Export the contents of L{self.dict_identity_adjacency} to the
         table defined by L{IdentityManager.table_name_identity_adjacency}.
         '''
+        print "Exporting identities_adjacency..."
         self.__truncate_table_identities_adjacency()
+        print "identities_adjacency truncated successfully."
         for key, result in self.dict_identity_adjacency.iteritems():
             # print 'key: ', key
             identity1, identity2 = key
@@ -526,7 +528,7 @@ class IdentityManager(DatabaseManager):
             self.runQuery(query)
             
         self.connection.commit()
-        self.connection.close()
+#         self.connection.close()
         print "identities_adjacency exported succesfully."
 
 
@@ -540,6 +542,7 @@ class IdentityManager(DatabaseManager):
         '''
         query = "DROP TABLE IF EXISTS %s;" % IdentityManager.table_name_identities
         self.runQuery(query)
+        self.connection.commit()
 
 
 
@@ -549,6 +552,7 @@ class IdentityManager(DatabaseManager):
         '''
         query = "DROP TABLE IF EXISTS %s;" % IdentityManager.table_name_identity_adjacency
         self.runQuery(query)
+        self.connection.commit()
 
 
 
@@ -587,8 +591,14 @@ class IdentityManager(DatabaseManager):
             
 
     def __truncate_table_identities_adjacency(self):
-        query = "TRUNCATE TABLE %s;" % IdentityManager.table_name_identity_adjacency
-        self.runQuery(query)
+        '''
+        Empty the identities_adjacency table.
+        @note: Due to a known L{MySQL bug <http://bugs.mysql.com/bug.php?id=68184>},
+        the TRUNCATE statement may cause the code to freeze. Instead, we 
+        drop and re-init the table.
+        '''
+        self.drop_table_identities_adjacency()
+        self.__init_table_identities_adjacency()
 
 
     def fetch_dict_id_2_identity(self):
