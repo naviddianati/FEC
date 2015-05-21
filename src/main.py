@@ -133,7 +133,7 @@ def DISAMBIGUATE_stage_2():
     #stage2.compute_person_tokens()
 
     # Compare record pairs within each subset and save results.
-    stage2.disambiguate_subsets_multiproc(num_partitions=num_procs, state="USA", num_procs=1)
+    stage2.disambiguate_subsets_multiproc(num_partitions=num_procs, state="USA", num_procs=12)
 
     pass
 
@@ -347,7 +347,7 @@ def test_identity_manager2():
         related_identities_scores = [(x,y) for x, y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0] == 0)]
         related_identities.append(identity)
         print "="*80
-        pprint(related_identities_score)
+        pprint(related_identities_scores)
         for related_identity in related_identities:
             ids = idm.get_ids(related_identity)
             print "        " + "-"*20

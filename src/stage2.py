@@ -180,7 +180,7 @@ def __get_customized_verdict(verdict, detailed_comparison_result):
         # This is a tuple (freq_fullname_with_middlename, freq_fullname_without_middlename)
         # This tuple definitely has a value since True verdict is only issued when
         # match_code is 3 or 4.
-        print detailed_comparison_result
+        # print detailed_comparison_result
         freq1, freq2 = detailed_comparison_result['n'][1]
 
         try:

@@ -481,7 +481,7 @@ class Disambiguator():
             verdict, result = record1.compare(record2, mode=self.matching_mode)
 
             # if record1['NAME'] == "ANTHONY, ELIZABETH":
-            if True:
+            if False:
                 print verdict, str(result), "="*70
                 print record1.toString(), "'%s'" % record1['N_last_name'], record1['ZIP_CODE']
                 print record2.toString(), "'%s'" % record2['N_last_name'], record2['ZIP_CODE']
