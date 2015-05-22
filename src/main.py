@@ -417,8 +417,8 @@ if __name__ == "__main__":
     # test_searchengine()
     # quit()
 
-    #test_identity_manager2()
-    #quit()
+    test_identity_manager2()
+    quit()
 
 
     DISAMBIGUATE_stage_2()
