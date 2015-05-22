@@ -193,6 +193,7 @@ def get_identity_data(state='USA'):
     dict_id_2_identity = idm.dict_id_2_identity
     dict_identity_2_list_ids = idm.dict_identity_2_list_ids
     return dict_id_2_identity, dict_identity_2_list_ids
+
     
     
     
