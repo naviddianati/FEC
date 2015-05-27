@@ -9,6 +9,7 @@ import datetime
 import MySQLdb as mdb
 
 import Record
+import Person
 import states
 import utils
 
@@ -64,7 +65,7 @@ class FecRetrieverByID(DatabaseManager):
 
     def __init__(self, table_name):
         DatabaseManager.__init__(self)
-
+        self.dict_of_records = {}
         self.temp_table = ''
         self.table_name = table_name
         self.require_id = False
@@ -123,7 +124,7 @@ class FecRetrieverByID(DatabaseManager):
 
         if query_fields == []:
             query_fields = self.all_fields
-            
+
         fields = ','.join(query_fields)
         # Retrieve the rows from the join
         query = "SELECT " + fields + " FROM " + self.table_name + " JOIN " + self.temp_table + " USING (id) ;"
@@ -158,11 +159,15 @@ class FecRetrieverByID(DatabaseManager):
                     raise Exception("ERROR: record does not have 'id' column")
                 pass
 
-            self.list_of_records.append(r)
-
+            # WARNING: switching from list_of_records to dict_of_records
+            # self.list_of_records.append(r)
+            self.dict_of_records[r.id] = r
 
     def getRecords(self):
-        return self.list_of_records
+            # WARNING: switching from list_of_records to dict_of_records
+        # return self.list_of_records
+        return self.dict_of_records.values()
+    
 
 
 
@@ -178,10 +183,10 @@ class FecRetriever(DatabaseManager):
     subclass of DatabaseManager with a method specifically to
     retrieve our desired data from MySQL database.
     '''
-    def __init__(self, table_name, query_fields = [], limit = "", list_order_by = "", where_clause='', require_id=True):
+    def __init__(self, table_name, query_fields=[], limit="", list_order_by="", where_clause='', require_id=True):
 
         DatabaseManager.__init__(self)
-        
+
         list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
         list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
         self.all_fields = list_tokenized_fields + list_auxiliary_fields
@@ -274,6 +279,7 @@ class IdentityManager(DatabaseManager):
     Each value is a dict of C{other_identity: relationship} key-value pairs. More convenient
     to use in place of L{self.dict_identity_adjacency} when we  have a single identity
     and need to find all related identities.
+    @ivar dict_persons: dict mapping an C{identity} to a L{Person} instance. 
 
     @cvar table_name_identities: name of the MySQL table containing the identities,
     that is, a unique record id "id" column and an "identity" column.
@@ -332,6 +338,9 @@ class IdentityManager(DatabaseManager):
         # Initialize the "identities" and tables
         self.__init_table_identities()
         self.__init_table_identities_adjacency()
+        
+        # dict {identity: Person instance} 
+        self.dict_persons = None
 
 
     def get_related_identities(self, identity):
@@ -417,6 +426,40 @@ class IdentityManager(DatabaseManager):
 
 
 
+    def getPersons(self, list_identities):
+        '''
+        For all identities in C{list_identities}, retrieve all associated
+        records, add normalized attributes to each record, and for each subset 
+        with the same identity, instantiate a new L{Person} object.
+        Add that object to L{self.dict_persons}.
+        '''
+        list_all_rids = []
+        for identity in list_identities:
+            list_all_rids += self.get_ids(identity)
+        
+        # Retrieve all relevant records
+        retriever = FecRetrieverByID(utils.config.MySQL_tablename_all_records)
+        retriever.retrieve(list_all_rids)
+        dict_of_records = retriever.dict_of_records
+        
+        # Load normalized attributes and bind to records
+        filename_normalized_attributes = utils.config.normalized_attributes_file_template % 'USA'
+        with open(filename_normalized_attributes) as f:
+            dict_normalized_attrs = utils.cPickle.load(f)
+        
+        for rid, r in dict_of_records.iteritems():
+            r['N_first_name'] = dict_normalized_attrs[rid]['N_first_name']
+            r['N_middle_name'] = dict_normalized_attrs[rid]['N_middle_name']
+            r['N_last_name'] = dict_normalized_attrs[rid]['N_last_name']
+        
+        
+        for identity in list_identities:
+            list_my_records = [dict_of_records[rid] for rid in self.get_ids(identity)]
+            p = Person(list_my_records)
+            self.dict_persons[identity] = p
+        pass
+    
+    
     def generate_dict_identity_adjacency(self, list_record_pairs, overwrite=False):
         '''
         Compute L{self.dict_identity_adjacency} from a list containing
@@ -444,6 +487,9 @@ class IdentityManager(DatabaseManager):
         if not self.dict_id_2_identity:
             self.fetch_dict_id_2_identity()
 
+         
+            
+
         # Loop through the list of record pairs and their result.
         for r_pair, result in list_record_pairs:
             has_identity1 = True
@@ -457,12 +503,12 @@ class IdentityManager(DatabaseManager):
 
             rid1, rid2 = r_pair
             try:
-                identity1 = self.dict_id_2_identity[rid1]
+                identity1 = self.get_identity(rid1)
             except KeyError:
                 has_identity1 = False
 
             try:
-                identity2 = self.dict_id_2_identity[rid2]
+                identity2 = self.get_identity(rid2)
             except KeyError:
                 has_identity2 = False
 
@@ -486,6 +532,24 @@ class IdentityManager(DatabaseManager):
                 # for them.
                 pass
 
+
+
+            
+        # Compile a list (set) of all identities associated 
+        # to records in list_record_pairs
+        set_all_identities = set()
+        for key, list_results in dict_tmp.iteritems():
+            identity1,identity2 = key
+            set_all_identities.add(identity1)
+            set_all_identities.add(identity2)
+            
+        
+        # Get a Person object for each identity
+        # TODO: Poulates self.dict_persons
+        self.getPersons(list(set_all_identities))
+        set_all_identities.clear()
+
+
         # Now, go through dict_tmp and for each identity pair
         # interpret all its results and make a final judgment
         # on the relationship between the identities.
@@ -495,7 +559,19 @@ class IdentityManager(DatabaseManager):
             result_no = 0
             result_maybe = 0
             result_yes = 0
-
+                
+            # check if the person objects associated
+            # with the two identities are compatible.
+            # If they are irreconcilable, do not log
+            # the pair.
+            identity1,identity2 = key
+            person1 = self.dict_persons(identity1)
+            person2 = self.dict_persons(identity2)
+            mn1, mn2 = person1.get_dominant_attribute('N_middle_name'), person2.get_dominant_attribute('N_middle_name')
+            if mn1 and mn2:
+                if mn1 != mn2: continue
+                
+            
             for result in list_results:
                 if result < 0:
                     result_no += 1
@@ -526,7 +602,7 @@ class IdentityManager(DatabaseManager):
                    % (IdentityManager.table_name_identity_adjacency, identity1, identity2, result_no, result_maybe, result_yes)
             print query
             self.runQuery(query)
-            
+
         self.connection.commit()
 #         self.connection.close()
         print "identities_adjacency exported succesfully."
@@ -587,14 +663,14 @@ class IdentityManager(DatabaseManager):
             self.runQuery(self.query_create_table_identities_adjacency)
         else:
             print "Table 'identities_adjacency' exists."
-            
-            
+
+
 
     def __truncate_table_identities_adjacency(self):
         '''
         Empty the identities_adjacency table.
         @note: Due to a known L{MySQL bug <http://bugs.mysql.com/bug.php?id=68184>},
-        the TRUNCATE statement may cause the code to freeze. Instead, we 
+        the TRUNCATE statement may cause the code to freeze. Instead, we
         drop and re-init the table.
         '''
         self.drop_table_identities_adjacency()
@@ -633,8 +709,6 @@ class IdentityManager(DatabaseManager):
                 self.dict_identity_2_list_ids[identity] = [int(r_id)]
 
         del query_result
-
-
 
 
 

@@ -18,9 +18,8 @@ class Person(object):
         
         # Store the hashable record objects.
         if records:
-            self.set_of_records = set(records)
-            for record in self.set_of_records:
-                record.identity = self
+            for record in records:
+                self.addRecord(record)
         else:
             self.set_of_records = set()
             
@@ -59,7 +58,7 @@ class Person(object):
         "N_middle_name", "N_employer", "N_occupation", find the dominant value
         among the records in this person. We don't need to be too rigorous here. 
         @param attr: a string can be "N_last_name","N_middle_name", "N_employer",
-             "N_occupation".
+        "N_occupation".
         '''
         dict_attr_freqs = {}
         for record in self.set_of_records:

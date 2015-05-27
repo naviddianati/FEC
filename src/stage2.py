@@ -136,7 +136,7 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12):
 
 
     # Create an IdentityManager instance, then given the record
-    # paris just found, compute the identity_adjacency.
+    # pairs just found, compute the identity_adjacency.
     idm = Database.IdentityManager('USA')
     idm.generate_dict_identity_adjacency(list_record_pairs, overwrite=True)
     idm.export_identities_adjacency()

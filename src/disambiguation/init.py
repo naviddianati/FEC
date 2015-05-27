@@ -6,7 +6,7 @@ relevant paths and will be available to disambiguation methods:
     - tokendata files for each state, both using Tokenizer and TokenizerNgram tokenization schemes.
     - feature vector files for each state both using Tokenizer and TokenizerNgram tokenization schemes.
     - LHS hash files for each state both using Tokenizer and TokenizerNgram tokenization schemes.
-    
+
     - combined (national, "USA") tokendata file derived from Tokenizer (coarse) results.
     - combined (national, "USA") feature vector file derived from Tokenizer (coarse) results.
     - combined (national, "USA") hash file derived from Tokenizer (coarse) results.
@@ -139,7 +139,8 @@ def INIT_combine_state_tokens_and_vectors():
     '''
     Read all Tokenizer tokendata objects for different states and combine them.
     Then read every state feature vector file and update it according
-    to the compound tokendata, and write all of them to a file.
+    to the compound tokendata. Then write all of them to a file.
+
 
     Here we need the data (tokendata, vectors, etc) generated using the coarse
     tokenizer class Tokenizer. This is different from the data used for fine-
@@ -214,6 +215,25 @@ def INIT_combine_state_tokens_and_vectors():
     except:
         os.remove(vectors_file)
         raise
+
+
+def INIT_combine_normalized_attributes():
+    '''
+    Read all state normalized attribute files and combine
+    them into a national file.
+    '''
+    dict_normalized_attrs = {}
+    outfile = config.normalized_attributes_file_template % 'USA'
+    for param_state in get_states_sorted():
+        print "processing state: ", param_state
+        file_normalized_attrs = config.normalized_attributes_file_template % param_state
+        f = open(file_normalized_attrs)
+        dict_normalized_attrs.update(cPickle.load(f))
+        f.close()
+    with open(outfile, 'w') as f:
+        f.write(cPickle.dump(dict_normalized_attrs))
+
+
 
 
 
