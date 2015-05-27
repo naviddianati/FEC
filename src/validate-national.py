@@ -138,7 +138,7 @@ def worker_get_similar_records_db(target_record):
 
 
 
-def get_list_target_records(idm, n=100):
+def get_list_target_records(idm, n=1000):
     '''
     Return a list of target records. For each record in this
     list, we will generate a handcoding page as defined by
@@ -161,17 +161,17 @@ def get_list_target_records(idm, n=100):
     list_of_records = retriever.getRecords()
 
 
-#     project = Project.Project(1)
-#     project.putData('state', state)
-#     project.putData('list_tokenized_fields', ['NAME', 'EMPLOYER', 'OCCUPATION'])
-#     tokenizer = Tokenizer.Tokenizer()
-#     project.tokenizer = tokenizer
-#     tokenizer.project = project
-#     tokenizer.setRecords(list_of_records)
-#     tokenizer.setTokenizedFields(project['list_tokenized_fields'])
-#
-#     tokenizer.tokenize()
-#     list_of_records = tokenizer.getRecords()
+    project = Project.Project(1)
+    project.putData('state', state)
+    project.putData('list_tokenized_fields', ['NAME', 'EMPLOYER', 'OCCUPATION'])
+    tokenizer = Tokenizer.Tokenizer()
+    project.tokenizer = tokenizer
+    tokenizer.project = project
+    tokenizer.setRecords(list_of_records)
+    tokenizer.setTokenizedFields(project['list_tokenized_fields'])
+
+    tokenizer.tokenize()
+    list_of_records = tokenizer.getRecords()
     return list_of_records
 
 
@@ -228,7 +228,7 @@ def get_identity_data(state='USA'):
     idm = Database.IdentityManager(state)
     idm.fetch_dict_id_2_identity()
     idm.fetch_dict_identity_2_id()
-    idm.fetch_dict_identity_adjacency(())
+    idm.fetch_dict_identity_adjacency()
     # Maps id to identity
 #     dict_id_2_identity = idm.dict_id_2_identity
 #     dict_identity_2_list_ids = idm.dict_identity_2_list_ids
@@ -277,7 +277,9 @@ def get_coding_page(target_record, dict_identities):
 
     # loop through all identities that must be displayed on page.
     print "Len(dict_identities): ", len(dict_identities)
-    for  identity, (selection_code, list_current_records) in dict_identities.iteritems():
+    items = dict_identities.items()
+    items.sort(key = lambda item:item[1][0])
+    for  identity, (selection_code, list_current_records) in items:
         new_block = []
         for r in list_current_records:
             r['TRANSACTION_DT'] = format_date(r['TRANSACTION_DT'])
@@ -290,7 +292,7 @@ def get_coding_page(target_record, dict_identities):
             elif selection_code == 2:
                 row_classes.append('score-maybeyes')
             else:
-                pass
+                row_classes.append('score-no')
 
 
             column_classes = ['' for i in range(len(new_row))]
@@ -326,118 +328,133 @@ def generate_coding_page_multiproc(list_of_records, num_procs, idm):
     @param idm: an IdentityManager instance.
     '''
 
-    html = ''
-
     # For each target record, get a list of similar records.
     pool = utils.multiprocessing.Pool(num_procs)
 
-    # Deleteme
-    idm = Database.IdentityManager('USA')
+    # For each target record, analyze its list of
+    # similar records.
+    page_number = 1
+    list_pages = []
+    for target_record, list_similar_records in pool.imap(worker_get_similar_records_db, list_of_records):
+        list_pages.append((target_record, list_similar_records, page_number))
+        page_number += 1
+
+    print "Received results..."
+    pool.map(worker_generate_pages, list_pages)
+    
 
 
+
+
+
+def worker_generate_pages(data):
+    target_record, list_similar_records,page_counter = data
+
+
+    html = ''
 
     # function that gets the (no, maybe, yes) result typle
     # value of the dict returned by idm.get_related_identies
     # and decides if the identity in question should be considered
     # linked to the identity of target_record or "maybe linked"
-    get_score = lambda result: 1 if (result[2] > 0.2) else 2
-
-    # For each target record, analyze its list of
-    # similar records.
-    page_counter = 0
-    for target_record, list_similar_records in pool.imap(worker_get_similar_records_db, list_of_records):
-        print "Received results..."
-        print len(list_similar_records)
-
-        # 1: Get directly linked identities.
-        list_linked_identities = []
-        if target_record.id:
-            focal_identity = idm.get_identity(target_record.id)
-            list_linked_identities.append = [(1, focal_identity)]
-            dict_linked_identities = idm.get_related_identities(focal_identity)
-            # TODO: sort if needed.
-            __tmp_set_linked_identites = {x for x, result in dict_linked_identities.items()}
-            list_linked_identities += [(get_score(result), x) for x, result in dict_linked_identities.items()]
-
-
-        # 2: Get similar but not directly linked identities.
-        # Get the identities of all similar records whose identities
-        # aren't already in list_linked_identities.
-        set_similar_identities = set()
-        counter_no_identity = 0
-        for similar_record in list_similar_records:
-            try:
-                identity = idm.get_identity(similar_record_id)
-                if identity not in __tmp_set_linked_identites:
-                    set_similar_identities.add(identity)
-            except Exception, e:
-                print e
-                counter_no_identity += 1
-        print "Number of ids without identity: ", counter_no_identity
-        print set_similar_identities
-
-        # TODO: sort if needed
-        list_similar_identities = [(3, identity) for identity in set_similar_identities]
-
-        for identity in set_similar_identities:
-            if identity in dict_identity_2_list_ids:
-                print "yes ", identity
-            else:
-                print "no  ", identity
-
-        # list of all record ids in any of the linked or similar identities.
-        # These are all the records that will be needed to generate this page.
-        list_all_rids = []
-        for tmp, identity in list_linked_identities + list_similar_identities:
-            ids = idm.get_ids(identity)
-            list_all_rids += ids
-
-        # Retrieve all records with ids in list_all_rids
-        print "retrieving all relevant records from db..."
-        retriever = Database.FecRetrieverByID('usa_combined')
-        retriever.retrieve(list_all_rids)
-
-
-        # Build a dict of all the relevant records
-        dict_all_records = {r.id:r for r in retriever.getRecords()}
+    get_score = lambda result: 1 if (result[2] > 0.2 and result[0] == 0) else (2 if result[0] == 0 else 3)
 
 
 
 
 
-        # Add "linked" identities to page
+    # 1: Get directly linked identities.
+    list_linked_identities = []
+    if target_record.id:
+        focal_identity = idm.get_identity(target_record.id)
+        list_linked_identities = [(1, focal_identity)]
+        dict_linked_identities = idm.get_related_identities(focal_identity) or {}
+        # TODO: sort if needed.
+        __tmp_set_linked_identities = {x for x, result in dict_linked_identities.items()}
+        list_linked_identities += [(get_score(result), x) for x, result in dict_linked_identities.items()]
+
+
+    # 2: Get similar but not directly linked identities.
+    # Get the identities of all similar records whose identities
+    # aren't already in list_linked_identities.
+    set_similar_identities = set()
+    counter_no_identity = 0
+    for similar_record in list_similar_records:
         try:
-            # Dict {identity:list of records} for all identities
-            # containing records similar to target record.
-            dict_identities = {identity: (score, [dict_all_records[r_id] for r_id in idm.get_ids(identity)])\
-                     for score, identity  in list_linked_identities   }
-            # Html code for the page for target_record
-            html_linked = get_coding_page(target_record, dict_identities)
+            identity = idm.get_identity(similar_record.id)
+            if not identity: continue
+            if identity not in __tmp_set_linked_identities:
+                set_similar_identities.add(identity)
         except Exception, e:
             print e
+            counter_no_identity += 1
+    print "Number of ids without identity: ", counter_no_identity
 
-        # Add "similar" identities to page
-        try:
-            # Dict {identity:list of records} for all identities
-            # containing records similar to target record.
-            dict_identities = {identity: (score, [dict_all_records[r_id] for r_id in idm.get_ids(identity)])\
-                     for score, identity in list_similar_identities   }
-            # Html code for the page for target_record
-            html_similar = get_coding_page(target_record, dict_identities)
-        except Exception, e:
-            print e
+    print __tmp_set_linked_identities
+    print set_similar_identities
+
+    # Remove all linked identities from set_similar_identities
+    set_similar_identities.difference_update(__tmp_set_linked_identities)
+    set_similar_identities.discard(focal_identity)
+
+    # TODO: sort if needed
+    list_similar_identities = [(3, identity) for identity in set_similar_identities]
+
+
+    # list of all record ids in any of the linked or similar identities.
+    # These are all the records that will be needed to generate this page.
+    list_all_rids = []
+    for tmp, identity in list_linked_identities + list_similar_identities:
+        ids = idm.get_ids(identity)
+        if ids is None: continue 
+        list_all_rids += ids
+    list_all_rids = list(set(list_all_rids))
+
+    # Retrieve all records with ids in list_all_rids
+    print "retrieving all relevant records from db..."
+    retriever = Database.FecRetrieverByID('usa_combined')
+    retriever.retrieve(list_all_rids)
+
+
+    # Build a dict of all the relevant records
+    dict_all_records = {r.id:r for r in retriever.getRecords()}
 
 
 
-        # write main content of coding page to file
-        with open('%d.html' % (page_counter + 1), 'w') as f:
-            f.write(html_linked + "\n")
-            f.write(html_similar + "\n")
+    # Add "linked" identities to page
+    try:
+        html_linked = ''
+        # Dict {identity:list of records} for all identities
+        # containing records similar to target record.
+        dict_identities = {identity: (score, [dict_all_records[r_id] for r_id in idm.get_ids(identity)])\
+                 for score, identity  in list_linked_identities   }
+        # Html code for the page for target_record
+        html_linked = get_coding_page(target_record, dict_identities)
+    except Exception, e:
+        print e
 
-        with open("%d-aux.html" % (page_counter + 1), 'w') as f:
-            f.write(get_auxilliary_data(get_dict_aux_data(target_record)))
+    # Add "similar" identities to page
+    try:
+        html_similar = ''
+        # Dict {identity:list of records} for all identities
+        # containing records similar to target record.
+        dict_identities = {identity: (score, [dict_all_records[r_id] for r_id in idm.get_ids(identity)])\
+                 for score, identity in list_similar_identities   }
+        # Html code for the page for target_record
+        html_similar = get_coding_page(target_record, dict_identities)
+    except Exception, e:
+        print e
 
-        page_counter += 1
+
+
+    # write main content of coding page to file
+    with open('%d.html' % (page_counter ), 'w') as f:
+        f.write(html_linked + "\n")
+        f.write(html_similar + "\n")
+
+    with open("%d-aux.html" % (page_counter ), 'w') as f:
+        f.write(get_auxilliary_data(get_dict_aux_data(target_record)))
+
 
 
 
@@ -452,7 +469,7 @@ if __name__ == "__main__":
     # Set of "records" we want to find matches for.
     # A records can be an artificial records build
     # from a query.
-    list_target_records = get_list_target_records(idm)
+    list_target_records = get_list_target_records(idm,n=200)
 
     # Generate the pages
     generate_coding_page_multiproc(list_target_records, 22, idm)
