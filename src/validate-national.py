@@ -138,13 +138,14 @@ def worker_get_similar_records_db(target_record):
 
 
 
-def get_list_target_records(idm, n=1000):
+def get_list_target_records(idm, n=1000, list_ids = []):
     '''
     Return a list of target records. For each record in this
     list, we will generate a handcoding page as defined by
     generate_coding_page().
     @param idm: IdentityManager instance.
     @param n: number of random records to select.
+    @param list_ds: optional list of record ids.
     @return: list of target records.
     @todo: Update so that the records are picked randomly from the
     full list_of_records for the country.
@@ -153,8 +154,11 @@ def get_list_target_records(idm, n=1000):
 
     list_of_records = []
 
-    list_all_ids = idm.dict_id_2_identity.keys()
-    list_random_ids = [random.choice(list_all_ids) for i in range(n)]
+    if list_ids:
+        list_random_ids = list_ids
+    else:
+        list_all_ids = idm.dict_id_2_identity.keys()
+        list_random_ids = [random.choice(list_all_ids) for i in range(n)]
 
     retriever = Database.FecRetrieverByID('usa_combined')
     retriever.retrieve(list_random_ids)
@@ -469,7 +473,11 @@ if __name__ == "__main__":
     # Set of "records" we want to find matches for.
     # A records can be an artificial records build
     # from a query.
-    list_target_records = get_list_target_records(idm,n=200)
+    #list_target_records = get_list_target_records(idm,n=200)
+
+    #TEST: DELTE ME!
+    list_target_records = get_list_target_records(idm,n=200, list_ids=[6409074])
+    
 
     # Generate the pages
     generate_coding_page_multiproc(list_target_records, 22, idm)

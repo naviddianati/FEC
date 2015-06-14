@@ -14,14 +14,13 @@ class Person(object):
     compatibility_threshold = 0.5
    
     def __init__(self, records=[]):
-        # TODO: decide on how to store a list of records belonging to person.
         
+        self.set_of_records = set()
+
         # Store the hashable record objects.
         if records:
             for record in records:
                 self.addRecord(record)
-        else:
-            self.set_of_records = set()
             
         # TODO:  List of timestamps of self's records. Not sorted internally
         self.timeline = []

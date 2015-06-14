@@ -231,7 +231,7 @@ def INIT_combine_normalized_attributes():
         dict_normalized_attrs.update(cPickle.load(f))
         f.close()
     with open(outfile, 'w') as f:
-        f.write(cPickle.dump(dict_normalized_attrs))
+        cPickle.dump(dict_normalized_attrs, f)
 
 
 
