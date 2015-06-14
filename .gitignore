@@ -14,3 +14,5 @@ config/batches.list
 output
 *.swp
 message.txt
+*.png
+src/validation/*

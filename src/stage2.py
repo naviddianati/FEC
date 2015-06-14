@@ -188,7 +188,9 @@ def __get_customized_verdict(verdict, detailed_comparison_result):
         try:
             score = 1./(freq1 + freq2)
         except:
-            score = 0
+            # If we return 0, it won't be any different
+            # from verdict = False
+            score = 0.5
         return score
 
     return None

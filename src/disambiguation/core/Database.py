@@ -167,7 +167,7 @@ class FecRetrieverByID(DatabaseManager):
             # WARNING: switching from list_of_records to dict_of_records
         # return self.list_of_records
         return self.dict_of_records.values()
-    
+
 
 
 
@@ -279,7 +279,7 @@ class IdentityManager(DatabaseManager):
     Each value is a dict of C{other_identity: relationship} key-value pairs. More convenient
     to use in place of L{self.dict_identity_adjacency} when we  have a single identity
     and need to find all related identities.
-    @ivar dict_persons: dict mapping an C{identity} to a L{Person} instance. 
+    @ivar dict_persons: dict mapping an C{identity} to a L{Person} instance.
 
     @cvar table_name_identities: name of the MySQL table containing the identities,
     that is, a unique record id "id" column and an "identity" column.
@@ -338,14 +338,19 @@ class IdentityManager(DatabaseManager):
         # Initialize the "identities" and tables
         self.__init_table_identities()
         self.__init_table_identities_adjacency()
-        
-        # dict {identity: Person instance} 
+
+        # dict {identity: Person instance}
         self.dict_persons = None
 
 
     def get_related_identities(self, identity):
         '''
         Return a list of all identities related to the given identy.
+        These include any identity some of whose records were compared to
+        the records of the given identity regardless of the (no, maybe, yes)
+        values. The decision of which identities should be considered
+        linked to the given identity must be made by another function
+        using the output of this function.
         @param identity: a string. The stage1 identity of a cluster.
         @return: a dict of C{other_identity: relation} key-value pairs.
         '''
@@ -356,6 +361,52 @@ class IdentityManager(DatabaseManager):
         except KeyError:
             result = None
         return result
+
+
+    def get_linked_identities(self, identity, fcn_linked = None):
+        '''
+        Decide which identities must be considered linked to the given identity,
+        that is, "cut the dendrogram". This will be done using the function
+        L{self.get_related_identities}, but not all "related" identities will
+        necessarily make it to the list of linked identities.
+        @param identity: the identity in question.
+        @param fcn_linked: a function that decides if two identities that are
+        linked by an edge in self.dict_identity_2_identities are close enough
+        that they should be considered linked. This function will be used to 
+        find all identities that are connected to "identity" through a path
+        of such edges. If this function is not provided, a default will be used.
+        @return: a list of all identities that we judge to be linked to the
+        given identity.
+        '''
+        def fcn_linked_default(no_maybe_yes):
+            '''
+            The default function that decides if two identities that are
+            linked by an edge in self.dict_identity_2_identities are close enough
+            that they should be considered linked.
+            @param no_maybe_yes: the (no, maybe, yes) tuple defining the edge
+            between the two identities.
+            '''
+            x = no_maybe_yes
+            if x[0] > 0: return False
+            if x[2] > 0.2: return True
+            pass
+        
+        
+        if fcn_linked is None:
+            fcn_linked = fcn_linked_default
+            
+        def get_neighborhood(identity, list_visited):
+            '''
+            recursively enumerate all identities in the same connected component as 
+            identity according to the the graph of self.get_related_identities. 
+            '''
+            X = self.get_related_identities(identity)
+            if not X: return 
+            for neighbor,score in X.items():        
+                if neighbor not in list_visited and fcn_linked(score):
+                    list_visited.add(neighbor)
+                    get_neighborhood(neighbor,list_visited)
+        pass
 
 
 
@@ -429,7 +480,7 @@ class IdentityManager(DatabaseManager):
     def getPersons(self, list_identities):
         '''
         For all identities in C{list_identities}, retrieve all associated
-        records, add normalized attributes to each record, and for each subset 
+        records, add normalized attributes to each record, and for each subset
         with the same identity, instantiate a new L{Person} object.
         Add that object to L{self.dict_persons}.
         '''
@@ -437,13 +488,13 @@ class IdentityManager(DatabaseManager):
         list_all_rids = []
         for identity in list_identities:
             list_all_rids += self.get_ids(identity)
-        
+
         # Retrieve all relevant records
         print "Retrieving records in getPerson..."
         retriever = FecRetrieverByID(utils.config.MySQL_tablename_all_records)
         retriever.retrieve(list_all_rids)
         dict_of_records = retriever.dict_of_records
-        
+
         # Load normalized attributes and bind to records
         print "Loading national normalized attributes..."
         filename_normalized_attributes = utils.config.normalized_attributes_file_template % 'USA'
@@ -457,13 +508,14 @@ class IdentityManager(DatabaseManager):
             r['N_last_name'] = dict_normalized_attrs[rid]['N_last_name']
         
         print "Generating Person objects"
+
         for identity in list_identities:
             list_my_records = [dict_of_records[rid] for rid in self.get_ids(identity)]
             p = Person.Person(list_my_records)
             self.dict_persons[identity] = p
         pass
-    
-    
+
+
     def generate_dict_identity_adjacency(self, list_record_pairs, overwrite=False):
         '''
         Compute L{self.dict_identity_adjacency} from a list containing
@@ -490,10 +542,6 @@ class IdentityManager(DatabaseManager):
 
         if not self.dict_id_2_identity:
             self.fetch_dict_id_2_identity()
-
-         
-            
-        
         # Loop through the list of record pairs and their result.
         for r_pair, result in list_record_pairs:
             has_identity1 = True
@@ -538,8 +586,8 @@ class IdentityManager(DatabaseManager):
 
 
 
-            
-        # Compile a list (set) of all identities associated 
+
+        # Compile a list (set) of all identities associated
         # to records in list_record_pairs
         set_all_identities = set()
         for key, list_results in dict_tmp.iteritems():
@@ -567,7 +615,7 @@ class IdentityManager(DatabaseManager):
             result_no = 0
             result_maybe = 0
             result_yes = 0
-                
+
             # check if the person objects associated
             # with the two identities are compatible.
             # If they are irreconcilable, do not log
@@ -593,6 +641,8 @@ class IdentityManager(DatabaseManager):
             self.dict_identity_adjacency[key] = (result_no, result_maybe, result_yes)
 
         print "Done generating identities_adjacency."
+
+
 
 
 
