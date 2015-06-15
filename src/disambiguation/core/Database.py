@@ -12,6 +12,7 @@ import Record
 import Person
 import states
 import utils
+import pandas as pd
 
 class DatabaseManager:
     '''
@@ -224,6 +225,7 @@ class FecRetriever(DatabaseManager):
         # Convert strings to upper case, dates to date format.
         tmp_list = [[s.upper() if isinstance(s, basestring) else s.strftime("%Y%m%d") if  isinstance(s, datetime.date) else s  for s in record] for record in query_result]
 
+        
 
         self.list_of_records = []
         for counter, item in enumerate(tmp_list):
@@ -253,7 +255,36 @@ class FecRetriever(DatabaseManager):
 
 
 
+class FecExporter(FecRetriever):
+    '''
+    Subclass of FecRetriever for retrieving records and identities
+    and exporting them into more accessible text file formats such
+    as CSV.
+    '''
+    def __init__(self, table_name, query_fields=[], limit="", list_order_by="", where_clause='', require_id=True):
+        print locals()
+        FecRetriever.__init__(self, **locals())
+    
+    def retrieve(self):
+        # Get string list from MySQL query and set it as analyst's list_of_records_identifier
+        # query_result = runQuery("select " + ','.join(identifier_fields) + " from newyork_addresses where NAME <> '' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
+        query = "select " + ','.join(self.query_fields) + " from " + self.table_name + self.where_clause + self.order_by + self.limit + ";"
+        print query
+        self.query = query
 
+        query_result = self.runQuery(query)
+
+        # Convert strings to upper case, dates to date format.
+        self.list_results = [[s.upper() if isinstance(s, basestring) else s.strftime("%Y%m%d") if  isinstance(s, datetime.date) else s  for s in record] for record in query_result]
+    
+    def export_csv(self, filename):
+        df = pd.DataFrame(self.list_results, columns = self.query_fields )
+        df.to_csv(filename, sep = '|', header=self.query_fields, index = False)
+        
+        
+        
+        
+        
 
 
 
