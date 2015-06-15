@@ -372,10 +372,15 @@ def worker_generate_pages(data):
     if target_record.id:
         focal_identity = idm.get_identity(target_record.id)
         list_linked_identities = [(1, focal_identity)]
-        dict_linked_identities = idm.get_related_identities(focal_identity) or {}
+        #dict_linked_identities = idm.get_related_identities(focal_identity) or {}
+        set_linked_identities = idm.get_linked_identities(focal_identity) or {}
         # TODO: sort if needed.
-        __tmp_set_linked_identities = {x for x, result in dict_linked_identities.items()}
-        list_linked_identities += [(get_score(result), x) for x, result in dict_linked_identities.items()]
+        #__tmp_set_linked_identities = {x for x, result in dict_linked_identities.items()}
+        __tmp_set_linked_identities = set_linked_identities
+        #list_linked_identities += [(get_score(result), x) for x, result in dict_linked_identities.items()]
+        # Now, we only get the records we judged to be definitely linked, 
+        # so there isn't any "maybe_yes" cases. The score is just 1.
+        list_linked_identities += [(1, x) for x in set_linked_identities]
 
 
     # 2: Get similar but not directly linked identities.
@@ -473,14 +478,15 @@ if __name__ == "__main__":
     # Set of "records" we want to find matches for.
     # A records can be an artificial records build
     # from a query.
-    #list_target_records = get_list_target_records(idm,n=200)
+    #list_target_records = get_list_target_records(idm,n=100)
 
     #TEST: DELTE ME!
-    list_target_records = get_list_target_records(idm,n=200, list_ids=[6409074])
+    list_target_records = get_list_target_records(idm,n=200, 
+        list_ids=[6409074])
     
 
     # Generate the pages
-    generate_coding_page_multiproc(list_target_records, 22, idm)
+    generate_coding_page_multiproc(list_target_records, 10, idm)
 
 
 

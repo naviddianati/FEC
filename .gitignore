@@ -16,3 +16,4 @@ output
 message.txt
 *.png
 src/validation/*
+src/board-data/*

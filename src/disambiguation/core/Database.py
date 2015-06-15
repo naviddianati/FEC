@@ -407,6 +407,9 @@ class IdentityManager(DatabaseManager):
                     list_visited.add(neighbor)
                     get_neighborhood(neighbor,list_visited)
         pass
+        list_visited = set([identity])    
+        get_neighborhood(identity,list_visited)
+        return list_visited
 
 
 
@@ -626,9 +629,10 @@ class IdentityManager(DatabaseManager):
                 person2 = self.dict_persons[identity2]
                 mn1, mn2 = person1.get_dominant_attribute('N_middle_name'), person2.get_dominant_attribute('N_middle_name')
                 if mn1 and mn2:
-                    if mn1 != mn2: continue
+                    if mn1[0] != mn2[0]: 
+                        result_no += 1
             except:
-                pass
+                print "Error in getting donimant middle names" 
             
             for result in list_results:
                 if result < 0:
@@ -734,7 +738,9 @@ class IdentityManager(DatabaseManager):
         drop and re-init the table.
         '''
         self.drop_table_identities_adjacency()
+        print "table identities_adjacency dropped successfully" 
         self.__init_table_identities_adjacency()
+        print "table identities_adjacency initialized successfully" 
 
 
     def fetch_dict_id_2_identity(self):

@@ -7,9 +7,10 @@ from disambiguation.core import utils
 
 import random
 import pandas as pd
+import os.path
 
 
-
+url_output = './board-data/'
 
 
 css_code = "table{border-collapse:collapse;\
@@ -106,6 +107,11 @@ def worker_get_similar_records_db(target_record):
     lastname = target_record['N_last_name']
     middlename = target_record['N_middle_name']
 
+    filename_raw = url_output + firstname + "-" + lastname + ".txt"
+    if os.path.exists(filename_raw):
+        print "Already done... skipping."
+        return None, None
+
     db = Database.FecRetriever(table_name='individual_contributions',
     #db = Database.FecRetriever(table_name='newyork_combined',
                       query_fields=all_fields,
@@ -125,7 +131,7 @@ def worker_get_similar_records_db(target_record):
     list_records = db.getRecords() 
  
     print "saving to file"
-    with open(firstname + "-" + lastname + ".txt", 'w') as f:
+    with open(filename_raw, 'w') as f:
         f.write("="*70 + "\n")
         f.write("%s %s %s\n" %(target_record['N_first_name'], target_record['N_middle_name'], target_record['N_last_name']))
         f.write("="*70 + "\n")
@@ -138,7 +144,7 @@ def worker_get_similar_records_db(target_record):
     
 
 
-def get_list_target_records():
+def get_list_target_records_v1():
     '''
     Return a list of target records. For each record in this
     list, we will generate a handcoding page as defined by 
@@ -178,6 +184,50 @@ def get_list_target_records():
     list_of_records = tokenizer.getRecords()
     return list_of_records
 
+
+
+def get_list_target_records_v2():
+    '''
+    Return a list of target records. For each record in this
+    list, we will generate a handcoding page as defined by 
+    generate_coding_page(). 
+    @return: list of target records.
+    '''
+    state = 'boarddata'
+
+    # read rows from the board data file.    
+    y = pd.read_csv('/nfs/home/navid/data/FEC/zubin/compustat_riskmetrics_forFECmatch.csv')
+    data = y[y['classification'] == 'e'].groupby('director_detail_id', as_index=False).first()
+    list_of_records = []
+    counter = 0
+    counter_error = 0
+    for x in data.iterrows():
+        
+        try:
+            r = Record.Record()
+            r.id = x[1]['director_detail_id']
+            r['NAME'] = x[1]["fullname.x"].upper().encode('ascii', 'ignore')
+            r['EMPLOYER'] = x[1]["companyname.x"].upper().encode('ascii', 'ignore')
+            r['OCCUPATION'] =  str(x[1]["prititle"]).upper().encode('ascii', 'ignore')
+            list_of_records.append(r)
+            counter += 1
+        except Exception, e:
+            counter_error += 1
+            print 'ERROR: %d' % counter_error, e
+        #if counter > 15: break
+    # Normalize and tokenize the target records
+    project = Project.Project(1)
+    project.putData('state', state)
+    project.putData('list_tokenized_fields',['NAME','EMPLOYER','OCCUPATION'])
+    tokenizer = Tokenizer.Tokenizer()
+    project.tokenizer = tokenizer
+    tokenizer.project = project
+    tokenizer.setRecords(list_of_records)
+    tokenizer.setTokenizedFields(project['list_tokenized_fields'])
+    
+    tokenizer.tokenize()
+    list_of_records = tokenizer.getRecords()
+    return list_of_records
 
 
 
@@ -271,9 +321,10 @@ def generate_coding_page_multiproc(list_of_records, num_procs, dict_id_2_identit
 
     # For each target record, analyze its list of
     # similar records.
-    page_counter = 0
+    page_number = -1
     for target_record,list_similar_records in pool.imap(worker_get_similar_records_db, list_of_records):
-        print "Received results..."
+        if not list_similar_records: continue
+        print "%d --- Received results..."  % page_number
         print len(list_similar_records)
             
         dict_similar_records = {r.id:r for r in list_similar_records}
@@ -288,14 +339,15 @@ def generate_coding_page_multiproc(list_of_records, num_procs, dict_id_2_identit
                 print e
                 counter_no_identity += 1
         print "Number of ids without identity: ", counter_no_identity
-        print set_identities
     
 
         for identity in set_identities:
             if identity in dict_identity_2_list_ids:
-                print "yes ", identity
+                #print "yes ", identity
+                pass
             else:
-                print "no  ", identity
+                #print "no  ", identity
+                pass
         
 
         try:
@@ -307,33 +359,44 @@ def generate_coding_page_multiproc(list_of_records, num_procs, dict_id_2_identit
             # Html code for the page for target_record
             html = get_coding_page(target_record, dict_identities)
         
+            page_number = get_next_page_number()
             # write main content of coding page to file
-            with open('%d.html' % (page_counter + 1), 'w') as f:
+            with open(url_output + '%d.html' % (page_number), 'w') as f:
                 f.write(html)
                 
-            with open("%d-aux.html" % (page_counter + 1), 'w') as f:
+            with open(url_output + "%d-aux.html" % (page_number), 'w') as f:
                 f.write(get_auxilliary_data(get_dict_aux_data(target_record)))
           
-            page_counter += 1
+            update_last_page(page_number)
+            print " ----------------- Last file written: ", page_number
         except Exception, e:
             print e
 
-    
+def update_last_page(page_number):
+    filename = url_output+ "pageno.txt"
+    with open(filename,'w') as f:
+        f.write(str(page_number))
 
+def get_next_page_number():
+    filename = url_output+ "pageno.txt"
+    with open(filename) as f:
+        page_number = int(f.read())
+        return page_number + 1
 
 if __name__ == "__main__":
 
     # Set of "records" we want to find matches for.
     # A records can be an artificial records build
     # from a query.
-    list_target_records = get_list_target_records()
+    list_target_records = get_list_target_records_v2()
+    #print list_target_records
 
     # load identity data.
     dict_id_2_identity, dict_identity_2_list_ids = get_identity_data()
     #dict_id_2_identity, dict_identity_2_list_ids = {},{}
     
     # Generate the pages
-    generate_coding_page_multiproc(list_target_records, 22, dict_id_2_identity, dict_identity_2_list_ids)
+    generate_coding_page_multiproc(list_target_records, 12, dict_id_2_identity, dict_identity_2_list_ids)
     
 
     
