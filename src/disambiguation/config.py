@@ -31,6 +31,7 @@ dict_paths = {
     "data_path_match_buffers" : data_path + "match_buffers/",
     "data_path_near_misses" : data_path + "near_misses/",
     "data_path_candidate_pairs" : data_path + "candidate_pairs/",
+    "data_path_identities": data_path + "identities/",
     "tmp_path": data_path + "tmp/"
 }
 
@@ -96,3 +97,15 @@ log_filename = data_path + "messages.log"
 # String template for log messages.
 # The three strings are datetime, msg_type and message
 log_message_template = "[%s] (%s):\t%s\n"
+
+
+# file containing all discovered related identities. Each
+# line starts with a target identity and all other fields are
+# related identities
+related_identities_template = dict_paths['data_path_identities'] + "%s-related-identities.csv"
+
+
+# file containing all discovered linked identities. Each
+# line starts with a target identity and all other fields are
+# linked identities
+linked_identities_template = dict_paths['data_path_identities'] + "%s-linked-identities.csv"

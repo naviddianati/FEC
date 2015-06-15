@@ -387,7 +387,12 @@ class IdentityManager(DatabaseManager):
             between the two identities.
             '''
             x = no_maybe_yes
-            if x[0] > 0: return False
+            if x[0] > 0: 
+                if x[2] > 1:
+                    return True
+                else:
+                    return False
+
             if x[2] > 0.05: return True
             pass
         
@@ -653,10 +658,17 @@ class IdentityManager(DatabaseManager):
         with a target identity, and all following fields are identities
         related to the target identity. 
         '''
+        filename = utils.config.related_identities_template % 'USA'
         if not self.dict_identity_2_identities:
             self.load_dict_identity_2_identities()
-        for identity, other_identities in self.dict_identity_2_identities.iteritems():
-            print identity, ' '.join([other_identities.keys()])
+
+        with open(filename,'w') as f:
+            for identity, other_identities in self.dict_identity_2_identities.iteritems():
+                set_other_identities = set(other_identities.keys())
+                set_other_identities.discard(identity)
+                set_other_identities = {x for x in set_other_identities if x}
+                if set_other_identities:
+                    f.write(identity + ' ' +  ' '.join(list(set_other_identities)) + '\n')
             
     def export_linked_identities_csv(self):
         '''
@@ -664,10 +676,17 @@ class IdentityManager(DatabaseManager):
         with a target identity, and all following fields are identities
         linked to the target identity.
         '''
+        filename = utils.config.linked_identities_template % 'USA'
         if not self.dict_identity_2_identities:
             self.load_dict_identity_2_identities()
-        for identity, other_identities in self.dict_identity_2_identities.iteritems():
-            print identity, ' '.join(self.get_linked_identities(identity))
+
+        with open(filename,'w') as f:
+            for identity, other_identities in self.dict_identity_2_identities.iteritems():
+                set_other_identities = set(self.get_linked_identities(identity))
+                set_other_identities.discard(identity)
+                set_other_identities = {x for x in set_other_identities if x}
+                if set_other_identities:
+                    f.write(identity + ' ' +  ' '.join(list(set_other_identities)) + '\n')
 
     def export_identities_adjacency(self):
         '''
