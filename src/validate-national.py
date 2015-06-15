@@ -373,7 +373,7 @@ def worker_generate_pages(data):
         focal_identity = idm.get_identity(target_record.id)
         list_linked_identities = [(1, focal_identity)]
         #dict_linked_identities = idm.get_related_identities(focal_identity) or {}
-        set_linked_identities = idm.get_linked_identities(focal_identity) or {}
+        set_linked_identities = set(idm.get_linked_identities(focal_identity)) or {}
         # TODO: sort if needed.
         #__tmp_set_linked_identities = {x for x, result in dict_linked_identities.items()}
         __tmp_set_linked_identities = set_linked_identities

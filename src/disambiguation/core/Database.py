@@ -395,7 +395,7 @@ class IdentityManager(DatabaseManager):
         if fcn_linked is None:
             fcn_linked = fcn_linked_default
             
-        def get_neighborhood(identity, list_visited):
+        def get_neighborhood(identity, set_visited):
             '''
             recursively enumerate all identities in the same connected component as 
             identity according to the the graph of self.get_related_identities. 
@@ -403,13 +403,13 @@ class IdentityManager(DatabaseManager):
             X = self.get_related_identities(identity)
             if not X: return 
             for neighbor,score in X.items():        
-                if neighbor not in list_visited and fcn_linked(score):
-                    list_visited.add(neighbor)
-                    get_neighborhood(neighbor,list_visited)
-        pass
-        list_visited = set([identity])    
-        get_neighborhood(identity,list_visited)
-        return list_visited
+                if neighbor not in set_visited and fcn_linked(score):
+                    set_visited.add(neighbor)
+                    get_neighborhood(neighbor,set_visited)
+
+        set_visited = set([identity])    
+        get_neighborhood(identity,set_visited)
+        return list(set_visited)
 
 
 
@@ -653,14 +653,21 @@ class IdentityManager(DatabaseManager):
         with a target identity, and all following fields are identities
         related to the target identity. 
         '''
-        pass
-    
+        if not self.dict_identity_2_identities:
+            self.load_dict_identity_2_identities()
+        for identity, other_identities in self.dict_identity_2_identities.iteritems():
+            print identity, ' '.join([other_identities.keys()])
+            
     def export_linked_identities_csv(self):
         '''
         Export linked identities to a csv file. Each line will start
         with a target identity, and all following fields are identities
         linked to the target identity.
         '''
+        if not self.dict_identity_2_identities:
+            self.load_dict_identity_2_identities()
+        for identity, other_identities in self.dict_identity_2_identities.iteritems():
+            print identity, ' '.join(self.get_linked_identities(identity))
 
     def export_identities_adjacency(self):
         '''
