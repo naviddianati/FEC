@@ -388,7 +388,7 @@ class IdentityManager(DatabaseManager):
             '''
             x = no_maybe_yes
             if x[0] > 0: return False
-            if x[2] > 0.2: return True
+            if x[2] > 0.05: return True
             pass
         
         
@@ -636,8 +636,20 @@ class IdentityManager(DatabaseManager):
         print "Done generating identities_adjacency."
 
 
-
-
+    def export_related_identities_csv(self):
+        '''
+        Export related identities to a csv file. Each line will start
+        with a target identity, and all following fields are identities
+        related to the target identity. 
+        '''
+        pass
+    
+    def export_linked_identities_csv(self):
+        '''
+        Export linked identities to a csv file. Each line will start
+        with a target identity, and all following fields are identities
+        linked to the target identity.
+        '''
 
     def export_identities_adjacency(self):
         '''
