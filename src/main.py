@@ -252,15 +252,18 @@ def INIT():
 
     # National level data preparation:
     # Tokenize, vectorize and hashify all states using Tokenizer
-    ltf = ['NAME', 'EMPLOYER', 'OCCUPATION']
-    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields=ltf, num_procs=12)
+    #ltf = ['NAME', 'EMPLOYER', 'OCCUPATION']
+    #init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields=ltf, num_procs=12)
 
 
     # combine the vectors and tokens from all states into the national data files.
-    init.INIT_combine_state_tokens_and_vectors()
+    #init.INIT_combine_state_tokens_and_vectors()
+
+    # Combine all normalized attributes into a national file
+    init.INIT_combine_normalized_attributes()
 
     # Using the national vectors and tokens, compute uniform national hashes
-    init.INIT_compute_national_hashes(num_procs=10)
+    #init.INIT_compute_national_hashes(num_procs=10)
 
 
 
@@ -410,9 +413,12 @@ if __name__ == "__main__":
 
 #     view_vectors()
 #     quit()
+    DISAMBIGUATE_stage_2()
+    quit()
 
 
-    # INIT()
+    INIT()
+    quit()
 
     # test_searchengine()
     # quit()
@@ -421,8 +427,6 @@ if __name__ == "__main__":
     quit()
 
 
-    DISAMBIGUATE_stage_2()
-    quit()
 
 
 

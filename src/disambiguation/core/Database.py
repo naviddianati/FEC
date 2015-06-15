@@ -407,6 +407,9 @@ class IdentityManager(DatabaseManager):
                     list_visited.add(neighbor)
                     get_neighborhood(neighbor,list_visited)
         pass
+        list_visited = set([identity])    
+        get_neighborhood(identity,list_visited)
+        return list_visited
 
 
 
@@ -484,29 +487,34 @@ class IdentityManager(DatabaseManager):
         with the same identity, instantiate a new L{Person} object.
         Add that object to L{self.dict_persons}.
         '''
+        self.dict_persons = {}
         list_all_rids = []
         for identity in list_identities:
             list_all_rids += self.get_ids(identity)
 
         # Retrieve all relevant records
+        print "Retrieving records in getPerson..."
         retriever = FecRetrieverByID(utils.config.MySQL_tablename_all_records)
         retriever.retrieve(list_all_rids)
         dict_of_records = retriever.dict_of_records
 
         # Load normalized attributes and bind to records
+        print "Loading national normalized attributes..."
         filename_normalized_attributes = utils.config.normalized_attributes_file_template % 'USA'
         with open(filename_normalized_attributes) as f:
             dict_normalized_attrs = utils.cPickle.load(f)
-
+        print "Done."
+        
         for rid, r in dict_of_records.iteritems():
             r['N_first_name'] = dict_normalized_attrs[rid]['N_first_name']
             r['N_middle_name'] = dict_normalized_attrs[rid]['N_middle_name']
             r['N_last_name'] = dict_normalized_attrs[rid]['N_last_name']
-
+        
+        print "Generating Person objects"
 
         for identity in list_identities:
             list_my_records = [dict_of_records[rid] for rid in self.get_ids(identity)]
-            p = Person(list_my_records)
+            p = Person.Person(list_my_records)
             self.dict_persons[identity] = p
         pass
 
@@ -537,10 +545,6 @@ class IdentityManager(DatabaseManager):
 
         if not self.dict_id_2_identity:
             self.fetch_dict_id_2_identity()
-
-
-
-
         # Loop through the list of record pairs and their result.
         for r_pair, result in list_record_pairs:
             has_identity1 = True
@@ -590,15 +594,19 @@ class IdentityManager(DatabaseManager):
         # to records in list_record_pairs
         set_all_identities = set()
         for key, list_results in dict_tmp.iteritems():
-            identity1, identity2 = key
-            set_all_identities.add(identity1)
-            set_all_identities.add(identity2)
-
-
+            identity1,identity2 = key
+            if identity1:
+                set_all_identities.add(identity1)
+            if identity2:
+                set_all_identities.add(identity2)
+            
+        
         # Get a Person object for each identity
-        # Poulates self.dict_persons
+        # TODO: Poulates self.dict_persons
+        print "Generating Person objects for all identities..."
         self.getPersons(list(set_all_identities))
         set_all_identities.clear()
+        print "Done generating Person objects."
 
 
         # Now, go through dict_tmp and for each identity pair
@@ -615,14 +623,17 @@ class IdentityManager(DatabaseManager):
             # with the two identities are compatible.
             # If they are irreconcilable, do not log
             # the pair.
-            identity1, identity2 = key
-            person1 = self.dict_persons(identity1)
-            person2 = self.dict_persons(identity2)
-            mn1, mn2 = person1.get_dominant_attribute('N_middle_name'), person2.get_dominant_attribute('N_middle_name')
-            if mn1 and mn2:
-                if mn1 != mn2: continue
-
-
+            identity1,identity2 = key
+            try:
+                person1 = self.dict_persons[identity1]
+                person2 = self.dict_persons[identity2]
+                mn1, mn2 = person1.get_dominant_attribute('N_middle_name'), person2.get_dominant_attribute('N_middle_name')
+                if mn1 and mn2:
+                    if mn1[0] != mn2[0]: 
+                        result_no += 1
+            except:
+                print "Error in getting donimant middle names" 
+            
             for result in list_results:
                 if result < 0:
                     result_no += 1
@@ -739,7 +750,9 @@ class IdentityManager(DatabaseManager):
         drop and re-init the table.
         '''
         self.drop_table_identities_adjacency()
+        print "table identities_adjacency dropped successfully" 
         self.__init_table_identities_adjacency()
+        print "table identities_adjacency initialized successfully" 
 
 
     def fetch_dict_id_2_identity(self):

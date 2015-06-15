@@ -128,6 +128,8 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12):
     else:
         pool = utils.multiprocessing.Pool(num_procs)
         list_list_record_pairs = pool.map(worker_disambiguate_subset_of_edgelist, list_filenames)
+        pool.close()
+        pool.terminate()
 
     # Concatenate all sublists
     list_record_pairs = []
