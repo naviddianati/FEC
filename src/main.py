@@ -80,7 +80,7 @@ def DISAMBIGUATE_stage_1():
 
 
     # Combine affiliation graphs into a national one.
-    stage1.combine_affiliation_graphs()
+    # stage1.combine_affiliation_graphs()
 
     # Disambiguate every state separately in parallel.
     stage1.disambiguate_multiple_states(list_states=[], num_procs=12)
@@ -413,7 +413,7 @@ if __name__ == "__main__":
 
 #     view_vectors()
 #     quit()
-    DISAMBIGUATE_stage_2()
+    DISAMBIGUATE_stage_1()
     quit()
 
 

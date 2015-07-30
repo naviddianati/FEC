@@ -1,3 +1,4 @@
 memlog.csv
 output
 error-log.txt
+*.gz

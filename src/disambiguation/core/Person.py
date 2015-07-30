@@ -65,6 +65,7 @@ class Person(object):
                 value = record[attr]
             except KeyError:
                 continue
+            if not value: continue
             try:
                 dict_attr_freqs[value] += 1
             except KeyError:

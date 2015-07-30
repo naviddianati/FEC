@@ -804,7 +804,9 @@ class Disambiguator():
         '''
         hash_file = config.hashes_file_template % (self.project['state'], self.tokenizer.__class__.__name__)
         f = open(hash_file)
+        print "unpickling hashes, state: ", self.project['state']
         dict_hashes = cPickle.load(f)
+        print "Done unpickling hashes, state: ", self.project['state']
         for r_id, hash in dict_hashes.iteritems():
             if len(hash) != self.hash_dim:
                 raise Exception('Hashes found in file have different dimension than specified hash_dim. Recomputing hashes.')

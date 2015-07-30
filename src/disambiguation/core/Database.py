@@ -71,7 +71,7 @@ class FecRetrieverByID(DatabaseManager):
         self.table_name = table_name
         self.require_id = False
 
-        list_tokenized_fields = ['NAME', 'CONTRIBUTOR_ZIP', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+        list_tokenized_fields = ['NAME', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
         list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
         self.all_fields = list_tokenized_fields + list_auxiliary_fields
 
@@ -125,6 +125,7 @@ class FecRetrieverByID(DatabaseManager):
 
         if query_fields == []:
             query_fields = self.all_fields
+        self.query_fields = query_fields
 
         fields = ','.join(query_fields)
         # Retrieve the rows from the join
@@ -132,6 +133,7 @@ class FecRetrieverByID(DatabaseManager):
         print query
         t1 = utils.time.time()
         query_result = self.runQuery(query)
+        self.query_result = query_result
         t2 = utils.time.time()
         print "Done in %f seconds" % (t2 - t1)
 
@@ -141,7 +143,7 @@ class FecRetrieverByID(DatabaseManager):
 
         # Convert strings to upper case, dates to date format.
         tmp_list = [[s.upper() if isinstance(s, basestring) else s.strftime("%Y%m%d") if  isinstance(s, datetime.date) else s  for s in record] for record in query_result]
-
+        self.list_results = tmp_list
 
         self.list_of_records = []
         for counter, item in enumerate(tmp_list):
@@ -170,6 +172,46 @@ class FecRetrieverByID(DatabaseManager):
         return self.dict_of_records.values()
 
 
+    def set_idm(self, idm):
+        '''
+        Set self's IdentityManager instance.
+        ''' 
+        self.idm = idm
+
+    def get_idm(self):
+        '''
+        Instantiate a new IdentityManager.
+        '''
+        if self.idm is None:
+            self.idm = IdentityManager('USA')
+            self.idm.fetch_dict_id_2_identity()
+            
+
+
+    def export_csv(self, filelabel = 'records_export'):
+        '''
+        @param filelabel: string label for output file. This
+        label will be inserted into the csv_exported_state_template
+        template.
+        '''
+        filename = utils.config.csv_exported_state_template  % filelabel
+        self.get_idm()
+        list_results_updated = []
+        # add identities to records
+        index_id = self.query_fields.index('id')
+        for line in self.list_results:
+            line = list(line)
+            r_id = line[index_id]
+            identity = self.idm.get_identity(r_id)
+            line.insert(0,identity if identity else '')
+            list_results_updated.append(line)
+        header =  ['identity'] +  self.query_fields 
+        df = pd.DataFrame(list_results_updated, columns = header)
+        df.to_csv(filename, sep = '|', header = header, index = False)
+        
+        
+        
+        
 
 
 
@@ -260,10 +302,27 @@ class FecExporter(FecRetriever):
     Subclass of FecRetriever for retrieving records and identities
     and exporting them into more accessible text file formats such
     as CSV.
+    @ivar idm: an IdentityManager instance. It can be set after 
+    initialization, or if it isn't set at export time, a new instance
+    will be instantiated.
     '''
-    def __init__(self, table_name, query_fields=[], limit="", list_order_by="", where_clause='', require_id=True):
-        print locals()
-        FecRetriever.__init__(self, **locals())
+    def __init__(self, state, query_fields=[], limit="", list_order_by="", where_clause='', require_id=True):
+        table_name = state + '_combined'
+        params = locals()
+        del params['self']
+        del params['state']
+        FecRetriever.__init__(self, **params)
+        
+        list_tokenized_fields = ['NAME', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
+        list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
+        self.all_fields = list_tokenized_fields + list_auxiliary_fields
+        self.query_fields = self.all_fields
+
+        #state
+        self.state = state
+
+        # IdentityManager instance
+        self.idm = None
     
     def retrieve(self):
         # Get string list from MySQL query and set it as analyst's list_of_records_identifier
@@ -271,15 +330,43 @@ class FecExporter(FecRetriever):
         query = "select " + ','.join(self.query_fields) + " from " + self.table_name + self.where_clause + self.order_by + self.limit + ";"
         print query
         self.query = query
-
         query_result = self.runQuery(query)
 
         # Convert strings to upper case, dates to date format.
         self.list_results = [[s.upper() if isinstance(s, basestring) else s.strftime("%Y%m%d") if  isinstance(s, datetime.date) else s  for s in record] for record in query_result]
     
-    def export_csv(self, filename):
-        df = pd.DataFrame(self.list_results, columns = self.query_fields )
-        df.to_csv(filename, sep = '|', header=self.query_fields, index = False)
+    def set_idm(self, idm):
+        '''
+        Set self's IdentityManager instance.
+        ''' 
+        self.idm = idm
+
+    def get_idm(self):
+        '''
+        Instantiate a new IdentityManager.
+        '''
+        if self.idm is None:
+            self.idm = IdentityManager('USA')
+            self.idm.fetch_dict_id_2_identity()
+            
+
+
+    def export_csv(self, filename = None):
+        if filename is None:
+            filename = utils.config.csv_exported_state_template  % self.state 
+        self.get_idm()
+        list_results_updated = []
+        # add identities to records
+        index_id = self.query_fields.index('id')
+        for line in self.list_results:
+            line = list(line)
+            r_id = line[index_id]
+            identity = self.idm.get_identity(r_id)
+            line.insert(0,identity if identity else '')
+            list_results_updated.append(line)
+        header =  ['identity'] +  self.query_fields 
+        df = pd.DataFrame(list_results_updated, columns = header)
+        df.to_csv(filename, sep = '|', header = header, index = False)
         
         
         
@@ -418,7 +505,12 @@ class IdentityManager(DatabaseManager):
             between the two identities.
             '''
             x = no_maybe_yes
-            if x[0] > 0: return False
+            if x[0] > 0: 
+                if x[2] > 1:
+                    return True
+                else:
+                    return False
+
             if x[2] > 0.05: return True
             pass
         
@@ -684,10 +776,17 @@ class IdentityManager(DatabaseManager):
         with a target identity, and all following fields are identities
         related to the target identity. 
         '''
+        filename = utils.config.related_identities_template % 'USA'
         if not self.dict_identity_2_identities:
             self.load_dict_identity_2_identities()
-        for identity, other_identities in self.dict_identity_2_identities.iteritems():
-            print identity, ' '.join([other_identities.keys()])
+
+        with open(filename,'w') as f:
+            for identity, other_identities in self.dict_identity_2_identities.iteritems():
+                set_other_identities = set(other_identities.keys())
+                set_other_identities.discard(identity)
+                set_other_identities = {x for x in set_other_identities if x}
+                if set_other_identities:
+                    f.write(identity + ' ' +  ' '.join(list(set_other_identities)) + '\n')
             
     def export_linked_identities_csv(self):
         '''
@@ -695,10 +794,17 @@ class IdentityManager(DatabaseManager):
         with a target identity, and all following fields are identities
         linked to the target identity.
         '''
+        filename = utils.config.linked_identities_template % 'USA'
         if not self.dict_identity_2_identities:
             self.load_dict_identity_2_identities()
-        for identity, other_identities in self.dict_identity_2_identities.iteritems():
-            print identity, ' '.join(self.get_linked_identities(identity))
+
+        with open(filename,'w') as f:
+            for identity, other_identities in self.dict_identity_2_identities.iteritems():
+                set_other_identities = set(self.get_linked_identities(identity))
+                set_other_identities.discard(identity)
+                set_other_identities = {x for x in set_other_identities if x}
+                if set_other_identities:
+                    f.write(identity + ' ' +  ' '.join(list(set_other_identities)) + '\n')
 
     def export_identities_adjacency(self):
         '''
