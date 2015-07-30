@@ -100,9 +100,12 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 
 
     if whereclause == "":
-        whereclause = " WHERE ENTITY_TP='IND' "
+        pass
+        # Only disambiguate "IND" types
+        # whereclause = " WHERE ENTITY_TP='IND' "
     else:
-        whereclause = whereclause + " AND ENTITY_TP='IND' "
+        pass
+        # whereclause = whereclause + " AND ENTITY_TP='IND' "
         print "whereclasue: ", whereclause
 
     print_resource_usage('---------------- before retrieving data')
@@ -168,7 +171,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
     print_resource_usage('---------------- after assigning list_of_records to project')
 
     # dimension of input vectors
-    dim = tokendata.no_of_tokens7
+    dim = tokendata.no_of_tokens
 
     D = Disambiguator.Disambiguator(list_of_records, dim, matching_mode=method_id, num_procs=num_procs)
 #     D.tokenizer = tokenizer
@@ -1009,10 +1012,10 @@ def worker_disambiguate_states(conn):
 
     for state in data:
         # try:
-        project = disambiguate_main(state, record_limit=(0, 5000000))
+        project = disambiguate_main(state, record_limit=(0, 500000000))
 
         try:
-            project.D.save_identities_to_db()
+            project.D.save_identities_to_db(overwrite = True)
         except Exception as e:
             raise
 

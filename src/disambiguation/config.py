@@ -32,6 +32,7 @@ dict_paths = {
     "data_path_near_misses" : data_path + "near_misses/",
     "data_path_candidate_pairs" : data_path + "candidate_pairs/",
     "data_path_identities": data_path + "identities/",
+    "data_path_exports": data_path + "exports/",
     "tmp_path": data_path + "tmp/"
 }
 
@@ -109,3 +110,8 @@ related_identities_template = dict_paths['data_path_identities'] + "%s-related-i
 # line starts with a target identity and all other fields are
 # linked identities
 linked_identities_template = dict_paths['data_path_identities'] + "%s-linked-identities.csv"
+
+
+# CSV file containin all records with an additional "identity" column as well
+csv_exported_state_template = dict_paths['data_path_exports'] + "%s.csv"
+
