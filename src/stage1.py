@@ -2,8 +2,8 @@
 import disambiguation.init as init
 
 from disambiguation.core import Project, utils
-from disambiguation.core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUndirected
-from disambiguation.core.Database import FecRetriever
+from disambiguation.core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUndirected,AffiliationAnalyzerUndirectedPostStage1
+from disambiguation.core.Database import FecRetriever, IdentityManager
 import disambiguation.core.Disambiguator as Disambiguator
 from disambiguation.core.Tokenizer import Tokenizer, TokenizerNgram, TokenData
 import disambiguation.config as config
@@ -260,7 +260,25 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 
 
 
+def generateAffiliationDataPostStage1(state = None, affiliation = None, idm = None):
+    '''
+    Generate affiliation graphs using the Stage1 identities instead of
+    the pre-stage1 high-certainty matches.
+    @param state: string name of state
+    @param affiliation: C{'employer'} or C{'occupation'}
+    @param idm: L{IdentityManager} instance for the given state, or for
+    the entire country.
+    '''
+    if not idm:
+        idm = IdentityManager(state)
+        idm.fetch_dict_identity_2_id()  
 
+    a = AffiliationAnalyzerUndirectedPostStage1(state = state, affiliation = affiliation)
+    a.set_idm(idm)
+    a.load_data()
+    a.extract()
+    a.compute_affiliation_links()
+    a.save_data(label = state + "-poststage1")
 
 
 
@@ -1084,28 +1102,52 @@ def disambiguate_multiple_states(list_states=[], num_procs=12):
 
 
 
+def generateAffiliationDataPostStage1_multiple_states(list_states=[]):
+    '''
+    Generate post-stage1 affiliation graphs for multiple states. We only use one
+    process here since this not very expensive.
+    @param list_states: list of state strings. If empty, disambiguate all states.
+    '''
+    # if not specified,  load all states
+    if not list_states:
+        list_states = get_states_sorted()
+        list_states.reverse()
 
-def combine_affiliation_graphs():
+    idm = IdentityManager('USA')
+    idm.fetch_dict_identity_2_id()  
+
+    for state in list_states:
+        for affiliation in ['employer','occupation']:
+            generateAffiliationDataPostStage1(state = state, affiliation = affiliation, idm = idm)
+
+
+def combine_affiliation_graphs(**kwds):
     '''
     Combine the affiliation graphs of states into a national one.
     Recompute the edge significances.
     '''
-    __combine_affiliation_graphs_occupation()
-    __combine_affiliation_graphs_employer()
+    __combine_affiliation_graphs_occupation(**kwds)
+    __combine_affiliation_graphs_employer(**kwds)
 
 
 
 
 
-def __combine_affiliation_graphs_occupation():
+def __combine_affiliation_graphs_occupation(**kwds):
     '''
     Combine the occupation graphs of all states into one national one.
+    @kwd poststage1: Boolean, whether to load post-stage1 affiliation
+    graphs or not.
     '''
     # load all graphs
+    poststage1 = kwds.get('poststage1', False)
     list_G = []
     for abbr, state in utils.states.dict_state.iteritems():
         print state
-        filename = config.affiliation_occupation_file_template % state
+        if poststage1:
+           filename = config.affiliation_poststage1_occupation_file_template % state
+        else:
+           filename = config.affiliation_occupation_file_template % state
         try:
             list_G.append((state, utils.igraph.Graph.Read_GML(filename)))
         except:
@@ -1140,15 +1182,21 @@ def __combine_affiliation_graphs_occupation():
 
 
 
-def __combine_affiliation_graphs_employer():
+def __combine_affiliation_graphs_employer(**kwds):
     '''
     Combine the employer graphs of all states into one national one.
+    @kwd poststage1: Boolean, whether to load post-stage1 affiliation
+    graphs or not.
     '''
+    poststage1 = kwds.get('poststage1', False)
     # load all graphs
     list_G = []
     for abbr, state in utils.states.dict_state.iteritems():
         print state
-        filename = config.affiliation_employer_file_template % state
+        if poststage1:
+          filename = config.affiliation_poststage1_employer_file_template % state
+        else:
+          filename = config.affiliation_employer_file_template % state
         try:
             list_G.append((state, utils.igraph.Graph.Read_GML(filename)))
         except:
@@ -1186,6 +1234,10 @@ def __combine_affiliation_graphs_employer():
 
 import sys
 if __name__ == "__main__":
+
+    generateAffiliationDataPostStage1(state = 'districtofcolumbia', affiliation = 'occupation', idm = None)
+    sys.exit()
+
 
     disambiguate_multiple_states()
     sys.exit()

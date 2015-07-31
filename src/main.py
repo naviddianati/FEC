@@ -76,15 +76,20 @@ def DISAMBIGUATE_stage_1():
     '''
     import stage1
 
-    # TODO: compute affiliations
-
+    # TODO: compute pre-stage1 affiliations
 
     # Combine affiliation graphs into a national one.
     # stage1.combine_affiliation_graphs()
 
     # Disambiguate every state separately in parallel.
-    stage1.disambiguate_multiple_states(list_states=[], num_procs=12)
+    #stage1.disambiguate_multiple_states(list_states=[], num_procs=12)
 
+    # After stage1 disambiguation, use the identities to generate
+    # a second iteration of the affiliation graphs.
+    stage1.generateAffiliationDataPostStage1_multiple_states(list_states=[])  
+
+    # Combine post-stage1 affiliation graphs into a national one.
+    stage1.combine_affiliation_graphs(poststage1 = True)
 
 
 

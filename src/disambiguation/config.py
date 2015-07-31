@@ -86,6 +86,10 @@ affiliation_employer_file_template = dict_paths["data_path_affiliations_employer
 affiliation_occupation_file_template = dict_paths["data_path_affiliations_occupation"] + "%s-occupation_graph.gml"
 
 
+# Post-stage1 affiliation graph file name templates
+affiliation_poststage1_employer_file_template = dict_paths["data_path_affiliations_employer"] + "%s-poststage1_employer_graph.gml"
+affiliation_poststage1_occupation_file_template = dict_paths["data_path_affiliations_occupation"] + "%s-poststage1_occupation_graph.gml"
+
 # Name of the table containing all records with addresses.
 # This table is the concatenation of all <state>_combined tables
 MySQL_tablename_all_records = 'usa_combined' 

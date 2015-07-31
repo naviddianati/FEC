@@ -18,15 +18,22 @@ from scipy.stats import binom
 from Database import FecRetriever
 import filters
 import utils
+from .. import config
+import igraph as ig
+
 
 def get_committees():
-    ''' NOT COMPLETE'''
+    '''
+    Get list of committee records. Here, we restrict to committees
+    that are a) linked to house, senate or presidential candidates,
+    and b) designated as  "Principal campaign committee of a candidate"
+    '''
 
     retriever = FecRetriever(table_name='committee_master',
                       query_fields=['id', 'CMTE_ID', 'CAND_ID', 'CMTE_PTY_AFFILIATION'],
                       limit=(0, 100000000),
                       list_order_by='',
-                      where_clause="")
+                      where_clause=" WHERE CMTE_TP in ('H','S','P') and CMTE_DSGN='P' ")
     retriever.retrieve()
 
     list_of_records = retriever.getRecords()
@@ -44,7 +51,7 @@ class AffiliationAnalyzer(object):
 
     def __init__(self, state="", batch_id=None, affiliation="employer"):
         self.debug = False
-        self.data_path = os.path.expanduser('~/data/FEC/')
+        self.state = state
 
         self.batch_id = batch_id
         # affiliation='occupation'
@@ -155,8 +162,8 @@ class AffiliationAnalyzer(object):
         particularly large.
         '''
         file_label = self.settings['state'] + "-" + "affiliations-"
-        file_adjacency = open(self.data_path + file_label + str(self.batch_id) + '-adjacency.json')
-        file_nodes = open(self.data_path + file_label + str(self.batch_id) + '-list_of_nodes.json')
+        file_adjacency = open(config.data_path + file_label + str(self.batch_id) + '-adjacency.json')
+        file_nodes = open(config.data_path + file_label + str(self.batch_id) + '-list_of_nodes.json')
 
         ''' Gives a list of links where each link is a list:[source,target].
             Each node is an FEC transaction.'''
@@ -174,6 +181,7 @@ class AffiliationAnalyzer(object):
         The affiliation node indices are stored in two dictionaries self.dict_string_2_name  and
         self.dict_name_2_string.
         '''
+        print "--------Original....."
         clustering = self.G.components()
 
         # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
@@ -268,13 +276,13 @@ class AffiliationAnalyzer(object):
 
 
     def export_sample_affiliations(self):
-        file_sample_affiliations = open(self.data_path + 'sample_' + self.affiliation + 's.json', 'w')
+        file_sample_affiliations = open(config.data_path + 'sample_' + self.affiliation + 's.json', 'w')
         file_sample_affiliations.write(json.dumps(self.list_sample_affiliation_groups))
         file_sample_affiliations.close()
 
 
     def load_settings(self, file_label=""):
-        file_settings = open(self.data_path + file_label + str(self.batch_id) + '-settings.json')
+        file_settings = open(config.data_path + file_label + str(self.batch_id) + '-settings.json')
         self.settings = json.load(file_settings)
 
 
@@ -304,30 +312,14 @@ class AffiliationAnalyzer(object):
             v['size'] = np.sqrt(self.affiliation_score[v['name']])
             v['party'] = json.dumps(self.affiliation_party_amount[v['name']])
 
-        self.G_affiliations.save(f=self.data_path + label + '-' + self.affiliation + '_graph.gml', format='gml')
+        if self.affiliation == "employer":
+            filename = config.affiliation_poststage1_employer_file_template % label
+        else:
+            filename = config.affiliation_poststage1_occupation_file_template % label
 
-        clustering = self.G_affiliations.components()
+        self.G_affiliations.save(f=filename, format='gml')
 
-        subgraphs = sorted(clustering.subgraphs(), key=lambda g:len(g.vs), reverse=True)
-        for g, i in zip(subgraphs[1:5], range(1, 5)):
-            print len(g.vs)
-            g.save(f=self.data_path + label + '-' + self.affiliation + '_graph_component-' + str(i) + '.gml', format='gml')
-
-        # save the giant component of the graph
-        G = clustering.giant()
-        G.save(f=self.data_path + label + '-' + self.affiliation + '_graph_giant_component.gml', format='gml')
-
-        # save affiliation identifier statistics
-
-        f = open(self.data_path + label + '-' + self.affiliation + "-metadata.json", "w")
-
-        ''' affiliation_score is a dict {name:frequency} where '''
-
-        dict_data = {
-                     "affiliation_score" :self.affiliation_score,
-                      "batch_id": self.batch_id}
-        f.write(json.dumps(dict_data))
-        f.close()
+        
         print "Saved affiliation graphs to file..."
 
 
@@ -336,93 +328,9 @@ class AffiliationAnalyzer(object):
 
 
     def compute_affiliation_links(self):
-
-        ''' generate the list of prior parameters '''
-        self.dict_priors = {}
-        self.dict_likelihoods = {}
-        self.dict_posteriors = {}
-        for link in self.affiliation_adjacency:
-            ''' Here, the value we call "prior" or "posterior" is 0 =< p =< 1
-            where p is the probability that the two vertices are "similar" and 1-p
-            the probability that they are "different". '''
-
-            # # "clueless" prior
-            # dict_priors[link] = 0.5
-
-            ind0, ind1 = link[0], link[1]
-            weight0, weight1 = self.affiliation_adjacency[(ind0, ind1)], self.affiliation_adjacency[(ind1, ind0)]
-
-            # This ratio now tells us what percentage of the occurrences of affiliation1 were in a timeline that also included affiliation2
-            ratio0 = weight0 / float(self.affiliation_score[ind0])
-            ratio1 = weight1 / float(self.affiliation_score[ind1])
-
-            # set the prior
-            prior = np.max([ratio0, ratio1])
-
-            self.dict_priors[link] = prior * 0.5
-            self.dict_posteriors[link] = None
-
-            continue
-            if self.debug:
-                print link, "%d/%d   %d/%d" % (weight0 , self.affiliation_score[link[0]], weight1 , self.affiliation_score[link[1]]) , '    ', '%0.2f %0.2f %0.2f' % (ratio0, ratio1, prior)
-                print '          %s | %s' % (self.dict_name_2_string[ind0], self.dict_name_2_string[ind1])
-                print "______________________________________________________________________________________________"
-
-
-
-        filename_list_of_dyads = self.data_path + str(self.batch_id) + '-list-dyads.txt'
-        f = open(filename_list_of_dyads, 'w')
-
-
-        list_tmp = []
-
-        ''' compute the posterior '''
-        for link in self.dict_priors:
-            i0 = link[0]
-            i1 = link[1]
-            timelines0 = set(self.dict_affiliation_to_timelines[i0])
-            timelines1 = set(self.dict_affiliation_to_timelines[i1])
-            common_timelines = list(timelines0.intersection(timelines1))
-            list_likelihoods = []
-            list_timelines_collapsed = []
-            for timeline_id in common_timelines:
-                timeline = self.dict_timelines[timeline_id]
-                timeline_collapsed = [0 if x[1] == i0 else 1 for x in timeline if x[1] == i0 or x[1] == i1]
-        #         print timeline
-                list_timelines_collapsed.append(timeline_collapsed)
-                list_likelihoods.append(get_likelihood(timeline_collapsed))
-
-            ''' combined_likelihood gives the likelihood'''
-            combined_likelihood = get_combined_likelihood(list_likelihoods)
-            print combined_likelihood
-        #     print signal
-            if combined_likelihood > -1000:
-                s = self.dict_name_2_string[i0] + ' | ' + self.dict_name_2_string[i1] + "\n"
-                for timeline_collapsed in list_timelines_collapsed:
-                    s += str(timeline_collapsed) + "\n"
-        #         print (i0, i1)
-        #         s+=  'List of likelihoods: '+ str(list_likelihoods)+ '  \n                                              Signal: %s' %  signal_string +"\n"
-
-                ''' Here, p is the probability that the two are different: \pi(0) '''
-                p = 1 - self.dict_priors[link]
-                ''' new_ratio is the ratio of posterior likelihoods of vertices being similar vs different. '''
-                new_ratio = p / (1 - p) * combined_likelihood
-                new_p = new_ratio / (1 + new_ratio)
-                list_tmp.append(new_p)
-                self.dict_posteriors[link] = 1 - new_p
-                self.dict_likelihoods[link] = 1 / (1 + combined_likelihood)
-        #         dict_posteriors[link] = combined_likelihood
-
-                signal_string = get_posterior_indicator(self.dict_posteriors[link])
-                s += '                                                                Signal: %s' % signal_string + "\n"
-#                 s += '%0.2f     %0.2f  --->   %0.2f      %0.2f\n' % (combined_likelihood, 1 - p, 1 - new_p, self.dict_likelihoods[link])
-                s += '%0.2f     %0.2f  --->   %0.2f      %0.2f\n' % (combined_likelihood, 1 - p, 1 - new_p, self.dict_posteriors[link])
-                s += '--------------------------------------------------------------------------------'
-                # print s
-                f.write(s.encode('ascii', 'ignore'))
-        f.close()
-
-
+        '''
+        Implement in subclasses
+        '''
 
 
 def _likelihood_1(h):
@@ -715,19 +623,30 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
         Computes the adjacency matrix between affiliation identifiers.
         The main product is self.affiliation_adjacency which is a dictionary {link:weight} where
         link is a tuple (ind1,ind2).
-        The affiliation node indices are stored in two dictionaries self.dict_string_2_name  and
+        The affiliation node indices are stored in two dictionaries self.dict_string_2_name and
         self.dict_name_2_string.
+        There are two ways to provide the necessary data for this method to work:
+        1- set L{self.G} which is a graph of matched records. This is the standard way, and is
+        implemented in L{AffiliationAnalyzer.load_data()}
+        2- set L{self.contributors_subgraphs} which is a list of graphs, where each graph is a 
+        connected component of L{self.G}.
         '''
-        clustering = self.G.components()
 
-        # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
-        self.contributors_subgraphs = clustering.subgraphs()
+        if not self.contributors_subgraphs:
+            clustering = self.G.components()
 
-        # The graph of the components: each component is contracted to one node
-        Gbar = clustering.cluster_graph()
-        print "number of subgraphs:", len(Gbar.vs)
+            # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
+            self.contributors_subgraphs = clustering.subgraphs()
+
+            # The graph of the components: each component is contracted to one node
+            Gbar = clustering.cluster_graph()
+            print "number of subgraphs:", len(Gbar.vs)
 
         # show_histories_distribution(contributors_subgraphs); quit()
+
+
+        # Count the number of node names not found in self.dict_record_nodes
+        counter_records_not_found = 0    
 
         # Loop through the subgraphs, i.e., resolved individual identities.
         for counter, g in enumerate(self.contributors_subgraphs):
@@ -741,8 +660,15 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
             # Loop through the nodes in each subgraph
             timeline = []
             dict_temp_affiliations = {}
+
+
+
             for counter_v, v in enumerate(g.vs):
-                record_data = self.dict_record_nodes[str(v['name'])]['data']
+                try:
+                    record_data = self.dict_record_nodes[str(v['name'])]['data']
+                except KeyError:
+                    counter_records_not_found += 1
+                    continue
                 affiliation_index = self.settings['field_2_index'][self.affiliation.upper()]
                 affiliation_identifier = record_data[affiliation_index]
 
@@ -795,6 +721,8 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
                 list_affiliations.append((affiliation_id, affiliation_identifier))
 
                 timeline.append((date, affiliation_id))
+
+
             ''' Save this individual's timeline '''
             if timeline:
                 timeline = sorted(timeline, key=lambda record: record[0])
@@ -876,6 +804,123 @@ class AffiliationAnalyzerUndirected(AffiliationAnalyzer):
 
 
 
+        print "Number of node names not found in self.dict_record_nodes: ", counter_records_not_found
+
+
+
+
+
+
+
+                
+class AffiliationAnalyzerUndirectedPostStage1(AffiliationAnalyzerUndirected):
+    '''
+    Subclass of AffiliationAnalyzerUndirected. Generates a similar affiliation graph,
+    but instead of the high-certainty matches found pre-stage1, it uses the stage1
+    identities to link affiliation identifiers. For this, we need to override the
+    L{load_data()} method so it loads the records using an FECretriever.
+    Must set L{self.G}, L{self.dict_record_nodes}.
+    '''
+    def get_records(self):
+        '''
+        Retrieve all records for given state.
+        '''
+        state = self.state
+        table_name = state + "_combined"
+        retriever = FecRetriever(table_name = table_name)
+        retriever.retrieve()
+        self.list_of_records = retriever.getRecords()
+        
+    def load_data(self):
+        '''
+        For L{self.extract} to work, we need at the minimum two 
+        pieces of data: L{self.dict_record_nodes} as a container for
+        all the relevant record data, and L{self.contributors_subgraphs}
+        which is a list of graphs each one a set of vertices representing
+        the records belonging to a stage1 identity.
+        '''
+        self.load_settings('')
+        self.get_records()
+        self.load_record_nodes()   
+        self.load_identities()
+#         self.record_edge_list = json.load(file_adjacency)
+#         self.dict_record_nodes = json.load(file_nodes)
+#         self.G = igraph.Graph.TupleList(edges=self.record_edge_list)
+
+    
+    def load_identities(self):
+        '''
+        Load L{self.contributors_subgraphs} from the calculated
+        stage1 identities. Then create L{self.contributors_subgraphs}
+        '''
+        try:
+            idm = self.idm
+        except:
+            raise Exception('You must set self.idm to an IdentityManager instance')
+        
+        self.contributors_subgraphs = []
+        # Iterate through all identities, for each one
+        # create a Graph with each vertex named after
+        # str(r_id).
+        for identity, list_ids in idm.dict_identity_2_list_ids.iteritems():
+            g = ig.Graph()
+            g.add_vertices([str(x) for x in list_ids])
+            self.contributors_subgraphs.append(g)
+            
+        
+    
+    def load_record_nodes(self):
+        '''
+        Populate L{self.dict_record_nodes} with important fields
+        from all retrieved records.
+        '''        
+        self.dict_record_nodes = {}
+        dict_index = self.settings['field_2_index']
+        for record in self.list_of_records:
+            record_data = {}
+            amount_index = dict_index['TRANSACTION_AMT']
+            record_data[amount_index] = record['TRANSACTION_AMT']
+
+            committee_index = dict_index['CMTE_ID']
+            record_data[committee_index] = record['CMTE_ID']
+            
+            employer_index = dict_index['EMPLOYER']
+            record_data[employer_index] = record['EMPLOYER']
+
+            occupation_index = dict_index['OCCUPATION']
+            record_data[occupation_index] = record['OCCUPATION']
+            
+            date_index = dict_index['TRANSACTION_DT']
+            record_data[date_index] = record['TRANSACTION_DT']
+
+            self.dict_record_nodes[str(record.id)] = {'data': record_data}
+
+            
+            
+    def set_idm(self,idm):
+        '''
+        Assign an IdentityManager to this instance.
+        '''
+        self.idm = idm
+        
+       
+   
+    
+    def load_settings(self, file_label):
+        '''
+        Define the L{self.settings} instance that defines the
+        schema of the nodes dictionary. This is completely arbitrary:
+        the same settings will be used to generate dict_records_nodes,
+        and to interpret it.
+        @param file_label: dummy. 
+        '''
+        self.settings = {'field_2_index' : {'TRANSACTION_DT' : 0,
+                                            'TRANSACTION_AMT' : 1,
+                                            'CMTE_ID' : 2,
+                                            'EMPLOYER': 3,
+                                            'OCCUPATION': 4}
+                        }
+        
 
 
 

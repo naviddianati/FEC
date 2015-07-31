@@ -92,7 +92,7 @@ def bad_identifier(identifier, type='employer'):
 
 
 
-def loadAffiliationNetwork(state, affiliation, percent=5):
+def loadAffiliationNetwork(state, affiliation, percent=5, poststage1 = False):
     '''
     Loads the saved output of AffiliatoinAnalyzer from file: the affiliation network.
     It also adds a new attribute to the graph instance that contains a dictionary from
@@ -118,9 +118,15 @@ def loadAffiliationNetwork(state, affiliation, percent=5):
 
     try:
         if affiliation == 'employer':
-            filename = config.affiliation_employer_file_template % state
+            if poststage1:
+                filename = config.affiliation_poststage1_employer_file_template % state
+            else:            
+                filename = config.affiliation_employer_file_template % state
         elif affiliation == 'occupation':
-            filename = config.affiliation_occupation_file_template % state
+            if poststage1:
+                filename = config.affiliation_poststage1_occupation_file_template % state
+            else:
+                filename = config.affiliation_occupation_file_template % state
         else:
             raise Exception("Unable to load affiliation graphs. Affiliation must be 'occupation' or 'employer'")
 #         filename = f = data_path + label + affiliation + '_graph.gml'

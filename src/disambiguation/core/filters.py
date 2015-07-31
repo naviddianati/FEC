@@ -143,8 +143,10 @@ def compute_significance(G):
             e['significance'] = None
 
             # print "error computing significance", p
-
-    max_sig = max(G.es['significance'])
+    try:
+        max_sig = max(G.es['significance'])
+    except:
+        return
     for e in G.es:
         if e['significance'] is None: e['significance'] = max_sig
 
