@@ -293,9 +293,6 @@ class AffiliationAnalyzer(object):
         if label == "":
             label = self.batch_id
 
-
-
-
         for v in self.G_affiliations.vs:
             v['name'] = str(v['name'])
 
@@ -313,13 +310,11 @@ class AffiliationAnalyzer(object):
             v['party'] = json.dumps(self.affiliation_party_amount[v['name']])
 
         if self.affiliation == "employer":
-            filename = config.affiliation_poststage1_employer_file_template % label
+            filename = config.affiliation_employer_file_template % label
         else:
-            filename = config.affiliation_poststage1_occupation_file_template % label
+            filename = config.affiliation_occupation_file_template % label
 
         self.G_affiliations.save(f=filename, format='gml')
-
-        
         print "Saved affiliation graphs to file..."
 
 
@@ -826,7 +821,7 @@ class AffiliationAnalyzerUndirectedPostStage1(AffiliationAnalyzerUndirected):
         Retrieve all records for given state.
         '''
         state = self.state
-        table_name = state + "_combined"
+        table_name = config.MySQL_table_state_combined % state 
         retriever = FecRetriever(table_name = table_name)
         retriever.retrieve()
         self.list_of_records = retriever.getRecords()
@@ -922,7 +917,33 @@ class AffiliationAnalyzerUndirectedPostStage1(AffiliationAnalyzerUndirected):
                         }
         
 
+    def save_data(self, label=""):
+        if label == "":
+            label = self.batch_id
 
+        for v in self.G_affiliations.vs:
+            v['name'] = str(v['name'])
+
+        dd = self.G_affiliations.degree_distribution()
+        # print np.sum(dd)
+        print dd.n, np.sum(self.affiliation_adjacency.values())
+
+        # Set the vertex labels
+        for v in self.G_affiliations.vs:
+            v['label'] = self.dict_name_2_string[v['name']].encode('utf-8')
+
+        # Set vertex sizes
+        for v in self.G_affiliations.vs:
+            v['size'] = np.sqrt(self.affiliation_score[v['name']])
+            v['party'] = json.dumps(self.affiliation_party_amount[v['name']])
+
+        if self.affiliation == "employer":
+            filename = config.affiliation_poststage1_employer_file_template % label
+        else:
+            filename = config.affiliation_poststage1_occupation_file_template % label
+
+        self.G_affiliations.save(f=filename, format='gml')
+        print "Saved affiliation graphs to file..."
 
 
 

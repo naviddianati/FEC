@@ -59,7 +59,8 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
         param_state = 'newyork'
     print "Analyzing data for state: ", param_state
 
-    table_name = param_state + "_combined"
+    table_name = config.MySQL_table_state_combined % param_state 
+    
 
     project.putData('state' , param_state)
 
@@ -185,7 +186,7 @@ def disambiguate_main(state, record_limit=(0, 5000000), method_id="thorough", lo
 
 
     # desired dimension (length) of hashes
-    hash_dim = 20
+    hash_dim = 60
     project.putData('hash_dim' , str(hash_dim))
 
     # In D, how many neighbors to examine?
@@ -278,7 +279,7 @@ def generateAffiliationDataPostStage1(state = None, affiliation = None, idm = No
     a.load_data()
     a.extract()
     a.compute_affiliation_links()
-    a.save_data(label = state + "-poststage1")
+    a.save_data(label = state)
 
 
 
@@ -321,7 +322,7 @@ def generateAffiliationData(state=None, affiliation=None, record_limit=(0, 50000
 
     print "Analyzing data for state: ", param_state
 
-    table_name = param_state + "_combined"
+    table_name = config.MySQL_table_state_combined % param_state 
 
     # If this is for a multi-state table
     if param_state == "multi_state":
@@ -519,7 +520,7 @@ def generateMigrationData(state=None, affiliation=None, record_limit=(0, 5000000
 
     print "Analyzing data for state: ", param_state
 
-    table_name = param_state + "_combined"
+    table_name = config.MySQL_table_state_combined % param_state 
 
     # If this is for a multi-state table
     if param_state == "multi_state":
@@ -1033,12 +1034,9 @@ def worker_disambiguate_states(conn):
         project = disambiguate_main(state, record_limit=(0, 500000000))
 
         try:
-            project.D.save_identities_to_db(overwrite = True)
+            project.D.save_identities_to_db(overwrite = False)
         except Exception as e:
-            raise
-
-        # except Exception as e:
-        #    print "ERROR: Could not disambiguate state ", state, ":   ", e
+            print "ERROR: Could not disambiguate state ", state, ":   ", e
 
 
 
@@ -1102,23 +1100,90 @@ def disambiguate_multiple_states(list_states=[], num_procs=12):
 
 
 
-def generateAffiliationDataPostStage1_multiple_states(list_states=[]):
+def worker_generate_affiliation_data_poststage1(conn):
+    '''
+    Worker function that receives a list of states and
+    runs C{disambiguate_main} for each one.
+    '''
+    data = conn.recv()
+    proc_name = multiprocessing.current_process().name
+    print proc_name, data
+
+    for state in data:
+        idm = IdentityManager(state)
+        idm.fetch_dict_identity_2_id()  
+    
+        try:
+            print "Generating post-stage1 occupation graph for state %s " % state
+            generateAffiliationDataPostStage1(state = state, affiliation = 'occupation',  idm = idm)
+        except Exception as e:
+            print "ERROR: could not generate post-stage1 occupation graph for state %s " % state
+            print e
+            raise
+
+        try:
+            print "Generating post-stage1 employer graph for state %s " % state
+            generateAffiliationDataPostStage1(state = state, affiliation = 'employer',  idm = idm)
+        except Exception as e:
+            print "ERROR: could not generate post-stage1 occupation graph for state %s " % state
+            print e
+            raise
+
+
+
+
+def generateAffiliationDataPostStage1_multiple_states(list_states=[], num_procs = 12):
     '''
     Generate post-stage1 affiliation graphs for multiple states. We only use one
     process here since this not very expensive.
     @param list_states: list of state strings. If empty, disambiguate all states.
     '''
+
+
+    list_jobs = []
+
     # if not specified,  load all states
     if not list_states:
         list_states = get_states_sorted()
         list_states.reverse()
 
-    idm = IdentityManager('USA')
-    idm.fetch_dict_identity_2_id()  
 
-    for state in list_states:
-        for affiliation in ['employer','occupation']:
-            generateAffiliationDataPostStage1(state = state, affiliation = affiliation, idm = idm)
+    N = len(list_states)
+
+    # No more than num_procs processes
+    number_of_processes = min(N, num_procs)
+
+
+    dict_states = {}
+    dict_conns = {}
+
+    proc_id = 0
+    while list_states:
+        if proc_id not in dict_states: dict_states[proc_id] = []
+        dict_states[proc_id].append(list_states.pop())
+        proc_id += 1
+        proc_id = proc_id % number_of_processes
+
+    for id in dict_states:
+        print id, dict_states[id]
+
+
+    # Run fresh state-wide disambiguation batches. Alternatively, we can skip this and read from pickled files from previous runs.
+    for id in dict_states:
+        # queue = multiprocessing.Queue()
+        conn_parent, conn_child = multiprocessing.Pipe()
+        dict_conns[id] = (conn_parent, conn_child)
+
+        p = multiprocessing.Process(target=worker_generate_affiliation_data_poststage1, name=str(id), args=(conn_child,))
+
+        list_jobs.append(p)
+        time.sleep(1)
+        p.start()
+        conn_parent.send(dict_states[id])
+
+    for p in list_jobs:
+        p.join()
+    return
 
 
 def combine_affiliation_graphs(**kwds):
@@ -1235,7 +1300,7 @@ def __combine_affiliation_graphs_employer(**kwds):
 import sys
 if __name__ == "__main__":
 
-    generateAffiliationDataPostStage1(state = 'districtofcolumbia', affiliation = 'occupation', idm = None)
+    generateAffiliationDataPostStage1(state = 'idaho', affiliation = 'occupation', idm = None)
     sys.exit()
 
 

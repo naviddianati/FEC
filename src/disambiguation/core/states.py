@@ -13,6 +13,7 @@ case state names as valus.
 import pandas as pd
 import os
 from .. import  data
+import utils
 
 
 my_data_path = os.path.join(os.path.dirname(__file__), '')
@@ -248,7 +249,8 @@ def get_states_record_numbers(recompute=False):
     db = Database.DatabaseManager()
     db.db_connect()
     for state, state_abbr in dict_state_abbr.iteritems():
-        query = "SELECT COUNT(*) FROM %s_combined;" % state
+        table_name = utils.config.MySQL_table_state_combined % state
+        query = "SELECT COUNT(*) FROM %s;" % table_name
         result = db.runQuery(query)
         print state, result[0][0]
         dict_state_record_numbers[state] = result[0][0]

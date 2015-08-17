@@ -241,7 +241,7 @@ def worker_disambiguate_subset_of_edgelist(filename):
             for e in sorted(g.es, key=lambda e:e['weight'], reverse=True)]
 
         print "Retrieving records for this partition from database."
-        retriever = Database.FecRetrieverByID(config.MySQL_tablename_all_records)
+        retriever = Database.FecRetrieverByID(config.MySQL_table_usa_combined)
         retriever.retrieve(list_record_ids, all_fields)
         list_of_records = retriever.getRecords()
 

@@ -7,14 +7,28 @@ This module defines global variables used uniformly by various scripts.
 
 @var vectors_file_template: This file contains a pickled dictionary \{r.id: vector for r in list_of_records\}.
 @var hashes_file_template: This file contains the LSH hashes dictionary \{r.id: hash for r in list_of_records\}.
-@var MySQL_tablename_all_records: Name of the table containing all records with addresses. This table is the concatenation of all <state>_combined tables.
 @var log_filename: name of the log file.
+@var MySQL_table_individual_contributions: Name of table containing data directly imported 
+from the officially released individual contributions table.
+@var MySQL_table_state_combined: Name of table containing all records for given state, 
+including the street address mined separately NOTE: THIS STRING IS A TEMPLATE. IT MUST BE
+INSTANTIATED WITH A STATE NAME STRING.
+@var MySQL_table_usa_combined: All <state>_combined tables concatenated.
+@var MySQL_table_identities: Identities table. This table maps each record id to
+an identity id.
+@var MySQL_table_identities_adjacency: Identities adjacency table.
 '''
 
 import os
 
+# Data version to work with
+# NOTE: this string cannot contain period '.' since
+# it is used to generate MySQL table names.
+FEC_version = '2'
+
+
 # Global data path.
-data_path = os.path.expanduser('~/data/FEC-test/')
+data_path = os.path.expanduser('~/data/FEC-v%s/' % FEC_version)
 
 
 src_path = os.path.join(os.path.dirname(__file__), '')
@@ -90,10 +104,6 @@ affiliation_occupation_file_template = dict_paths["data_path_affiliations_occupa
 affiliation_poststage1_employer_file_template = dict_paths["data_path_affiliations_employer"] + "%s-poststage1_employer_graph.gml"
 affiliation_poststage1_occupation_file_template = dict_paths["data_path_affiliations_occupation"] + "%s-poststage1_occupation_graph.gml"
 
-# Name of the table containing all records with addresses.
-# This table is the concatenation of all <state>_combined tables
-MySQL_tablename_all_records = 'usa_combined' 
-
 
 
 # log file name
@@ -118,4 +128,89 @@ linked_identities_template = dict_paths['data_path_identities'] + "%s-linked-ide
 
 # CSV file containin all records with an additional "identity" column as well
 csv_exported_state_template = dict_paths['data_path_exports'] + "%s.csv"
+
+
+
+
+
+
+
+# MySQL table names
+
+# Table containing data directly imported from
+# the officially released individual contributions
+# table.
+MySQL_table_individual_contributions = 'individual_contributions_v%s' % FEC_version
+
+# Table containing all records for given state, 
+# including the street address mined separately
+# NOTE: THIS STRING IS A TEMPLATE. IT MUST BE INSTANTIATED
+# WITH A STATE NAME STRING
+MySQL_table_state_combined = '%%s_combined_v%s' % FEC_version
+
+# All <state>_combined tables concatenated.
+MySQL_table_usa_combined = 'usa_combined_v%s' % FEC_version
+
+# Identities table. This table maps each record id to
+# an identity id.
+MySQL_table_identities = 'identities_v%s' % FEC_version
+
+# Identities adjacency table.
+MySQL_table_identities_adjacency = 'identities_adjacency_v%s' % FEC_version
+
+
+
+
+
+
+
+
+print MySQL_table_individual_contributions
+print MySQL_table_state_combined % 'newyork'
+print MySQL_table_usa_combined 
+print MySQL_table_identities 
+print MySQL_table_identities_adjacency 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

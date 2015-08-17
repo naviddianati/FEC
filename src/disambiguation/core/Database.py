@@ -14,6 +14,7 @@ import states
 import utils
 import pandas as pd
 
+
 class DatabaseManager:
     '''
     Base class for interacting with MySQL server. It implements a connection
@@ -307,11 +308,11 @@ class FecExporter(FecRetriever):
     will be instantiated.
     '''
     def __init__(self, state, query_fields=[], limit="", list_order_by="", where_clause='', require_id=True):
-        table_name = state + '_combined'
         params = locals()
         del params['self']
         del params['state']
         FecRetriever.__init__(self, **params)
+        self.table_name = utils.config.MySQL_table_state_combined % state 
         
         list_tokenized_fields = ['NAME', 'ZIP_CODE', 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
         list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
@@ -406,8 +407,9 @@ class IdentityManager(DatabaseManager):
     C{(identity1 VARCHAR(24), identity2 VARCHAR(24), no INT, maybe INT, yes INT, PRIMARY KEY ("identity1","identity2"))}.
     '''
 
-    table_name_identities = 'identities'
-    table_name_identity_adjacency = 'identities_adjacency'
+    import utils
+    table_name_identities = utils.config.MySQL_table_identities
+    table_name_identity_adjacency = utils.config.MySQL_table_identities_adjacency
 
 
     def __init__(self, state, list_order_by="", where_clause=''):
@@ -434,7 +436,7 @@ class IdentityManager(DatabaseManager):
 
         # Query that will create table identities_adjacency
         self.query_create_table_identities_adjacency = \
-            'CREATE TABLE identities_adjacency (identity1 VARCHAR(24), identity2 VARCHAR(24), no FLOAT, maybe FLOAT, yes FLOAT, PRIMARY KEY (identity1,identity2)  );'
+            'CREATE TABLE %s (identity1 VARCHAR(24), identity2 VARCHAR(24), no FLOAT, maybe FLOAT, yes FLOAT, PRIMARY KEY (identity1,identity2)  );' % IdentityManager.table_name_identity_adjacency
 
         self.state = state
 
@@ -617,7 +619,7 @@ class IdentityManager(DatabaseManager):
 
         # Retrieve all relevant records
         print "Retrieving records in getPerson..."
-        retriever = FecRetrieverByID(utils.config.MySQL_tablename_all_records)
+        retriever = FecRetrieverByID(utils.config.MySQL_table_usa_combined)
         retriever.retrieve(list_all_rids)
         dict_of_records = retriever.dict_of_records
 
@@ -875,14 +877,14 @@ class IdentityManager(DatabaseManager):
         '''
         query = "SELECT COUNT(*) FROM information_schema.tables \
                     WHERE table_schema = 'FEC' \
-                    AND table_name = 'identities_adjacency';"
+                    AND table_name = '%s';" % IdentityManager.table_name_identity_adjacency
 
         result = self.runQuery(query)
         if result[0][0] == 0:
-            print "Table 'identities_adjacency' doesn't exist. Creating it."
+            print "Table '%s' doesn't exist. Creating it." % IdentityManager.table_name_identity_adjacency
             self.runQuery(self.query_create_table_identities_adjacency)
         else:
-            print "Table 'identities_adjacency' exists."
+            print "Table '%s' exists." % IdentityManager.table_name_identity_adjacency
 
 
 
@@ -894,9 +896,9 @@ class IdentityManager(DatabaseManager):
         drop and re-init the table.
         '''
         self.drop_table_identities_adjacency()
-        print "table identities_adjacency dropped successfully" 
+        print "table %s dropped successfully" % IdentityManager.table_name_identity_adjacency 
         self.__init_table_identities_adjacency()
-        print "table identities_adjacency initialized successfully" 
+        print "table %s initialized successfully" % IdentityManager.table_name_identity_adjacency 
 
 
     def fetch_dict_id_2_identity(self):
@@ -940,7 +942,8 @@ class IdentityManager(DatabaseManager):
 
 
 if __name__ == "__main__":
-
+    print utils.config
+    quit()
 
     fr = DatabaseManager(table_name="california", query_fields=["NAME", "CITY", "CMTE_ID", "TRAN_ID"], limit=(1, 1000000), list_order_by=["NAME"])
     fr.retrieve()

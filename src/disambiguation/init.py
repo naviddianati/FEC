@@ -256,7 +256,7 @@ def INIT_process_single_state(state=None, TokenizerClass=None, list_tokenized_fi
 
     print "Tokenizing state %s using TokenizerClass: %s ", (param_state, TokenizerClass.__name__)
 
-    table_name = param_state + "_combined"
+    table_name = config.MySQL_table_state_combined % param_state
 
     project.putData('state' , param_state)
 
@@ -283,9 +283,10 @@ def INIT_process_single_state(state=None, TokenizerClass=None, list_tokenized_fi
 
 
     if whereclause == "":
-        whereclause = " WHERE ENTITY_TP='IND' "
+        pass
+        #whereclause = " WHERE ENTITY_TP='IND' "
     else:
-        whereclause = whereclause + " AND ENTITY_TP='IND' "
+        #whereclause = whereclause + " AND ENTITY_TP='IND' "
         print "whereclasue: ", whereclause
 
     retriever = FecRetriever(table_name=table_name,

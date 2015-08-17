@@ -1342,14 +1342,13 @@ class Disambiguator():
         and create an empty one.
         '''
         db_manager = DatabaseManager()
-
+        tablename = config.MySQL_table_identities 
         if overwrite:
-            db_manager.runQuery('DROP TABLE IF EXISTS identities;')
-            db_manager.runQuery('CREATE TABLE identities ( id INT PRIMARY KEY, identity VARCHAR(24));')
+            db_manager.runQuery('DROP TABLE IF EXISTS %s;' % tablename)
+            db_manager.runQuery('CREATE TABLE %s ( id INT PRIMARY KEY, identity VARCHAR(24));' % tablename)
 
         for id_pair in self.generator_identity_list():
-            result = db_manager.runQuery('INSERT INTO identities (id,identity)  VALUES (%d,"%s");' % id_pair)
-            print result
+            result = db_manager.runQuery(('INSERT INTO %s' % tablename) + ' (id,identity)  VALUES (%d,"%s");' % id_pair)
         db_manager.connection.commit()
         db_manager.connection.close()
 

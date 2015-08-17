@@ -82,11 +82,17 @@ def DISAMBIGUATE_stage_1():
     # stage1.combine_affiliation_graphs()
 
     # Disambiguate every state separately in parallel.
-    #stage1.disambiguate_multiple_states(list_states=[], num_procs=12)
+    #list_states = get_state_order().items()
+    #list_states = [x for x,y in sorted(list_states, key = lambda x:x[1])]
+    #already_done = ['ohio','oklahoma','arizona','minnesota','colorado','connecticut','newjersey','massachusetts','pennsylvania','virginia','illinois']
+    #for state in already_done: list_states.remove(state)
+    list_states = ['palau', 'idaho', 'mississippi', 'kentucky', 'michigan']
+    
+    stage1.disambiguate_multiple_states(list_states=list_states, num_procs=5)
 
     # After stage1 disambiguation, use the identities to generate
     # a second iteration of the affiliation graphs.
-    stage1.generateAffiliationDataPostStage1_multiple_states(list_states=[])  
+    stage1.generateAffiliationDataPostStage1_multiple_states(list_states=list_states, num_procs = 5)  
 
     # Combine post-stage1 affiliation graphs into a national one.
     stage1.combine_affiliation_graphs(poststage1 = True)
@@ -125,13 +131,13 @@ def DISAMBIGUATE_stage_2():
     # Get pairs of record ids that are similar according
     # to the national (combined) hashes, but aren't already
     # linked at the state level.
-    # stage2.get_candidate_pairs(num_pairs, recompute = True)
+    #stage2.get_candidate_pairs(num_pairs, recompute = True)
 
 
     # Partition the full record set into num_procs subsets
     # with minimal inter-set links, and export the record ids
     # to a separate file for each subset.
-    # stage2.partition_records( num_partitions = num_procs, state = 'USA')
+    #stage2.partition_records( num_partitions = num_procs, state = 'USA')
 
     # Compute token frequencies at the person level given the
     # identities computed in stage1
@@ -253,22 +259,22 @@ def INIT():
     '''
     # State level data preparation (for fine-grained intra state disambiguation)
     # Tokenize, vectorize and hashify all states using TokenizerNgram
-    # init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
+    init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
 
     # National level data preparation:
     # Tokenize, vectorize and hashify all states using Tokenizer
-    #ltf = ['NAME', 'EMPLOYER', 'OCCUPATION']
-    #init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields=ltf, num_procs=12)
+    ltf = ['NAME', 'EMPLOYER', 'OCCUPATION']
+    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields=ltf, num_procs=12)
 
 
     # combine the vectors and tokens from all states into the national data files.
-    #init.INIT_combine_state_tokens_and_vectors()
+    init.INIT_combine_state_tokens_and_vectors()
 
     # Combine all normalized attributes into a national file
     init.INIT_combine_normalized_attributes()
 
     # Using the national vectors and tokens, compute uniform national hashes
-    #init.INIT_compute_national_hashes(num_procs=10)
+    init.INIT_compute_national_hashes(num_procs=10)
 
 
 
@@ -343,7 +349,7 @@ def test_identity_manager2():
             list_ids += ids
 
     list_ids = list(set(list_ids))
-    db = FecRetrieverByID('usa_combined')
+    db = FecRetrieverByID('usa_combined_v1')
     db.retrieve(list_ids)
     list_of_records = db.getRecords()
     dict_records = {r.id:r for r in list_of_records}
@@ -373,7 +379,7 @@ def test_identity_manager2():
 
 def test_retriever_by_id():
     from disambiguation.core import Database
-    retriever = Database.FecRetrieverByID('newyork_combined')
+    retriever = Database.FecRetrieverByID('newyork_combined_v1')
 
     num_records = 10
 
@@ -382,7 +388,7 @@ def test_retriever_by_id():
     list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
     all_fields = list_tokenized_fields + list_auxiliary_fields
 
-    db = FecRetriever(table_name='newyork_combined',
+    db = FecRetriever(table_name='newyork_combined_v1',
                       query_fields=['id'],
                       limit=(0, num_records),
                       list_order_by='')
@@ -418,12 +424,23 @@ if __name__ == "__main__":
 
 #     view_vectors()
 #     quit()
-    DISAMBIGUATE_stage_1()
+
+
+
+
+    DISAMBIGUATE_stage_2()
     quit()
+
+
 
 
     INIT()
     quit()
+
+
+
+
+
 
     # test_searchengine()
     # quit()

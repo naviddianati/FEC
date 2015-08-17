@@ -54,7 +54,7 @@ class SearchEngine():
         in the specified fields.
         @param name: regex pattern for name.
         '''
-        tablename = "newyork_combined"
+        tablename = utils.config.MySQL_table_state_combined % state
         whereclause = []
         whereclause.append("NAME regexp '%s'" % name if name else "")
         whereclause.append("STATE regexp '%s'" % state if state else "")
@@ -81,7 +81,7 @@ class SearchEngine():
         if not list_of_records:
             list_of_records = self.list_of_records
             
-        tablename = 'identities'
+        tablename = utils.config.MySQL_table_identities
         list_ids_str = "(%s)" % ",".join([str(r.id) for r in list_of_records])
         query = "SELECT id,identity from %s WHERE id in %s" % (tablename, list_ids_str)
         result = list(self.db.runQuery(query))
