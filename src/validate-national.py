@@ -106,12 +106,12 @@ def worker_get_similar_records_db(target_record):
     lastname = target_record['N_last_name']
     middlename = target_record['N_middle_name']
 
-    db = Database.FecRetriever(table_name='individual_contributions',
+    db = Database.FecRetriever(table_name='individual_contributions_MYISAM',
     # db = Database.FecRetriever(table_name='newyork_combined',
                       query_fields=all_fields,
                       limit='',
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
-                      where_clause=" WHERE NAME REGEXP '[[:<:]]%s.*[[:<:]]%s'" % (lastname, firstname)
+                      where_clause=" WHERE MATCH(NAME) AGAINST('+%s +%s') IN BOOLEAN MODE)" % (lastname, firstname)
     )
     try:
         db.retrieve()
@@ -160,7 +160,7 @@ def get_list_target_records(idm, n=1000, list_ids = []):
         list_all_ids = idm.dict_id_2_identity.keys()
         list_random_ids = [random.choice(list_all_ids) for i in range(n)]
 
-    retriever = Database.FecRetrieverByID('usa_combined')
+    retriever = Database.FecRetrieverByID('usa_combined_v2')
     retriever.retrieve(list_random_ids)
     list_of_records = retriever.getRecords()
 
@@ -421,7 +421,7 @@ def worker_generate_pages(data):
 
     # Retrieve all records with ids in list_all_rids
     print "retrieving all relevant records from db..."
-    retriever = Database.FecRetrieverByID('usa_combined')
+    retriever = Database.FecRetrieverByID('usa_combined_v2')
     retriever.retrieve(list_all_rids)
 
 
@@ -478,11 +478,11 @@ if __name__ == "__main__":
     # Set of "records" we want to find matches for.
     # A records can be an artificial records build
     # from a query.
-    #list_target_records = get_list_target_records(idm,n=100)
+    list_target_records = get_list_target_records(idm,n=200)
 
     #TEST: DELTE ME!
-    list_target_records = get_list_target_records(idm,n=200, 
-        list_ids=[6409074])
+    #list_target_records = get_list_target_records(idm,n=200, 
+    #    list_ids=[6409074])
     
 
     # Generate the pages

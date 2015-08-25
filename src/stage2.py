@@ -130,17 +130,22 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12):
         list_list_record_pairs = pool.map(worker_disambiguate_subset_of_edgelist, list_filenames)
         pool.close()
         pool.terminate()
-
+    
+    print "All worker results returned."
     # Concatenate all sublists
     list_record_pairs = []
     while list_list_record_pairs:
         list_record_pairs += list_list_record_pairs.pop()
-
+    print "Combined all list_record_pairs."
 
     # Create an IdentityManager instance, then given the record
     # pairs just found, compute the identity_adjacency.
     idm = Database.IdentityManager('USA')
+
+    print "Running idm.generate_dict_identity_adjacency."
     idm.generate_dict_identity_adjacency(list_record_pairs, overwrite=True)
+    print "Done"
+    print "Exporting identities_adjaceny.."
     idm.export_identities_adjacency()
     idm.export_linked_identities_csv()
     idm.export_related_identities_csv()

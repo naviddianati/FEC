@@ -94,11 +94,16 @@ class FecRetrieverByID(DatabaseManager):
         Insert the ids into the temp table.
         @param list_ids: list of record ids tobe retrieved.
         '''
+        self.connection.autocommit(False)
         print "inserting..."
         for rid in list_ids:
             query = "INSERT INTO %s  value (%d);" % (self.temp_table, rid)
             self.runQuery(query)
+        self.connection.commit()
+        self.connection.autocommit(True)
         print "done."
+    
+        
 
 
 
@@ -126,9 +131,9 @@ class FecRetrieverByID(DatabaseManager):
 
         if query_fields == []:
             query_fields = self.all_fields
-        self.query_fields = query_fields
+        self.all_fields = query_fields
 
-        fields = ','.join(query_fields)
+        fields = ','.join(self.all_fields)
         # Retrieve the rows from the join
         query = "SELECT " + fields + " FROM " + self.table_name + " JOIN " + self.temp_table + " USING (id) ;"
         print query
@@ -154,7 +159,6 @@ class FecRetrieverByID(DatabaseManager):
                     r[field] = item[i]
                 except:
                     pass
-
             # I require that each row have a unique "id" column
             try:
                 r.id = int(r['id'])
@@ -162,6 +166,9 @@ class FecRetrieverByID(DatabaseManager):
                 if self.require_id :
                     raise Exception("ERROR: record does not have 'id' column")
                 pass
+            except Exception as e:
+                print "ERROR", e
+                raise
 
             # WARNING: switching from list_of_records to dict_of_records
             # self.list_of_records.append(r)
@@ -199,14 +206,14 @@ class FecRetrieverByID(DatabaseManager):
         self.get_idm()
         list_results_updated = []
         # add identities to records
-        index_id = self.query_fields.index('id')
+        index_id = self.all_fields.index('id')
         for line in self.list_results:
             line = list(line)
             r_id = line[index_id]
             identity = self.idm.get_identity(r_id)
             line.insert(0,identity if identity else '')
             list_results_updated.append(line)
-        header =  ['identity'] +  self.query_fields 
+        header =  ['identity'] +  self.all_fields 
         df = pd.DataFrame(list_results_updated, columns = header)
         df.to_csv(filename, sep = '|', header = header, index = False)
         
