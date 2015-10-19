@@ -13,7 +13,14 @@ import resource
 from copy import copy
 
 
-
+def create_tables():
+    '''
+    Create the C{identities} and C{identities_adjacency} tables
+    necessary for stage 1 and 2 disambiguations. The tables
+    create here will have their versions defined by L{config}
+    '''
+    idm = IdentityManager('USA')
+    idm.init_tables()
 
 
 

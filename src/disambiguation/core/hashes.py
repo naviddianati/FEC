@@ -7,7 +7,7 @@ import time
 import utils
 import Database
 
-def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10):
+def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10, idm = None):
     '''
     Shuffle the given  hashes num_shuffles times and build
     an edgelist of item pairs most commonly found close
@@ -17,6 +17,7 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10):
     @param B: total number of adjacenct hashes to log for each sorting
         of the list of hashes.
     @param num_shuffles: number of times to shuffle the hashes and log the neighbors.
+    @param idm: L{IdentityManager} instance to use
 
     @return: a dictionary {(r_id1, r_id2): score}.
     '''
@@ -26,8 +27,9 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10):
     print "Done loading the hash file."
 
     # instantiate an IdentityManager instace for this process
-    idm = Database.IdentityManager(state=state)
-    idm.fetch_dict_id_2_identity()
+    if not idm:
+        idm = Database.IdentityManager(state=state)
+        idm.fetch_dict_id_2_identity()
     dict_id_2_identity = idm.dict_id_2_identity
 
     ids = []
@@ -91,7 +93,7 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10):
 
 
 
-def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_procs=12, num_pairs=1000):
+def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_procs=12, num_pairs=1000, idm = None):
     '''
     Using multiple child processes, load hashes, shuffle them multiple
     times and compute edgelist. Worker function: L{worker_get_edgelist_from_hashes_file}
@@ -101,6 +103,7 @@ def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_pr
     @param B: number of adjacency hashes to log.
     @param num_shuffles: total number of times to shuffle the hashes.
     @param num_procs:  number of processes to use.
+    @param idm: L{IdentityManager} instance to use.
     '''
 
     # The full adjacency matrix. A dict.
@@ -115,7 +118,7 @@ def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_pr
 
     # Each child process receives the filename, B, and the integer
     # number of times it is supposed to shuffle the hashes. Plus the queue.
-    data = [(filename, state, B, n, q) for n in list_num_shuffles]
+    data = [(filename, state, B, n, q, idm) for n in list_num_shuffles]
 
     list_procs = []
 
@@ -174,9 +177,9 @@ def worker_get_edgelist_from_hashes_file(data):
     the hashes.
     '''
     # Unpack init data.
-    filename, state, B , num_shuffles, queue = data
+    filename, state, B , num_shuffles, queue, idm = data
     pid = utils.multiprocessing.current_process().name
-    for edgelist in  get_edgelist_from_hashes(filename, state, B, num_shuffles):
+    for edgelist in  get_edgelist_from_hashes(filename, state, B, num_shuffles, idm):
         print "Sending data to queue on process %s len(adj): %d" % (pid, len(edgelist))
 
         queue.put(edgelist)

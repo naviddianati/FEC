@@ -9,6 +9,9 @@ import random
 import pandas as pd
 
 
+version_data = 'v2'
+
+version_disambiguation = 'v3'
 
 
 
@@ -106,12 +109,13 @@ def worker_get_similar_records_db(target_record):
     lastname = target_record['N_last_name']
     middlename = target_record['N_middle_name']
 
-    db = Database.FecRetriever(table_name='individual_contributions_MYISAM',
+    db = Database.FecRetriever(table_name='individual_contributions_%s_MYISAM' % version_data,
     # db = Database.FecRetriever(table_name='newyork_combined',
                       query_fields=all_fields,
                       limit='',
                       list_order_by=['NAME', "TRANSACTION_DT", "ZIP_CODE"],
-                      where_clause=" WHERE MATCH(NAME) AGAINST('+%s +%s') IN BOOLEAN MODE)" % (lastname, firstname)
+                      where_clause=" WHERE MATCH(NAME) AGAINST('+%s +%s' IN BOOLEAN MODE) " %(lastname,firstname)
+        
     )
     try:
         db.retrieve()
@@ -121,8 +125,13 @@ def worker_get_similar_records_db(target_record):
             f.write(target_record['NAME'] + "\n")
             f.write(str(e) + "\n")
             f.write("="*72 + "\n")
-    print "records retrieved"
+    print "Similar records retrieved"
     list_records = db.getRecords()
+
+
+    if len(list_records) > 1000:
+        print "ERROR: bad query returned too many records. Skipping."
+        return target_record, []
 
     print "saving to file"
     with open(firstname + "-" + lastname + ".txt", 'w') as f:
@@ -160,7 +169,7 @@ def get_list_target_records(idm, n=1000, list_ids = []):
         list_all_ids = idm.dict_id_2_identity.keys()
         list_random_ids = [random.choice(list_all_ids) for i in range(n)]
 
-    retriever = Database.FecRetrieverByID('usa_combined_v2')
+    retriever = Database.FecRetrieverByID('usa_combined_%s' % version_data)
     retriever.retrieve(list_random_ids)
     list_of_records = retriever.getRecords()
 
@@ -340,6 +349,7 @@ def generate_coding_page_multiproc(list_of_records, num_procs, idm):
     page_number = 1
     list_pages = []
     for target_record, list_similar_records in pool.imap(worker_get_similar_records_db, list_of_records):
+        if not list_similar_records: continue
         list_pages.append((target_record, list_similar_records, page_number))
         page_number += 1
 
@@ -361,9 +371,6 @@ def worker_generate_pages(data):
     # value of the dict returned by idm.get_related_identies
     # and decides if the identity in question should be considered
     # linked to the identity of target_record or "maybe linked"
-    get_score = lambda result: 1 if (result[2] > 0.2 and result[0] == 0) else (2 if result[0] == 0 else 3)
-
-
 
 
 
@@ -421,7 +428,7 @@ def worker_generate_pages(data):
 
     # Retrieve all records with ids in list_all_rids
     print "retrieving all relevant records from db..."
-    retriever = Database.FecRetrieverByID('usa_combined_v2')
+    retriever = Database.FecRetrieverByID('usa_combined_%s' % version_data)
     retriever.retrieve(list_all_rids)
 
 
@@ -478,7 +485,7 @@ if __name__ == "__main__":
     # Set of "records" we want to find matches for.
     # A records can be an artificial records build
     # from a query.
-    list_target_records = get_list_target_records(idm,n=200)
+    list_target_records = get_list_target_records(idm,n=400)
 
     #TEST: DELTE ME!
     #list_target_records = get_list_target_records(idm,n=200, 

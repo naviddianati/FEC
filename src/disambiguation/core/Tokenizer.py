@@ -105,11 +105,21 @@ class Tokenizer():
         
         
         
-        
+    def _normalize_NAME(self, record):
+        '''
+        this normalizer is applied to the whole name, that is, when
+        first/middle/last name and titles are all mixed into one string.
+        Uses a custom name parser I wrote.
+        '''
+        s = record['NAME']
+        r = record
+        r['N_last_name'], r['N_middle_name'], r['N_first_name'] = utils.splitname(s)
+
 
     
-    def _normalize_NAME(self, record):
+    def _normalize_NAME_v12(self, record):
         ''' 
+        @deprecated: used in v1 and v2.
         this normalizer is applied to the whole name, that is, when
         first/middle/last name and titles are all mixed into one string.
         Uses nameparser.
@@ -120,7 +130,7 @@ class Tokenizer():
         s1 = re.sub(r'\.|[0-9]+', '', s)
         s1 = re.sub(r'(\bESQ\b)|(\bENG\b)|(\bINC\b)|(\bLLC\b)|(\bLLP\b)|(\bMRS\b)|(\bPHD\b)|(\bSEN\b)', '', s1)
         s1 = re.sub(r'(\bDR\b)|(\bII\b)|(\bIII\b)|(\bIV\b)|(\bJR\b)|(\bMD\b)|(\bMR\b)|(\bMS\b)|(\bMISS\b)|(\bSR\b)|(\bSGT\b)|(\bDC\b)|(\bREV\b)|(\bFR\b)', '', s1)
-        s1 = re.sub(r'\.', '', s1)
+        s1 = re.sub(r'\.', ' ', s1)
 
         name = HumanName(s1)
 
@@ -157,6 +167,7 @@ class Tokenizer():
    
     def _normalize_NAME_old(self, record):
         ''' 
+        @deprecated: for ancient versions.
         This normalizer is applied to the whole name, that is, when
         first/middle/last name and titles are all mixed into one string.
         Void. updates the record. This one doesn't use nameparser. My own version

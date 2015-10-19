@@ -77,18 +77,26 @@ def DISAMBIGUATE_stage_1():
     import stage1
 
     # TODO: compute pre-stage1 affiliations
+    # Now it's in a separate script, not integrated into
+    # the unified pipeline.
 
     # Combine affiliation graphs into a national one.
-    # stage1.combine_affiliation_graphs()
+    #stage1.combine_affiliation_graphs()
+
+
+    # Create the identities and identities_adjacency tables
+    # needed for disambiguation.
+    #stage1.create_tables()
+
 
     # Disambiguate every state separately in parallel.
     #list_states = get_state_order().items()
     #list_states = [x for x,y in sorted(list_states, key = lambda x:x[1])]
     #already_done = ['ohio','oklahoma','arizona','minnesota','colorado','connecticut','newjersey','massachusetts','pennsylvania','virginia','illinois']
     #for state in already_done: list_states.remove(state)
-    list_states = ['palau', 'idaho', 'mississippi', 'kentucky', 'michigan']
-    
-    stage1.disambiguate_multiple_states(list_states=list_states, num_procs=5)
+    #list_states = ['palau', 'idaho', 'mississippi', 'kentucky', 'michigan']
+    list_states = []
+    #stage1.disambiguate_multiple_states(list_states=list_states, num_procs=10)
 
     # After stage1 disambiguation, use the identities to generate
     # a second iteration of the affiliation graphs.
@@ -123,7 +131,9 @@ def DISAMBIGUATE_stage_2():
     '''
     import stage2
     # Number of new record pairs to compare at the national level
-    num_pairs = 10000000
+    num_pairs = 100000000
+
+    idm = Database.IdentityManager('USA')
 
     # Number of processes to use for stage 2 disambiguation.
     num_procs = 12
@@ -139,12 +149,20 @@ def DISAMBIGUATE_stage_2():
     # to a separate file for each subset.
     #stage2.partition_records( num_partitions = num_procs, state = 'USA')
 
+    # Partition the set of all S1 identities containing any of the
+    # candidate records into subsets with no overlaps. Export the 
+    # lists of identity pairs to a separate file for each partition.
+    # Also, exoirt the list of all record ids associated with any
+    # of the identities in each partition into a separate file for
+    # that partition as well.
+    #stage2.partition_S1_identities(num_partitions = num_procs, state = 'USA', idm = idm)
+
     # Compute token frequencies at the person level given the
     # identities computed in stage1
     #stage2.compute_person_tokens()
 
     # Compare record pairs within each subset and save results.
-    stage2.disambiguate_subsets_multiproc(num_partitions=num_procs, state="USA", num_procs=12)
+    stage2.disambiguate_subsets_multiproc(num_partitions=12, state="USA", num_procs=12, idm = idm)
 
     pass
 
@@ -433,6 +451,8 @@ if __name__ == "__main__":
 
 
 
+    DISAMBIGUATE_stage_1()
+    quit()
 
     INIT()
     quit()

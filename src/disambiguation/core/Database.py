@@ -15,6 +15,7 @@ import utils
 import pandas as pd
 
 
+
 class DatabaseManager:
     '''
     Base class for interacting with MySQL server. It implements a connection
@@ -263,11 +264,12 @@ class FecRetriever(DatabaseManager):
             self.order_by = ""
 
 
-    def retrieve(self):
+    def retrieve(self, query = ''):
         # Get string list from MySQL query and set it as analyst's list_of_records_identifier
         # query_result = runQuery("select " + ','.join(identifier_fields) + " from newyork_addresses where NAME <> '' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
-        query = "select " + ','.join(self.query_fields) + " from " + self.table_name + self.where_clause + self.order_by + self.limit + ";"
-        print query
+        if not query:
+            query = "select " + ','.join(self.query_fields) + " from " + self.table_name + self.where_clause + self.order_by + self.limit + ";"
+            print query
         self.query = query
 
         query_result = self.runQuery(query)
@@ -443,7 +445,7 @@ class IdentityManager(DatabaseManager):
 
         # Query that will create table identities_adjacency
         self.query_create_table_identities_adjacency = \
-            'CREATE TABLE %s (identity1 VARCHAR(24), identity2 VARCHAR(24), no FLOAT, maybe FLOAT, yes FLOAT, PRIMARY KEY (identity1,identity2)  );' % IdentityManager.table_name_identity_adjacency
+            'CREATE TABLE %s (identity1 VARCHAR(24), identity2 VARCHAR(24), verdict INT, PRIMARY KEY (identity1,identity2)  );' % IdentityManager.table_name_identity_adjacency
 
         self.state = state
 
@@ -462,12 +464,24 @@ class IdentityManager(DatabaseManager):
         else:
             self.order_by = ""
 
-        # Initialize the "identities" and tables
-        self.__init_table_identities()
-        self.__init_table_identities_adjacency()
-
+        
+        # Initialize the identities and identities_adjacency tables.
+        # Only make sure they exist. DO NOT overwrite them.
+        self.init_tables(overwrite = False)
+        
         # dict {identity: Person instance}
         self.dict_persons = None
+
+
+    def init_tables(self, overwrite = False):
+        '''
+        Initialize the identities and identities_adjacency tables.
+        @param overwrite: whether to overwrite the tables if they
+        exist already.
+        '''
+        # Initialize the "identities" and tables
+        self.__init_table_identities(overwrite)
+        self.__init_table_identities_adjacency(overwrite)
 
 
     def get_related_identities(self, identity):
@@ -505,25 +519,18 @@ class IdentityManager(DatabaseManager):
         @return: a list of all identities that we judge to be linked to the
         given identity.
         '''
-        def fcn_linked_default(no_maybe_yes):
+        def fcn_linked_default(verdict):
             '''
             The default function that decides if two identities that are
             linked by an edge in self.dict_identity_2_identities are close enough
             that they should be considered linked.
-            @param no_maybe_yes: the (no, maybe, yes) tuple defining the edge
+            @param verdict: the integer score defining the edge
             between the two identities.
             '''
-            x = no_maybe_yes
-            if x[0] > 0: 
-                if x[2] > 1:
-                    return True
-                else:
-                    return False
+            x = verdict
+            return (x >= 1) 
+        
 
-            if x[2] > 0.05: return True
-            pass
-        
-        
         if fcn_linked is None:
             fcn_linked = fcn_linked_default
             
@@ -550,11 +557,11 @@ class IdentityManager(DatabaseManager):
         Load the L{table_name_identity_adjacency} table into
         L{self.dict_identity_adjacency}.
         '''
-        query = "SELECT identity1,identity2, no,maybe,yes from " + IdentityManager.table_name_identity_adjacency + ";"
+        query = "SELECT identity1,identity2, verdict from " + IdentityManager.table_name_identity_adjacency + ";"
         print query
         query_result = self.runQuery(query)
         # Populate self.dict_identity_adjacency
-        self.dict_identity_adjacency = {(identity1, identity2) : (no, maybe, yes) for identity1, identity2, no, maybe, yes in query_result}
+        self.dict_identity_adjacency = {(identity1, identity2) : verdict for identity1, identity2, verdict in query_result}
         del query_result
 
     def get_ids(self, identity):
@@ -569,7 +576,7 @@ class IdentityManager(DatabaseManager):
         try:
             return self.dict_identity_2_list_ids[identity]
         except:
-            return None
+            return []
 
 
 
@@ -607,7 +614,6 @@ class IdentityManager(DatabaseManager):
                 self.dict_identity_2_identities[identity2] = {identity1: relationship}
             else:
                 self.dict_identity_2_identities[identity2][identity1] = relationship
-
 
 
 
@@ -651,8 +657,64 @@ class IdentityManager(DatabaseManager):
         pass
 
 
-    def generate_dict_identity_adjacency(self, list_record_pairs, overwrite=False):
+
+
+    def generate_dict_identity_adjacency(self, list_identity_pairs, overwrite=False, export_file = '', verdict_authority = None):
+        ''' 
+        Compute L{self.dict_identity_adjacency} from a list containing
+        results of pairwise S1 identity comparisons. This is a stage2 operation.
+        @param list_identity_pairs: a list where each item is of the form
+        C{((identity1,identity2), result)}. Each item is then the result of a record
+        pair comparison. The tuple C{(identity1, identity2)} is sorted.
+        This is a much simpler operation than the v1 method, since now
+        L{list_identity_pairs} already contains the final comparison results
+        for the S1 identity pairs and no further calculations are required.
+        @param verdict_authority: an instance of L{VerdictAuthority}
+        that issues a final
+        verdict on an element of list_identity_pairs. This object must be supplied
+        whether this is a bootstrapping or a disambiguation run. The bootstrapping
+        object can be a dummy object with an lambda x:1 as the verdict function. 
         '''
+        # TODO: implement! This is just for testing!
+        # NOTE: I think this is done.
+        print "len of list_identity_pairs:" , len(list_identity_pairs)
+        if overwrite:
+            dict_identity_adjacency = {}
+        for identity_pair, list_results in list_identity_pairs:
+            identity1, identity2 = identity_pair
+            if identity1 == identity2: 
+                #print "Same identity. Skipping."
+                continue
+            #result_no, result_maybe, result_yes = list_results
+            result_name, result_occupation, result_employer = list_results
+            
+            full_results = [result_name, result_occupation, result_employer]
+            dict_identity_adjacency[tuple(sorted([identity1, identity2]))] = full_results
+
+
+        if export_file != '':
+            with open(export_file, 'w') as f:
+                for key, value in dict_identity_adjacency.iteritems():
+                    # Each line of the file will look like the following:
+                    # identity1, identity2, result_name, result_occupation, result_employer
+                    data_line  = list(key) + value 
+                    f.write(utils.json.dumps(data_line) + "\n")
+
+        # populate self.dict_identity_adjacency using the 
+        # supplied verdict function.
+        self.dict_identity_adjacency = {key: verdict_authority.verdict(value) for \
+                key, value in dict_identity_adjacency.iteritems()}
+            
+                #f.write('%s %s %s %s %s %s\n' % (identity1, identity2, result_name[1][0], result_name[1][1], result_occupation[1], result_employer[1]))
+                #self.dict_identity_adjacency[key] = (result_no, result_maybe, result_yes)
+
+
+
+
+    def generate_dict_identity_adjacency_OLD(self, list_record_pairs, overwrite=False):
+        '''
+        @deprecated: used for v1. See  L{generate_dict_identity_adjacency}
+        for v2.
         Compute L{self.dict_identity_adjacency} from a list containing
         results of pairwise record comparisons. This is a stage2 operation.
         It's assumed that stage1 identities exist and most records are
@@ -823,12 +885,11 @@ class IdentityManager(DatabaseManager):
         print "Exporting identities_adjacency..."
         self.__truncate_table_identities_adjacency()
         print "identities_adjacency truncated successfully."
-        for key, result in self.dict_identity_adjacency.iteritems():
+        for key, verdict in self.dict_identity_adjacency.iteritems():
             # print 'key: ', key
             identity1, identity2 = key
-            result_no, result_maybe, result_yes = result
-            query = 'INSERT INTO %s (identity1,identity2,no,maybe,yes) VALUES ("%s", "%s", %f, %f, %f);' \
-                   % (IdentityManager.table_name_identity_adjacency, identity1, identity2, result_no, result_maybe, result_yes)
+            query = 'INSERT INTO %s (identity1,identity2,verdict) VALUES ("%s", "%s", %d);' \
+                   % (IdentityManager.table_name_identity_adjacency, identity1, identity2, verdict)
             print query
             self.runQuery(query)
 
@@ -861,11 +922,18 @@ class IdentityManager(DatabaseManager):
 
 
 
-    def __init_table_identities(self):
+    def __init_table_identities(self, overwrite = False):
         '''
         Check whether the "identities" table exists and
         create it if not.
+        @param overwrite: whether or not to overwrite table
+        if it already exists.
         '''
+        if overwrite:
+            print "Dropping table %s" % IdentityManager.table_name_identities
+            self.drop_table_identities()
+
+
         query = "SELECT COUNT(*) FROM information_schema.tables \
                     WHERE table_schema = 'FEC' \
                     AND table_name = '%s';" % IdentityManager.table_name_identities
@@ -877,11 +945,17 @@ class IdentityManager(DatabaseManager):
             print "Table '%s' exists." % IdentityManager.table_name_identities
 
 
-    def __init_table_identities_adjacency(self):
+    def __init_table_identities_adjacency(self, overwrite = False):
         '''
         Check whether the "identities_adjacency" table exists
         and create it if not.
+        @param overwrite: whether to overwrite the table if it 
+        already exists. 
         '''
+        if overwrite:
+            print "Dropping table %s" % IdentityManager.table_name_identity_adjacency
+            self.drop_table_identities_adjacency()
+
         query = "SELECT COUNT(*) FROM information_schema.tables \
                     WHERE table_schema = 'FEC' \
                     AND table_name = '%s';" % IdentityManager.table_name_identity_adjacency

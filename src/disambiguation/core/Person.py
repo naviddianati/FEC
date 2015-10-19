@@ -3,6 +3,9 @@ This module defines the L{Person} class which groups records together,
 representing an identity.
 '''
 
+import re
+
+
 class Person(object):
     '''
     Hashable class representing a person (group of records). It implements
@@ -50,6 +53,64 @@ class Person(object):
         return  (id(self) == id(other)) 
     
     
+    def compare(self, other):
+        '''
+        Compare C{self} with C{other} for the stage II disambiguation.
+        For comparison, first go through all possible pairs of records
+        between self and other and compare the names. If at least one pair
+        have matching names, then record the name frequency and proceed, 
+        otherwise declare them to be unrelated.
+        Next step, going through all record pairs, find the highest
+        employer (and occupation) match score.     
+        This method does not make a judgment. It only filters out identity
+        pairs that are obviously not matches and for all others, returns
+        a tuple of best comparison results for different fields so that 
+        a final verdict may be issued based on a combination of those scores
+        by another method in L{stage2}.
+
+        @param other: a different L{Person} instance.
+
+        @return: a 3-tuple C{(max_name, max_occupation, max_employer)}
+        where each element is the return value from the comparison methods
+        of L{Record}.
+        '''    
+        # This will cause this pair to simply be ignored.
+        if self is other: return False
+
+        match1 = re.findall(r'(.*)\|([12])', self.identity)
+        match2 = re.findall(r'(.*)\|([12])', other.identity)
+        if match1 and match2:
+            if match1[0][0] == match2[0][0]: print "SAME ROOT"
+
+        #print "-- ", len(self.set_of_records), len(other.set_of_records)
+        results_name = [r1.compare_names(r1,r2) for r1 in self.set_of_records for r2 in other.set_of_records]
+
+        # If the highest name match score is 2 or less, then reject.
+        results_name.sort()
+        if results_name[-1][0] < 3: return False
+        
+        # Otherwise, compare the other fields too.
+        results_employer = [r1.compare_employers(r1,r2) for r1 in self.set_of_records for r2 in other.set_of_records]                                      
+        results_occupation = [r1.compare_occupations(r1,r2) for r1 in self.set_of_records for r2 in other.set_of_records]                                      
+        
+        # Note that elements in these lists are tuples. sorting
+        # properly takes into account both entries in the tuples.
+        max_occupation = max(results_occupation)
+        max_employer = max(results_employer)
+        
+        # Except for name. Here, the tuple looks like 
+        # (match_code, (freq_with_middlename, freq_without_middlename)).
+        # But still sorting doesn't pose a problem.e
+        max_name = results_name[-1]
+       
+        # TODO: add a condition to take into account name frequency
+        if (max_occupation[0] >= 3) or (max_employer[0] >= 3):
+            return (max_name, max_occupation, max_employer)
+        else:    
+            return False
+
+ 
+
     
     def get_dominant_attribute(self,attr):
         '''
@@ -65,6 +126,7 @@ class Person(object):
                 value = record[attr]
             except KeyError:
                 continue
+            # This ensures that empty values aren't counted:
             if not value: continue
             try:
                 dict_attr_freqs[value] += 1

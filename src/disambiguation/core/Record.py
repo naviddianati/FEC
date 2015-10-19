@@ -1084,10 +1084,13 @@ class Record(dict):
                     freq_with_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_with_middlename))
                 except:
                     pass
-                try:
-                    freq_without_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_without_middlename))
-                except:
-                    pass
+            
+            # NOTE: in a previous version, the following block used
+            # to be indented inside the preceding if clause, which is a bug. 
+            try:
+                freq_without_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_without_middlename))
+            except:
+                pass
 
 
 

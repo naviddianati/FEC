@@ -1,33 +1,17 @@
-MEMORY EFFIFICIENT HASH TO EDGELIST
+SIGNIFICANT CHANGES
 
-We have a working version of the function in the hashes module that
-loads the hashes, shuffles them and computes an edgelist from it.
+Most importantly, Stage II disambiguation is completely overhauled. A different identity comparison paradigm is implemented where two candidate S1 identities are compared throughly, meaning, every pair of records within them is compared. The overall design of stageII.py has changed significantly. 
 
-The process spawns a number of children. Each child instantiates
-an IdentityManager, shuffles the hashes a number of times, and each
-time, logs records that are adjacent. This data is sent back to the
-parent process which combines them into a weighted adjacency matrix
-adj_full. The problem used to be that this dict becomes HUGE and 
-won't fit in memory. Now, we have made a number of optimizations.
-Most importantly, after receiving 10 sets of edgelists from the
-childremn, the parent "prunes" adj_full by removing record pairs
-that failed to appear together more than once in 10 shuffles. This
-can't be done in memory without copying at least the keys of the 
-adj_full dict which is memory intensive. So, we have a method in
-utils, calledn prune_dict which uses a temp file to export those
-elements of the dict that satisfy a user-supplied condition, deletes
-the original dict and reloads the pruned version from file. 
-Furthermore, the queue connecting the parent and child processes
-is limited in size to avoid overloading while the parent is processing
-the received edgelists. This makes the operation feasible.
+The matchin decision for stage II is now made based on a a bootstrapping methodology where an artificially generated set of S1 identities are compared, and the pairs known (by design) to be matches are recovered. Then, we "train" our verdict function such that a certain recall is achieved on this artificial set of matches. The results of this bootstrapping stage are exported to new data files which are loaded by a VerdictAuthority instance and used to define the verdict function.
 
-Additionally, IdentityManager doesn't load both dictionaries at
-the same time by default, but loads whichever is required upon
-request.
+The identity_adjacency table has a new format. The verdict columns are collapsed into simply one integer verdict column.
 
-In Disambiguator, the keys of dict_hashes are cast as int which takes
-slightly less memory than the default long int.
+At the heart of the new identity comparison methodology is the funcion compare_list_of_identity_pairs in Disambiguator which uses a newly implemented compare() method of the Person class. This method rejects the obvious non-matches and for the rest, returns detailed results on the "best" matches between all pairs of records in the two identities, on the name, employer and occupation fields. These results will be used by the VerdictAuthority to render the final match decision.
 
-the USA hashes are now 60 long rather than 20, for use in the stage 2.
+The name parser used in Tokenizer is changed. I wrote a custom name parser of my own in utils.py that does a slightly better job of parsing names.
 
-The list of hashes is sorted using the heapsort algorithm now.
+New ipython notebook started (StageII.ipynb) to experiment with the bootstrapping stage. Final versions of the methods in this notebook are integrated into stage2.py.t 
+
+Versioning changed: We can now define which version of the data files (including MYSQL tables) to use, and independently, which version of disambiguated results to export to. Two separate parameters can be defined in config.py.
+
+Percentages used to prune the affiliation graphs are now globally defined in config.py.

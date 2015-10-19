@@ -33,8 +33,8 @@ from core.states import *
 
 def tokenize_records(list_of_records, project, TokenizerClass):
     '''
-    Return a TokenDadta object for list_of_records, and update each
-    record in list_of_records by adding to it a vector attribute and
+    Return a TokenDadta object for L{list_of_records}, and update each
+    record in L{list_of_records} by adding to it a vector attribute and
     associating the TokenData instance to the record. If a file
     containing the pickled TokenData instance already exists, load it.
     Also, make sure that the vectors are available in a file for later
@@ -371,6 +371,9 @@ def INIT_process_multiple_states(list_states=[], TokenizerClass=None, list_token
     if not list_states:
         list_states = states.get_states_sorted()
 
+    print "Running INIT_process_multiple_states for the following states:"
+    print list_states
+    
     list_states.reverse()
 
     # Number of states to be processed.

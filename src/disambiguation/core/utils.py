@@ -33,6 +33,104 @@ random.seed()
 
 
 
+# list of just pieces often found in names. These must be
+# removed before the name can be parsed.
+name_junk= ['Ms','Miss','Mrs','Mr','Master','Rev' ,'Fr' ,'Dr' ,'Atty' ,'Prof' \
+    ,'Hon' ,'Pres','Gov' ,'Coach','Ofc' ,'Msgr' ,'Sr' ,'Br' ,'Supt','Rep' \
+    ,'Sen' ,'Amb' ,'Treas','Sec' ,'Pvt' ,'Cpl' ,'Sgt' ,'Adm' ,'Maj' ,'Capt' \
+    ,'Cmdr' ,'Lt' ,'Col' ,'Gen','esq','esquire','jr','jnr','sr','snr',\
+    'ii','iii','iv']
+
+# Regex that matches junck pieces in a name.
+name_regex = re.compile('|'.join([r'(\b%s\b)'.encode('ASCII') % s.upper() for s in name_junk]))        
+
+
+
+
+
+def strip_string(s):
+    '''
+    Collapse multiple whitespaces, and strip.
+    @param s: a string.
+    '''
+    return re.sub(r'\s+',' ',s).strip()
+    
+
+def get_index(mylist, x):
+    '''
+    Find indices of all occurrences of C{x} in C{mylist}.
+    '''
+    return [i for i,y in enumerate(mylist) if y == x]
+    
+
+
+def splitname(name):
+    '''
+    Parse a name and return a three-tuple:
+    C{(lastname, middlename, firstname)}. 
+    When parsing, we first remove all junk as defined
+    by L{name_junk} and L{name_regex}.
+    '''
+    s = name
+    s1 = name_regex.sub('', s)
+    s1 = re.sub(r'\.', ' ', s1)
+    
+    firstname, middlename, lastname = '', '', ''
+    
+    # If ',' exists, split based on that. Everything before
+    # is last name.
+    if s1.find(',') > 0:
+        lastname, s_right = re.findall(r'(.*),(.*)',s1)[0]
+        s_right = strip_string(s_right)
+        tokens = s_right.split(' ')
+        
+        lengths = [len(s) for s in tokens]
+
+        if len(lengths) == 1:
+            firstname = tokens[0]
+            return lastname, middlename, firstname
+        else:
+            # multiple tokens on the right
+            
+            indices_1 = get_index(lengths,1)
+            if len(indices_1) == 0:
+                # Multiple tokens, all more than one letter
+                # First token is first name, next is middle name
+                firstname = tokens[0]
+                tokens.remove(firstname)
+                middlename = ' '.join(tokens)
+                
+                return lastname, middlename, firstname
+            
+            elif len(indices_1) == 1:
+                # Only one single letter token.
+                middlename = tokens[indices_1[0]]
+                
+                tokens.remove(middlename)
+                firstname = ' '.join(tokens)
+                return lastname, middlename, firstname
+
+            else:
+                # multiple single-letter tokens
+                # First one is middlename, the rest are part of first name
+                middlename = tokens[indices_1[0]]
+                tokens.remove(middlename)
+                firstname = ' '.join(tokens)
+                return lastname, middlename, firstname
+    else:
+        # String doesn't contain comma
+        # I examined a large number of records with NAME not
+        # containing a comma. None were human names. So it doesn't
+        # really matter how you parse those.
+        tokens = s1.split(' ')
+        lastname = tokens[0]
+        firstname = ' '.join(tokens[1:])
+        return lastname, middlename, firstname
+            
+                
+            
+
+
 
 
 def permute_inplace(X, Y):

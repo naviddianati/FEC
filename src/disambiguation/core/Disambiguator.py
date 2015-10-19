@@ -456,8 +456,58 @@ class Disambiguator():
         print "NUMBER OF DISTINCT RECORDS IN list_of_records: ", len(tmp)
 
 
+    def compare_list_of_identity_pairs(self, list_of_identity_pairs, dict_identities): 
+        '''
+        Compare pairs of S1 identities by going through all records
+        in each one. Used in stage II disambiguation.
+        This is a generator. It yields a tuple C{(result, identity1, identity2)}
+        @param list_of_identity_pairs: list of tuples C{(identity1, identity2)}
+        to be compared.
+        @param dict_identities: a dict that maps an S1 identity to the list
+        of all record ids associated with it. The records themselves can
+        be accessed through L{self.list_of_records}.
+
+        @return: a 3-tuple C{(result, identity1, identity2)} where C{result}
+        is itself a 3-tuple returned by L{Person.compare}. It contains the 
+        highest-valued comparison results of any record pair between the two
+        identities. See L{Person.compare} for details.
+        '''
+        # dict:  {record: index of record in self.list_of_records }
+        dict_records = {r.id:r for i, r in enumerate(self.list_of_records)}
+
+        for identity1, identity2 in list_of_identity_pairs:
+            list_rid1 = dict_identities[identity1]
+            list_rid2 = dict_identities[identity2]
+
+            if len(list_rid1) == 0:
+                print "ERROR: empty identity: ", identity1
+                continue
+            if len(list_rid2) == 0:
+                print "ERROR: empty identity: ", identity2
+                continue
+
+            list_r_1 = [dict_records[rid] for rid in list_rid1]
+            list_r_2 = [dict_records[rid] for rid in list_rid2]
+            
+               
+            
+            p1 = Person(list_r_1)
+            p2 = Person(list_r_2)
+
+            p1.identity = identity1 
+            p2.identity = identity2 
+            
+            # TODO: implement a comparison function for Person. Mostly done 
+            result = p1.compare(p2)
+            if result:
+                yield((result, identity1, identity2))
+
+
     def compare_list_of_pairs(self, list_of_pairs):
         '''
+        @deprecated: used in v1 where pairs of records were compared in 
+        stage II disambiguation. For the method used instead in v2, see
+        L{compare_list_of_identity_pairs}. 
         Disambiguate by performing comparisons between a given list of record
         pairs. Can be used instead of C{compute_similarity}, when we know which
         pairs of records we should compare already, for example because we've
