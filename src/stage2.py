@@ -17,10 +17,11 @@ from disambiguation.core import hashes
 import disambiguation.config as config
 from disambiguation.core import Database
 np = utils.np
+import sys, traceback
 
 
 
-def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None):
+def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mode='disambiguation'):
     '''
     Get pairs of record ids that are similar according
     to the national (combined) hashes, but aren't already
@@ -29,12 +30,20 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None):
     @param num_pairs: number of new records to select for comparison
     @param idm: L{IdentityManager} instance to use. This is used to that
     records pairs both from the same identity are simply skipped.
+    @param mode: can be 'disambiguation' or "bootstrapping". The results are
+    written to different files depending on the value of this parameter.
     @return: list of tuples of record ids.
     '''
 
     # file that either already contains, or will contain a set of candidate
     # pairs of record ids together with a "weight"
-    candidate_pairs_file = config.candidate_pairs_file_template % state
+    if mode == "disambiguation":
+        candidate_pairs_file = config.candidate_pairs_file_template % state
+    elif mode == "bootstrapping":
+        candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
+    else:
+        raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
+        
 
     # Make sure the file already exists
     if not recompute:
@@ -145,7 +154,7 @@ def __get_list_identity_pairs(list_record_pairs, idm):
     
 
 
-def partition_S1_identities(num_partitions, state = "USA", idm = None):
+def partition_S1_identities(num_partitions, state = "USA", idm = None, mode="disambiguation"):
     '''
     Replacing L{partition_records}, this method uses the record edgelist
     to identify which S1 "identities" are potential matches, and then partitions
@@ -164,7 +173,20 @@ def partition_S1_identities(num_partitions, state = "USA", idm = None):
 
     # file that either already contains, or will contain a set of candidate
     # pairs of record ids together with a "weight"
-    candidate_pairs_file = config.candidate_pairs_file_template % state
+    if mode == "disambiguation":
+        candidate_pairs_file = config.candidate_pairs_file_template % state
+        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template 
+        candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_template
+    elif mode == "bootstrapping":
+        candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
+        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_bootstrapping_template % state
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template 
+        candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_bootstrapping_template
+    else:
+        raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
+    
+        
 
     
     # Compile an edgelist of all S1 Identity pairs that must be compared
@@ -183,14 +205,13 @@ def partition_S1_identities(num_partitions, state = "USA", idm = None):
         print "Done."
         
         # Save the list of candidate identity pairs to 
-        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
+
         with open(candidate_S1_identity_pairs_file, 'w') as f:
             for id1, id2 in list_identity_pairs:
                 f.write("%s %s\n" % (id1, id2))
         print "List of identity pairs written to file."
 
     # Divide the set of S1 identities into roughly equally sized components.
-    candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
     ig = utils.igraph
     with open(candidate_S1_identity_pairs_file) as f:
         g = ig.Graph.Read_Ncol(f, names=True, weights="if_present", directed=False)
@@ -211,7 +232,7 @@ def partition_S1_identities(num_partitions, state = "USA", idm = None):
     print "Saving identity pair partitions to separate files..."
     list_of_list_edges = [ [(g.vs[e.source]['name'], g.vs[e.target]['name']) for g in partition for e in g.es] for partition in list_of_partitions]
     for counter, partition in enumerate(list_of_list_edges):
-        with open(config.candidate_S1_identity_pairs_partitioned_file_template % (state, counter), 'w') as f:
+        with open(candidate_S1_identity_pairs_partitioned_file_template % (state, counter), 'w') as f:
             for edge in partition:
                 f.write("%s %s\n" % edge)
     print "Done."
@@ -227,13 +248,13 @@ def partition_S1_identities(num_partitions, state = "USA", idm = None):
             set_record_ids.update(set(idm.get_ids(identity1)))
             set_record_ids.update(set(idm.get_ids(identity2)))
 
-        with open(config.candidate_list_records_partitioned_file_template % (state, counter), 'w') as f:
+        with open(candidate_list_records_partitioned_file_template % (state, counter), 'w') as f:
             for r_id in set_record_ids:
                 f.write('%d\n' % r_id)
 
 
 
-def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, idm = None, bootstrap = False):
+def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, idm = None, mode = "disambiguation"):
     '''
     NEW: compare pairs of L{Person} objects derived from the candidate identity
     pairs withing each partition.
@@ -241,7 +262,7 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, id
     Compare record pairs within each subset and save results. Can be done
     with 1 process or multiple processes. Uses the worker function
     L{worker_disambiguate_subset_of_edgelist}.
-    @param bootstrap: Boolean. Whether this run is for bootstrapping stage II 
+    @param mode: String. Whether this run is for bootstrapping stage II 
     disambiguation or the real deal. If it's boostrapping, the results of identity
     pair comparisons will be written to file, and the database tables won't be
     written. The results can be read from file and then used for the actual
@@ -252,6 +273,21 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, id
     to separate files.
     '''
     
+    if mode == "disambiguation":
+        bootstrap = False
+        candidate_pairs_file = config.candidate_pairs_file_template % state
+        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template 
+        candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_template
+    elif mode == "bootstrapping":
+        bootstrap = True
+        candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
+        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_bootstrapping_template % state
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template 
+        candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_bootstrapping_template
+    else:
+        raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
+
     if not idm:
         # IdentityManager instance
         idm = Database.IdentityManager('USA')
@@ -263,8 +299,8 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, id
     list_data = []
     for counter in range(num_partitions):
         print "Opening data files for partition ", counter
-        filename1 = config.candidate_S1_identity_pairs_partitioned_file_template % (state, counter)
-        filename2 = config.candidate_list_records_partitioned_file_template % (state, counter)
+        filename1 = candidate_S1_identity_pairs_partitioned_file_template % (state, counter)
+        filename2 = candidate_list_records_partitioned_file_template % (state, counter)
         with open(filename1) as f:
             g = ig.Graph.Read_Ncol(f, names=True, weights="if_present", directed=False)
             print "    Graph loaded."
@@ -279,11 +315,11 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, id
 
     if num_procs == 1:
         for tuple_filenames, dict_identities, workerid in list_data:
-            list_list_identity_pairs.append(worker_disambiguate_subset_of_identities_edgelist((tuple_filenames, dict_identities, 0)))
+            list_list_identity_pairs.append(wrapper_worker_disambiguate_subset_of_identities_edgelist((tuple_filenames, dict_identities, 0)))
     else:
         print "Starting worker pool..."
         pool = utils.multiprocessing.Pool(num_procs)
-        list_list_identity_pairs = pool.map(worker_disambiguate_subset_of_identities_edgelist, list_data)
+        list_list_identity_pairs = pool.map(wrapper_worker_disambiguate_subset_of_identities_edgelist, list_data)
         pool.close()
         pool.terminate()
     
@@ -546,7 +582,12 @@ def __get_customized_verdict(detailed_comparison_result):
     return None
 
 
-
+def wrapper_worker_disambiguate_subset_of_identities_edgelist(data):
+    try:
+        return worker_disambiguate_subset_of_identities_edgelist(data)
+    except:
+        raise Exception("".join(traceback.format_exception(*sys.exc_info())))
+        
 
 def worker_disambiguate_subset_of_identities_edgelist(data):
     '''
@@ -776,6 +817,8 @@ def compute_person_tokens():
     # so they work for normalized attributes. In particular,
     # Add "N_full_name".
     # TODO: maybe all this can be done by subclassing Tokendata
+    # Here, as in Tokenizer, occupation and employer get the
+    # same identifier.
     tokendata.token_identifiers = {'N_first_name':[2],
                                   'N_last_name':[1],
                                   'N_middle_name':[3],
@@ -783,8 +826,8 @@ def compute_person_tokens():
                                   'N_full_name_withmiddle':[123],
                                   'N_full_name_withoutmiddle':[123],
                                   'N_zipcode':[4],
-                                  'N_occupation':[6],
-                                  'N_employer':[7]}
+                                  'N_occupation':[67],
+                                  'N_employer':[67]}
 
     # Load state normalized tokens one state
     # at a time and compute frequencies at the person level.
@@ -904,7 +947,7 @@ def bootstrap_stageII():
     num_partitions = 10
 
     # Number of candidate record pairs to find.
-    num_pairs = 10000000
+    num_pairs = 50000000
     
     if False:
         if split_fresh:
@@ -930,13 +973,13 @@ def bootstrap_stageII():
         idm_split.dict_id_2_identity = dict_id
 
         if find_record_pairs:
-            get_candidate_pairs(num_pairs, recompute = True, idm = idm_split)
+            get_candidate_pairs(num_pairs, recompute = True, idm = idm_split, mode = "bootstrapping")
         
         if split_fresh or partition_fresh:
-            partition_S1_identities(num_partitions = num_partitions, state = 'USA', idm = idm_split)
+            partition_S1_identities(num_partitions = num_partitions, state = 'USA', idm = idm_split, mode = "bootstrapping")
 
         # Run a bootstrapping 
-        disambiguate_subsets_multiproc(num_partitions=num_partitions, state="USA", num_procs=10, idm = idm_split, bootstrap = True) 
+        disambiguate_subsets_multiproc(num_partitions=num_partitions, state="USA", num_procs=10, idm = idm_split, mode = "bootstrapping") 
 
     # now analyze the bootstraping results and 
     # export data files to be used for defining

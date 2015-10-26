@@ -745,6 +745,21 @@ class Record(dict):
             return (1, None)
 
 
+        # So we can test whether occupations where mistakenly 
+        # reported as employers
+        try:
+            employer1 = r1['EMPLOYER']
+        except KeyError:
+            employer1 = None    
+    
+        try:
+            employer2 = r2['EMPLOYER']
+        except KeyError:
+            employer2 = None
+
+
+
+
         # Check if they are bad identifiers.
         bi1, bi2 = utils.bad_identifier(occupation1, type="occupation"), utils.bad_identifier(occupation2, type="occupation")
         if bi1 and bi2 and occupation1 == occupation2:
@@ -781,9 +796,11 @@ class Record(dict):
             # Either there was no graph that contained both
             # Or otherwise, they weren't adjacent in any of the graphs
 
+            # NOTE: I think the following block is a bug.
+            # Removing it on 10/21/2015
             # If case 1
-            if not found_both:
-                return (1, None)
+            # if not found_both:
+            #    return (1, None)
 
 
             # Not adjacent. Check if strings are close
@@ -791,7 +808,11 @@ class Record(dict):
                 # Strings are close enough even though not linked on the affiliation graph
                 return (3, None)
             # Check if one's employer is mistakenly reported as its occupation
-            elif occupation1 == r2['EMPLOYER'] or occupation2 == r1['EMPLOYER']:
+            elif occupation1 == employer2 or occupation2 == employer1:
+                return (3, None)
+            elif employer2 and (editdist.distance(occupation1, employer2) < max(len(occupation1), len(employer2)) * Record.occupation_str_tolerance):
+                return (3, None)
+            elif employer1 and (editdist.distance(occupation2, employer1) < max(len(occupation2), len(employer1)) * Record.occupation_str_tolerance):
                 return (3, None)
             else:
                 # String distances not close enough
@@ -825,6 +846,18 @@ class Record(dict):
             if Record.debug: print "no employer field found"
             return (1, None)
 
+
+
+        # So we can test whether occupations where mistakenly 
+        # reported as employers
+        try:
+            occupation1 = r1['OCCUPATION']
+        except KeyError:
+            occupation1 = None    
+        try:
+            occupation2 = r2['OCCUPATION']
+        except KeyError:
+            occupation2 = None
 
 
 
@@ -868,9 +901,11 @@ class Record(dict):
             # Either there was no graph that contained both
             # Or otherwise, they weren't adjacent in any of the graphs
 
+            # NOTE: I think the following block is a bug.
+            # Removing it on 10/21/2015
             # If case 1
-            if not found_both:
-                return (1, None)
+            #if not found_both:
+            #    return (1, None)
 
             # Not adjacent. Check if strings are close
             if editdist.distance(employer1, employer2) < max(len(employer1), len(employer2)) * Record.employer_str_tolerance:
@@ -878,7 +913,11 @@ class Record(dict):
                 return (3, None)
 
             # Check if one's employer is mistakenly reported as its occupation
-            elif employer1 == r2['OCCUPATION'] or employer2 == r1['OCCUPATION']:
+            elif employer1 == occupation2 or employer2 == occupation1:
+                return (3, None)
+            elif occupation2 and (editdist.distance(employer1, occupation2) < max(len(employer1), len(occupation2)) * Record.employer_str_tolerance):
+                return (3, None)
+            elif occupation1 and (editdist.distance(employer2, occupation1) < max(len(employer2), len(occupation1)) * Record.employer_str_tolerance):
                 return (3, None)
             else:
                 # String distances not close enough

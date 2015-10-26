@@ -141,13 +141,13 @@ def DISAMBIGUATE_stage_2():
     # Get pairs of record ids that are similar according
     # to the national (combined) hashes, but aren't already
     # linked at the state level.
-    #stage2.get_candidate_pairs(num_pairs, recompute = True)
+    stage2.get_candidate_pairs(num_pairs, recompute = True)
 
 
     # Partition the full record set into num_procs subsets
     # with minimal inter-set links, and export the record ids
     # to a separate file for each subset.
-    #stage2.partition_records( num_partitions = num_procs, state = 'USA')
+    stage2.partition_records( num_partitions = num_procs, state = 'USA')
 
     # Partition the set of all S1 identities containing any of the
     # candidate records into subsets with no overlaps. Export the 
@@ -155,11 +155,11 @@ def DISAMBIGUATE_stage_2():
     # Also, exoirt the list of all record ids associated with any
     # of the identities in each partition into a separate file for
     # that partition as well.
-    #stage2.partition_S1_identities(num_partitions = num_procs, state = 'USA', idm = idm)
+    stage2.partition_S1_identities(num_partitions = num_procs, state = 'USA', idm = idm)
 
     # Compute token frequencies at the person level given the
     # identities computed in stage1
-    #stage2.compute_person_tokens()
+    stage2.compute_person_tokens()
 
     # Compare record pairs within each subset and save results.
     stage2.disambiguate_subsets_multiproc(num_partitions=12, state="USA", num_procs=12, idm = idm)
@@ -277,7 +277,7 @@ def INIT():
     '''
     # State level data preparation (for fine-grained intra state disambiguation)
     # Tokenize, vectorize and hashify all states using TokenizerNgram
-    init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
+    ##init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
 
     # National level data preparation:
     # Tokenize, vectorize and hashify all states using Tokenizer

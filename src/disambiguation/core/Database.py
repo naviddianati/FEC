@@ -33,8 +33,8 @@ class DatabaseManager:
         '''
         con = None
         con = mdb.connect(host='localhost',  # hostname
-                           user='navid',  # username
-                           passwd='YOURMYSQLPASSWORD',  # passwor
+                           user=utils.config.MySQL_username,  # username
+                           passwd=utils.config.MySQL_password,  # passwor
                            db='FEC',  # database
                            use_unicode=True,
                            charset="utf8"
@@ -170,6 +170,16 @@ class FecRetrieverByID(DatabaseManager):
             except Exception as e:
                 print "ERROR", e
                 raise
+            
+            try:
+                r['OCCUPATION'] = r['OCCUPATION'].encode('ascii','ignore')
+            except:
+                pass
+            
+            try:
+                r['EMPLOYER'] = r['EMPLOYER'].encode('ascii','ignore')
+            except:
+                pass
 
             # WARNING: switching from list_of_records to dict_of_records
             # self.list_of_records.append(r)

@@ -278,7 +278,7 @@ class Tokenizer():
             tmp = [x  for x in tmp if x is not None]
 
             address_new = ' '.join(tmp)
-            record["N_address"] = address_new.upper()
+            record["N_address"] = address_new.encode('ascii','ignore').upper()
         except:
             record["N_address"] = s
 
@@ -287,7 +287,7 @@ class Tokenizer():
    
     def _normalize_OCCUPATION(self, record):
         if record['OCCUPATION']:
-            record['N_occupation'] = record['OCCUPATION'].upper()
+            record['N_occupation'] = record['OCCUPATION'].encode('ascii','ignore').upper()
         else:
             record['N_occupation'] = None
             
@@ -295,7 +295,7 @@ class Tokenizer():
         
     def _normalize_EMPLOYER(self, record):
         if record['EMPLOYER']:
-            record['N_employer'] = record['EMPLOYER'].upper()
+            record['N_employer'] = record['EMPLOYER'].encode('ascii','ignore').upper()
         else:
             record['N_employer'] = None
     
@@ -684,7 +684,32 @@ class TokenizerNgram(Tokenizer):
         
         # Features are bigrams
         self.ngram_n = 2
-       
+
+
+        # The main point is that occupation and employer
+        # get different codes here whereas in Tokenizer, 
+        # they were treated as the same thing so that 
+        # instances where one is mistakenly reported as 
+        # the other can be detected.
+        self.tokens.token_identifiers = {'NAME':[1, 2, 3],
+                                   'N_full_name':[123],
+                                   'N_last_name': [1],
+                                   'LAST_NAME':[1],
+                                   'N_first_name':[2],
+                                   'FIRST_NAME':[2],
+                                   'N_middle_name':[3],
+                                   'MIDDLE_NAME':[3],
+                                   'CONTRIBUTOR_ZIP':[4],
+                                   'ZIP_CODE':[4],
+                                   'CONTRIBUTOR_STREET_1':[5],
+                                   'N_occupation':[6],
+                                   'OCCUPATION':[6],
+                                   'N_employer':[7],
+                                   'EMPLOYER': [7]}
+
+        self.token_identifiers = self.tokens.token_identifiers
+
+
        
     def ngrams(self, sentence, n):
         '''
@@ -837,10 +862,10 @@ class TokenData():
                                    'CONTRIBUTOR_ZIP':[4],
                                    'ZIP_CODE':[4],
                                    'CONTRIBUTOR_STREET_1':[5],
-                                   'N_occupation':[6],
-                                   'OCCUPATION':[6],
-                                   'N_employer':[7],
-                                   'EMPLOYER': [7]}
+                                   'N_occupation':[67],
+                                   'OCCUPATION':[67],
+                                   'N_employer':[67],
+                                   'EMPLOYER': [67]}
     
     def save_to_file(self, filename):
         f = open(filename, 'w')
