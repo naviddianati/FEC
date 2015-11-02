@@ -121,31 +121,43 @@ class FecRetrieverByID(DatabaseManager):
         '''
         Retrieve the rows with ids in list_ids.
         '''
-
-
-        self.__get_temp_table()
-
-        t1 = utils.time.time()
-        self.__populate_temp_table(list_ids)
-        t2 = utils.time.time()
-        print "Done in %f seconds" % (t2 - t1)
-
         if query_fields == []:
             query_fields = self.all_fields
         self.all_fields = query_fields
-
         fields = ','.join(self.all_fields)
-        # Retrieve the rows from the join
-        query = "SELECT " + fields + " FROM " + self.table_name + " JOIN " + self.temp_table + " USING (id) ;"
-        print query
-        t1 = utils.time.time()
-        query_result = self.runQuery(query)
-        self.query_result = query_result
-        t2 = utils.time.time()
-        print "Done in %f seconds" % (t2 - t1)
 
-        # Cleanup
-        self.__del_temp_table()
+
+        if len(list_ids) < 1000:
+            list_ids_str = '(%s)' % ','.join([str(rid) for rid in list_ids])
+            # Retrieve the rows from the join
+            query = "SELECT " + fields + " FROM " + self.table_name + " WHERE id in " + list_ids_str + " ;" 
+            print query
+            t1 = utils.time.time()
+            query_result = self.runQuery(query)
+            self.query_result = query_result
+            t2 = utils.time.time()
+            print "Done in %f seconds" % (t2 - t1)
+        else:
+            self.__get_temp_table()
+
+            t1 = utils.time.time()
+            self.__populate_temp_table(list_ids)
+            t2 = utils.time.time()
+            print "Done in %f seconds" % (t2 - t1)
+
+
+
+            # Retrieve the rows from the join
+            query = "SELECT " + fields + " FROM " + self.table_name + " JOIN " + self.temp_table + " USING (id) ;"
+            print query
+            t1 = utils.time.time()
+            query_result = self.runQuery(query)
+            self.query_result = query_result
+            t2 = utils.time.time()
+            print "Done in %f seconds" % (t2 - t1)
+
+            # Cleanup
+            self.__del_temp_table()
 
 
         # Convert strings to upper case, dates to date format.

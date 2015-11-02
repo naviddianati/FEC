@@ -74,26 +74,33 @@ def splitname(name):
     s = name
     s1 = name_regex.sub('', s)
     s1 = re.sub(r'\.', ' ', s1)
-    
     firstname, middlename, lastname = '', '', ''
-    
+    tree ='' 
     # If ',' exists, split based on that. Everything before
     # is last name.
     if s1.find(',') > 0:
-        lastname, s_right = re.findall(r'(.*),(.*)',s1)[0]
+        tree += '1'
+        # Last name is everything left of the FIRST comma
+        lastname, s_right = re.findall(r'([^\,]*),(.*)',s1)[0]
+
+        #In case there are more commas:
+        s_right = re.sub(r'\,',' ',s_right)
         s_right = strip_string(s_right)
+
         tokens = s_right.split(' ')
         
         lengths = [len(s) for s in tokens]
-
+        length_max = max(lengths)
         if len(lengths) == 1:
+            tree += '1'
             firstname = tokens[0]
             return lastname, middlename, firstname
         else:
             # multiple tokens on the right
-            
+            tree += '0'
             indices_1 = get_index(lengths,1)
             if len(indices_1) == 0:
+                tree += '2'
                 # Multiple tokens, all more than one letter
                 # First token is first name, next is middle name
                 firstname = tokens[0]
@@ -103,19 +110,43 @@ def splitname(name):
                 return lastname, middlename, firstname
             
             elif len(indices_1) == 1:
+                tree += '1'
                 # Only one single letter token.
                 middlename = tokens[indices_1[0]]
                 
                 tokens.remove(middlename)
                 firstname = ' '.join(tokens)
+                #firstname = ' '.join(tokens)
                 return lastname, middlename, firstname
 
             else:
+                tree += '0'
                 # multiple single-letter tokens
-                # First one is middlename, the rest are part of first name
+                # First one is middlename, 
                 middlename = tokens[indices_1[0]]
-                tokens.remove(middlename)
-                firstname = ' '.join(tokens)
+                # If the first single letter token is not the
+                # first RHS token, first name is all tokens uptp
+                # the middle initial
+                if indices_1[0] >= 1:
+                    tree += '1'
+                    firstname = ' '.join(tokens[0:indices_1[0]])
+                else:
+                    tree += '0'
+                    # The first RHS token is single letter.
+                    # What's the first name?
+                    if length_max == 1:
+                        tree += '1'
+                        # If there are no multi-letter tokens,
+                        # pick the second single letter one
+                        # as first name
+                        firstname = tokens[indices_1[1]]
+                    else:
+                        tree += '0'
+                        # pick the first multi-letter token
+                        # as first name
+                        firstname = tokens[lengths.index(length_max)]
+                    
+                #firstname = ' '.join(tokens)
                 return lastname, middlename, firstname
     else:
         # String doesn't contain comma

@@ -499,6 +499,7 @@ class Disambiguator():
             
             # TODO: implement a comparison function for Person. Mostly done 
             result = p1.compare(p2)
+            print identity1, identity2, result
             if result:
                 yield((result, identity1, identity2))
 

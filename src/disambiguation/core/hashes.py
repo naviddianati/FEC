@@ -10,8 +10,8 @@ import Database
 def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10, idm = None):
     '''
     Shuffle the given  hashes num_shuffles times and build
-    an edgelist of item pairs most commonly found close
-    to one another in the sorted hash list.
+    an edgelist of identities corresponding to item pairs most 
+    commonly found close to one another in the sorted hash list.
 
     @param filename: filename of the hashes.
     @param B: total number of adjacenct hashes to log for each sorting
@@ -19,7 +19,8 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10, idm = None)
     @param num_shuffles: number of times to shuffle the hashes and log the neighbors.
     @param idm: L{IdentityManager} instance to use
 
-    @return: a dictionary {(r_id1, r_id2): score}.
+    OLD: return: a dictionary {(r_id1, r_id2): score}.
+    @return: a dictionary {(identity1, identity2): score}.
     '''
     print "Loading the hash file..."
     with open(filename) as f:
@@ -63,18 +64,21 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10, idm = None)
                 x = ids[arg[i]]
                 y = ids[arg[j]]
                 if i == j: continue
-                xmin = min(x, y)
-                xmax = max(x, y)
                 try:
-                    if dict_id_2_identity[xmin] == dict_id_2_identity[xmax]:
-                        counter_linked += 1
-                        continue
+                    identity1, identity2 = dict_id_2_identity[x], dict_id_2_identity[y]
+                    identity1 = min(identity1, identity2)
+                    identity2 = max(identity1, identity2)
                 except:
-                    pass
                     counter_not_found += 1
+                    continue
+                if identity1 == identity2:
+                    counter_linked += 1
+                    continue
 
                 counter_new += 1
-                edgelist.add((xmin, xmax))
+                # NOTE: now, instead of the record ids, we 
+                # register their identities.
+                edgelist.add((identity1, identity2))
 
                 # This was back when instead of edgelist I had an adj:
                 # try:
@@ -96,7 +100,7 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10, idm = None)
 def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_procs=12, num_pairs=1000, idm = None):
     '''
     Using multiple child processes, load hashes, shuffle them multiple
-    times and compute edgelist. Worker function: L{worker_get_edgelist_from_hashes_file}
+    times and compute identity edgelist. Worker function: L{worker_get_edgelist_from_hashes_file}
 
     @param filename: filename where hashes are pickled.
     @param state: the state.
@@ -173,7 +177,7 @@ def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_pr
 def worker_get_edgelist_from_hashes_file(data):
     '''
     Retrieve list of hashes from filename, and get
-    an edgelist of pairs deemed close according to
+    an edgelist of identity pairs deemed close according to
     the hashes.
     '''
     # Unpack init data.

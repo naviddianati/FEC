@@ -38,11 +38,18 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mod
     # file that either already contains, or will contain a set of candidate
     # pairs of record ids together with a "weight"
     if mode == "disambiguation":
-        candidate_pairs_file = config.candidate_pairs_file_template % state
+        #candidate_pairs_file = config.candidate_pairs_file_template % state
+        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template 
+        candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_template
     elif mode == "bootstrapping":
-        candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
+        #candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
+        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_bootstrapping_template % state
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template 
+        candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_bootstrapping_template
     else:
         raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
+    
         
 
     # Make sure the file already exists
@@ -64,23 +71,35 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mod
     filename = config.hashes_file_template % (state, 'Tokenizer')
 
     print "Starting get_edgelist_from_hashes_file()..."
-    edgelist = hashes.get_edgelist_from_hashes_file(filename, state, B, num_shuffles, num_procs=3, num_pairs=num_pairs, idm = idm)
+
+    # NOTE: There is a particular case where relying on record edgelist fails us: consider the case
+    # where there is one cluster with a single record and another with 100 records. Suppose that single
+    # record is similar to quite a few of the records in the larger cluster. Using the hashing method
+    # as we've done before will have the following result: the single record will definitely be found
+    # close to *some* record from the large cluster in different permutations. Hoever, it may not end
+    # up close to any one of them sonsistently enough that their proximity will be registered. 
+    # So, instead of recording which records are proximare, we should register which *identities* are
+    # proximate via their records.
+    # NOTE: implement the new version.
+    edgelist = hashes.get_edgelist_from_hashes_file(filename, state, B, num_shuffles, num_procs=4, num_pairs=num_pairs, idm = idm)
     # edgelist.reverse()
     print "Done with get_edgelist_from_hashes_file()"
     print "Done fetching new pairs."
 
-    # Export edgelist to file
-    with open(candidate_pairs_file, 'w') as f:
+    # NOTE: new version produces edgelist of identities
+    # Instead of records.
+    # Export identity edgelist to file
+    with open(candidate_S1_identity_pairs_file, 'w') as f:
         for edge in edgelist:
-            f.write("%d %d %d\n" % (edge[0], edge[1], edge[2]))
-
-
+            #f.write("%s %s %d\n" % (edge[0], edge[1], edge[2]))
+            f.write("%s %s\n" % (edge[0], edge[1]))
 
 
 
 
 def partition_records(num_partitions, state="USA"):
     '''
+    @deprecated: 
     Partition the set of records appearing in the pairs identified
     by L{get_candidate_pairs()} into num_partitions subsets
     with minimal inter-set links, and export the edgelists within
@@ -120,6 +139,9 @@ def partition_records(num_partitions, state="USA"):
 
 def __get_list_identity_pairs(list_record_pairs, idm):
     '''
+    @deprecated: Now we directly find candidate identity pairs
+    using the hashes, so we don't need to compute identity pairs
+    from record pairs.
     Determine which identity pairs should be compared.
     Given a list of record id pairs, find all S1 identity pairs such
     that one of the record pairs has one record in one identity and
@@ -186,30 +208,12 @@ def partition_S1_identities(num_partitions, state = "USA", idm = None, mode="dis
     else:
         raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
     
-        
 
-    
-    # Compile an edgelist of all S1 Identity pairs that must be compared
-    # according to the candidate record pairs.
-    # NOTE: does the order matter? record pairs are weighted...
+    # NOTE: in the new version, we start with the candidate
+    # identity pairs, so we don't need to find them from candidate
+    # record pairs first.
 
-    if True:
-        print "Generating list of identity pairs to be compared..."
-        # This is a list of 3-tuples (rid1, rid2, weight)
-        list_record_pairs = []
-        with open(candidate_pairs_file) as f:
-            for line in f:
-                tmp = line.strip().split(" ")
-                list_record_pairs.append((int(tmp[0]), int(tmp[1]), int(tmp[2])))
-        list_identity_pairs = __get_list_identity_pairs(list_record_pairs, idm)
-        print "Done."
-        
-        # Save the list of candidate identity pairs to 
 
-        with open(candidate_S1_identity_pairs_file, 'w') as f:
-            for id1, id2 in list_identity_pairs:
-                f.write("%s %s\n" % (id1, id2))
-        print "List of identity pairs written to file."
 
     # Divide the set of S1 identities into roughly equally sized components.
     ig = utils.igraph
@@ -339,7 +343,7 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, id
     # File into which the bootstrapping results will be
     # written if boostrap is True.
     
-    export_file = config.S2_bootstrap_results_file if bootstrap else ''
+    export_file = config.S2_bootstrap_results_file if bootstrap else config.S2_identity_comparison_results_file
 
     verdict_authority =  VerdictAuthorityBase() if bootstrap else VerdictAuthority()
 
@@ -583,6 +587,10 @@ def __get_customized_verdict(detailed_comparison_result):
 
 
 def wrapper_worker_disambiguate_subset_of_identities_edgelist(data):
+    '''
+    A wrapper to the worker methods that allows exceptions
+    in suvprocesses to be captured and displayed.
+    '''
     try:
         return worker_disambiguate_subset_of_identities_edgelist(data)
     except:
@@ -665,7 +673,7 @@ def worker_disambiguate_subset_of_identities_edgelist(data):
 
         print "Retrieving records for this partition from database."
 
-        pause_time = workerid * 30
+        pause_time = workerid * 2 
         utils.time.sleep(pause_time)
 
         retriever = Database.FecRetrieverByID(config.MySQL_table_usa_combined)
@@ -688,7 +696,7 @@ def worker_disambiguate_subset_of_identities_edgelist(data):
 
 
         print "Tokenizing records..."
-        tokenizer.tokenize()
+        tokenizer.tokenize(export_tokendata=False,export_vectors=False,export_normalized_attributes=False)
         list_of_records = tokenizer.getRecords()
 
         # Insert the USA tokendata object into tokenizer.

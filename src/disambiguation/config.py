@@ -29,7 +29,7 @@ FEC_version_data = '2'
 
 # Version of the disambiguation results generated.
 # This can be different from FEC_version_data.
-FEC_version_disambiguation = '3'
+FEC_version_disambiguation = '4'
 
 
 # Truncation level for the affiliation networks 
@@ -188,6 +188,11 @@ csv_exported_state_template = dict_paths['data_path_exports'] + "%s.csv"
 S2_bootstrap_results_file = dict_paths['data_path_identities'] + 'S2_bootstrap_results.txt' 
 
 
+# File similar to S2_bootstrap_results_file, except it contains
+# the identity comparison results for the actual disambiguation
+# rather than bootstrapping.
+S2_identity_comparison_results_file = dict_paths['data_path_identities'] + 'S2_identity_comparison_results.txt' 
+
 
 # File containing the set of acceptable coordinates when
 # the occupations are identical. Generated via bootstrapping.
@@ -246,6 +251,10 @@ MySQL_table_individual_contributions = 'individual_contributions_v%s' % FEC_vers
 # NOTE: THIS STRING IS A TEMPLATE. IT MUST BE INSTANTIATED
 # WITH A STATE NAME STRING
 MySQL_table_state_combined = '%%s_combined_v%s' % FEC_version_data
+
+MySQL_table_state_full = '%%s_full_v%s' % FEC_version_data
+
+MySQL_table_state_addresses = '%%s_addresses_v%s' % FEC_version_data
 
 # All <state>_combined tables concatenated.
 MySQL_table_usa_combined = 'usa_combined_v%s' % FEC_version_data
