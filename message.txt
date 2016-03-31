@@ -1,42 +1,69 @@
-MORE DETAILED BOOTSTRAPPING + OTHER IMPROVEMENTS
 
-The bootstrapping now distinguishes between cases where name score is
-3 and those where it's 4. For the latter, VerdictAuthority makes the
-decision based on both name frequencies with and without the middle name.
-for the former, we only have one name frequency, so a simple thresholding
-is used to achieve the desired recall.
+Improved single state disambiguation worker method.
 
-Both the bootstrapping methods and the VerdictAuthority are updated to
-reflect the new approach.
+StageII: in get_edgelist_from_hashes_file, pruning the edgelist
+periodically is now optional.
 
-Some idiots have words like "THE" and "AND" "HONORABLE" in their names,
-like SEMBLER, MELVIN THE HONORA (What kind of a person calls himself
-"the honorable?!").  Remove such junk from names first.
+We can load identity pair partitions from a precomputed file now,
+or recompute.
 
-FECRetrieverByID() now populates the tmp_ tables faster by blocking.
+New graph partitioning algorithm implemented for partitioning
+the identity pairs graph: Partitioner.py
 
-Person's compare() now reports a pair if the max name score is 3 or more,
-OR if the min score is -1 (middle name conflict). The latter shouldn't
-simply be skipped. It's important information that will be used later.
+The parallelization process in StageII is now more efficient:
+Child processes are initialized once, the big fixed data 
+are loaded once per child, and then blocks of data are sent to 
+each child process as they finish the previous block. Idle times
+eliminated, more efficient memory management.
 
-Person's compare() also returns if affiliation scores are 2. Used to be 3
-or more only.
+This is accomplished through a "distribute" method and a data
+generator. Now, the child processes receive a "pipe" through
+which they keep receiving successive data chunks.
 
-Record's employer comparison now also looks for different permutations
-of a common set of words in employer strings.
+VerdictAuthority upgraded: the case of no middle names treated
+separately.
 
-Record's name frequencies are repoerted differently depending on whether 
-the name match score is 3 or 4. In the former, there is no point in
-reporting the frequency "with middle name".
+Bootstrap method has data filenames abstracted. Other upgrades.
+The case of no middle name is also added to the results-processing.
 
-hashes.py stage 2 edgelist from file now doesn't prune as strictly.
-Now that instead of record pairs we keep track of identity pair, even
-2 occurrences of a pair is significant, so we only filter out pairs
-that occur only once.
+validate-national: very short names dropped. Single process search
+also enabled.
 
-In tokenizing names, (utils.split_name), we also remove numerals
-from the name.
+config.py: variables for filenames of S2 acceptance coordinates
+derived from bootstrapping.
+MySQL table name for linked_identities table.
 
-New list chunking methods in utils.py. Both regular methods as
-well as generators for each case.
-Disambiguator now reports
+init.py: tokenization process now accepts keyword arguments.
+
+Database.py: function to split the graph of reachable identities
+into consistenct non-overlapping subgraphs in order to resolve
+middlename conflicts. Currently using a spinglass algorithm which
+occasionally doesn't converge. Look into a more stable implementation.
+
+FecRetriever: re-encode occupation and employer fields after 
+retrieving from DB. Otherwise, in some cases errors will occur
+in string processing later on.
+
+get_compound_identity: find all linked identities and generate a
+concatenated identity string we call the compound identity.
+
+Middle name conflict resolution methods added to IdentityManager.
+
+Table management and export functions for linked identities table.
+
+Method to fetch dict of linked identitis.
+
+Person.py: in Person comparison, if names match but middle names
+are different, don't simply reject; report the result for later
+processing.
+
+Record.py: in employer comparison, check if multi-token strings
+are the same modulo a permutation of tokens.
+Name comparison upgraded.
+
+Tokenizer: new class TokenizerName which works just like Tokenizer
+but only tokenizes the NAME field.
+
+utils.py: new function to check if two employer strings are the same
+modulo token permutation.
+A number of list chunkifying functions and generators.
