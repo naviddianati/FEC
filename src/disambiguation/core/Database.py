@@ -15,6 +15,15 @@ import utils
 import pandas as pd
 
 
+def partition_graph_of_reachable_identities(g):
+    '''
+    Find communities in the graph of reachable identities
+    using a spinglass clustering algorightm.
+    '''
+    gg = g.community_spinglass(weights='weight')
+    list_components = [[v['name'] for v in component.vs] for component in gg.subgraphs()]
+    return list_components
+
 
 class DatabaseManager:
     '''
@@ -90,15 +99,20 @@ class FecRetrieverByID(DatabaseManager):
 
 
 
-    def __populate_temp_table(self, list_ids):
+    def __populate_temp_table(self, list_ids, chunk_size = 10000):
         '''
         Insert the ids into the temp table.
         @param list_ids: list of record ids tobe retrieved.
         '''
         self.connection.autocommit(False)
         print "inserting..."
-        for rid in list_ids:
-            query = "INSERT INTO %s  value (%d);" % (self.temp_table, rid)
+
+        def __enclose_parantheses(list_ids):
+            return ','.join(['(%s)' % str(rid) for rid in list_ids])
+        for chunk in utils.chunks_size_gen(list_ids, size = 10000):
+            query = "INSERT INTO %s  values %s;" % (self.temp_table, __enclose_parantheses(chunk))
+        #for rid in list_ids:
+        #    query = "INSERT INTO %s  value (%d);" % (self.temp_table, rid)
             self.runQuery(query)
         self.connection.commit()
         self.connection.autocommit(True)
@@ -131,30 +145,30 @@ class FecRetrieverByID(DatabaseManager):
             list_ids_str = '(%s)' % ','.join([str(rid) for rid in list_ids])
             # Retrieve the rows from the join
             query = "SELECT " + fields + " FROM " + self.table_name + " WHERE id in " + list_ids_str + " ;" 
-            print query
+            #print query
             t1 = utils.time.time()
             query_result = self.runQuery(query)
             self.query_result = query_result
             t2 = utils.time.time()
-            print "Done in %f seconds" % (t2 - t1)
+            #print "Done in %f seconds" % (t2 - t1)
         else:
             self.__get_temp_table()
 
             t1 = utils.time.time()
             self.__populate_temp_table(list_ids)
             t2 = utils.time.time()
-            print "Done in %f seconds" % (t2 - t1)
+            #print "Done in %f seconds" % (t2 - t1)
 
 
 
             # Retrieve the rows from the join
             query = "SELECT " + fields + " FROM " + self.table_name + " JOIN " + self.temp_table + " USING (id) ;"
-            print query
+            #print query
             t1 = utils.time.time()
             query_result = self.runQuery(query)
             self.query_result = query_result
             t2 = utils.time.time()
-            print "Done in %f seconds" % (t2 - t1)
+            #print "Done in %f seconds" % (t2 - t1)
 
             # Cleanup
             self.__del_temp_table()
@@ -164,7 +178,7 @@ class FecRetrieverByID(DatabaseManager):
         tmp_list = [[s.upper() if isinstance(s, basestring) else s.strftime("%Y%m%d") if  isinstance(s, datetime.date) else s  for s in record] for record in query_result]
         self.list_results = tmp_list
 
-        self.list_of_records = []
+        self.dict_of_records = {}
         for counter, item in enumerate(tmp_list):
             r = Record.Record()
             for i, field in enumerate(self.all_fields):
@@ -219,13 +233,15 @@ class FecRetrieverByID(DatabaseManager):
             
 
 
-    def export_csv(self, filelabel = 'records_export'):
+    def export_csv(self, filename = None, filelabel=None):
         '''
-        @param filelabel: string label for output file. This
+        @param filename
+        @param filelabel: DEPRECATED string label for output file. This
         label will be inserted into the csv_exported_state_template
         template.
         '''
-        filename = utils.config.csv_exported_state_template  % filelabel
+        #filename = utils.config.csv_exported_state_template  % filelabel
+        if filelabel: filename = filelabel
         self.get_idm()
         list_results_updated = []
         # add identities to records
@@ -238,7 +254,9 @@ class FecRetrieverByID(DatabaseManager):
             list_results_updated.append(line)
         header =  ['identity'] +  self.all_fields 
         df = pd.DataFrame(list_results_updated, columns = header)
-        df.to_csv(filename, sep = '|', header = header, index = False)
+        if filename:
+            df.to_csv(filename, sep = '|', header = header, index = False)
+        return df
         
         
         
@@ -291,7 +309,7 @@ class FecRetriever(DatabaseManager):
         # query_result = runQuery("select " + ','.join(identifier_fields) + " from newyork_addresses where NAME <> '' order by NAME limit " + str(record_start) + "," + str(record_no) + ";")
         if not query:
             query = "select " + ','.join(self.query_fields) + " from " + self.table_name + self.where_clause + self.order_by + self.limit + ";"
-            print query
+            #print query
         self.query = query
 
         query_result = self.runQuery(query)
@@ -313,6 +331,16 @@ class FecRetriever(DatabaseManager):
             except KeyError:
                 if self.require_id :
                     raise Exception("ERROR: record does not have 'id' column")
+                pass
+
+            try:
+                r['OCCUPATION'] = r['OCCUPATION'].encode('ascii','ignore')
+            except:
+                pass
+            
+            try:
+                r['EMPLOYER'] = r['EMPLOYER'].encode('ascii','ignore')
+            except:
                 pass
 
             self.list_of_records.append(r)
@@ -384,8 +412,13 @@ class FecExporter(FecRetriever):
 
 
     def export_csv(self, filename = None):
-        if filename is None:
-            filename = utils.config.csv_exported_state_template  % self.state 
+        '''
+        @param filename: output csv filename. If None, then only
+        return the DataFrame.
+        @return: the dataframe which was exported
+        '''
+        #if filename is None:
+        #    filename = utils.config.csv_exported_state_template  % self.state 
         self.get_idm()
         list_results_updated = []
         # add identities to records
@@ -398,7 +431,10 @@ class FecExporter(FecRetriever):
             list_results_updated.append(line)
         header =  ['identity'] +  self.query_fields 
         df = pd.DataFrame(list_results_updated, columns = header)
-        df.to_csv(filename, sep = '|', header = header, index = False)
+        if filename:
+            df.to_csv(filename, sep = '|', header = header, index = False)
+        return df
+
         
         
         
@@ -438,9 +474,9 @@ class IdentityManager(DatabaseManager):
     C{(identity1 VARCHAR(24), identity2 VARCHAR(24), no INT, maybe INT, yes INT, PRIMARY KEY ("identity1","identity2"))}.
     '''
 
-    import utils
     table_name_identities = utils.config.MySQL_table_identities
     table_name_identity_adjacency = utils.config.MySQL_table_identities_adjacency
+    table_name_linked_identities = utils.config.MySQL_table_linked_identities
 
 
     def __init__(self, state, list_order_by="", where_clause=''):
@@ -462,12 +498,24 @@ class IdentityManager(DatabaseManager):
         # we have a single identity and need to find all related identities.
         self.dict_identity_2_identities = {}
 
+
+        # Dictionary that maps an identity to a list of all others
+        # linked to it. This dictionary defines the final "linked"
+        # relationship among S1 identities. It is produced after 
+        # middle name conflict resolution. Singleton identities are
+        # not included in this dict.
+        self.dict_linked_identities = {}
+
         # Query that will create table identities
         self.query_create_table_identities = 'CREATE TABLE %s ( id INT PRIMARY KEY, identity VARCHAR(24));' % IdentityManager.table_name_identities
 
         # Query that will create table identities_adjacency
         self.query_create_table_identities_adjacency = \
             'CREATE TABLE %s (identity1 VARCHAR(24), identity2 VARCHAR(24), verdict INT, PRIMARY KEY (identity1,identity2)  );' % IdentityManager.table_name_identity_adjacency
+
+        # Query that will create table linked_identities
+        self.query_create_table_linked_identities = 'CREATE TABLE %s ( identity1 VARCHAR(24), identity2 VARCHAR(24), KEY(identity1) );' % IdentityManager.table_name_linked_identities
+
 
         self.state = state
 
@@ -504,6 +552,24 @@ class IdentityManager(DatabaseManager):
         # Initialize the "identities" and tables
         self.__init_table_identities(overwrite)
         self.__init_table_identities_adjacency(overwrite)
+        self.__init_table_linked_identities(overwrite)
+
+
+    def get_compound_identity(self, rid):
+        '''
+        Return the compound identity of rid by concatenating
+        the identities of all linked identities.
+        '''
+        identity = self.get_identity(rid)
+        if identity is None:
+            return '', []
+        linked_identities = self.get_linked_identities(identity)
+        
+        all_identities = linked_identities + [identity]
+        compound_identity = "|".join(sorted(all_identities)) 
+        return compound_identity, all_identities
+        
+    
 
 
     def get_related_identities(self, identity):
@@ -526,10 +592,11 @@ class IdentityManager(DatabaseManager):
         return result
 
 
-    def get_linked_identities(self, identity, fcn_linked = None):
+    def get_reachable_identities(self, identity, fcn_linked = None):
         '''
-        Decide which identities must be considered linked to the given identity,
-        that is, "cut the dendrogram". This will be done using the function
+        Return all identities that are reachable from C{identity} via a path of
+        edge scores 1 on the graph of related identities.
+        This will be done using the function
         L{self.get_related_identities}, but not all "related" identities will
         necessarily make it to the list of linked identities.
         @param identity: the identity in question.
@@ -552,7 +619,6 @@ class IdentityManager(DatabaseManager):
             x = verdict
             return (x >= 1) 
         
-
         if fcn_linked is None:
             fcn_linked = fcn_linked_default
             
@@ -571,6 +637,9 @@ class IdentityManager(DatabaseManager):
         set_visited = set([identity])    
         get_neighborhood(identity,set_visited)
         return list(set_visited)
+
+
+
 
 
 
@@ -730,137 +799,176 @@ class IdentityManager(DatabaseManager):
                 #f.write('%s %s %s %s %s %s\n' % (identity1, identity2, result_name[1][0], result_name[1][1], result_occupation[1], result_employer[1]))
                 #self.dict_identity_adjacency[key] = (result_no, result_maybe, result_yes)
 
+        # NOTE: at this point we have a dictionary that maps each compared pair to their (-1,0,1) 
+        # verdict. The question is, how to we derive the final identity clusters from this "edgelist".
+        # The challenge is to account for middle name conflicts. If we divide the set of all S1 
+        # identities into connected components, in some components there will be pairs of identities
+        # that have middle name conflicts (score -1). Whenever such a component is found, it must
+        # be split up into at least two separate components.
+        # Do we do this in export_linked_identities()
 
-
-
-    def generate_dict_identity_adjacency_OLD(self, list_record_pairs, overwrite=False):
+        
+    def deduce_linked_identities(self):
         '''
-        @deprecated: used for v1. See  L{generate_dict_identity_adjacency}
-        for v2.
-        Compute L{self.dict_identity_adjacency} from a list containing
-        results of pairwise record comparisons. This is a stage2 operation.
-        It's assumed that stage1 identities exist and most records are
-        linked to an identity already. Here, we infer connections between
-        those stage1 identities by analyzing the comparison results for
-        pairs of records belonging to different identities in stage1.
-        @param list_record_pairs: a list where each item is of the form
-        C{((rid1,rid2), result)}. Each item is then the result of a record
-        pair comparison.
-        @requires: a populated "identities" table.
+        Generate a set of super-identities, i.e. a sorted tuples of 
+        S1 identities that are linked and have no middle name conflicts.
+        Result is L{self.set_super_identities}
         '''
-        counter_has_identity = 0
-        counter_result_none = 0
-        # tmp dict that will map each identity pair to a list
-        # of results from all their inter-cluster record pair
-        # comparison results. Each list will be interpreted to
-        # give a final relationship code for each identity pair.
-        dict_tmp = {}
+        dict_super_identities = self.__get_dict_super_identities()
+        self.set_super_identities = self.__get_set_super_identities(dict_super_identities)
 
-        if overwrite:
-            self.dict_identity_adjacency = {}
 
-        if not self.dict_id_2_identity:
-            self.fetch_dict_id_2_identity()
-        # Loop through the list of record pairs and their result.
-        for r_pair, result in list_record_pairs:
-            has_identity1 = True
-            has_identity2 = True
 
-            # if records are completely unrelated. Don't bother
-            # registering their relationship.
-            if result is None:
-                counter_result_none += 1
+        
+        
+
+    def __get_dict_super_identities(self, verbose = False):
+        '''
+        Compute all the super identities and for each one determine
+        if it has internal middle name conflict. 
+        The key is a sorted tuple of all identities reachable from
+        one another.
+        The value is an integer counting the number of middle name
+        conflicts within the set given the edges for which we have
+        comparison results.
+        '''
+
+        counter = 0
+        counter_error = 0
+        conflict = False
+
+        dict_super_identities = {}
+        set_super_identities = set()
+
+        for identity, x in self.dict_identity_2_list_ids.iteritems():
+            reachable = self.get_reachable_identities(identity)
+            set_reachable = set(reachable)
+            sorted_reachable = tuple(sorted(reachable))
+
+            set_conflict_pairs = set()
+
+            if sorted_reachable in dict_super_identities:
                 continue
 
-            rid1, rid2 = r_pair
-            try:
-                identity1 = self.get_identity(rid1)
-            except KeyError:
-                has_identity1 = False
+            # Register the current tuple of reachables in the
+            # dict of super identities. Next, determine if this
+            # super identity has a conflict.
+            dict_super_identities[sorted_reachable] = 0
 
-            try:
-                identity2 = self.get_identity(rid2)
-            except KeyError:
-                has_identity2 = False
+            for r_identity in reachable:
+                # For each reachable identity, find its related identities.
+                dict_related = self.get_related_identities(r_identity)
+                if not dict_related: continue
 
-            # If both have associateed identities, add result
-            # to the list of results for that pair of identities.
-            if has_identity1 and has_identity2:
-                counter_has_identity += 1
-                key = tuple(sorted([identity1, identity2]))
-                try:
-                    dict_tmp[key].append(result)
-                except:
-                    dict_tmp[key] = [result]
-            elif has_identity1:
-                # TODO: set rid2's identity equal to identity2
-                pass
-            elif has_identity2:
-                # TODO: set rid1's identity equal to identity1
-                pass
-            else:
-                # TODO: none has an identity, create a new identity
-                # for them.
-                pass
+                
+                for other, score in dict_related.iteritems():
+                    if other in set_reachable and score == -1:
+                        counter_error += 1
 
+                        current_pair = tuple(sorted([r_identity,other]))
+                        if current_pair not in set_conflict_pairs:
+                            dict_super_identities[sorted_reachable] += 1
+                            set_conflict_pairs.add(current_pair)
 
+                        if verbose: 
+                            print counter_error, " CONFLICT ", len(set_reachable), r_identity, other
+                        conflict = True
+            counter += 1
+        return dict_super_identities
 
+    def __get_set_super_identities(self, dict_super_identities):
+        '''
+        return a set containing all new super identities.
+        This includes all the old ones that didn't require
+        partitioning due to middle name conflicts as well
+        as new ones resulting from the partitioning of old
+        ones with conflicts.
+        @param dict_super_identities: a dict where the key
+        is a sorted tuple of identities (a super identity)
+        and the value is the number of middle name conflicts
+        detected within the super identity. 
+        @return: set where each item is a sorted tuple of 
+        self.identities.
+        '''
 
-        # Compile a list (set) of all identities associated
-        # to records in list_record_pairs
-        set_all_identities = set()
-        for key, list_results in dict_tmp.iteritems():
-            identity1,identity2 = key
-            if identity1:
-                set_all_identities.add(identity1)
-            if identity2:
-                set_all_identities.add(identity2)
-            
+        counter =0 
+
+        # The new identities being born including the
+        # old ones that didn't need partitioning.
+        birth_row = set()
+
+        for key,value in dict_super_identities.iteritems():
+            if value == 0 : 
+                birth_row.add(key)
+                continue
+
+            #The the graph of reachable identities
+            g = self.get_reachable_identities_graph(key[0])
+            list_components = partition_graph_of_reachable_identities(g)
+            for component in list_components:
+                birth_row.add(tuple(sorted(component)))
+
+            counter += 1
+            print "Conflict resolved   ", counter
         
-        # Get a Person object for each identity
-        # TODO: Poulates self.dict_persons
-        print "Generating Person objects for all identities..."
-        self.getPersons(list(set_all_identities))
-        set_all_identities.clear()
-        print "Done generating Person objects."
+        return birth_row
 
 
-        # Now, go through dict_tmp and for each identity pair
-        # interpret all its results and make a final judgment
-        # on the relationship between the identities.
-        for key, list_results in dict_tmp.iteritems():
-            # Loop through all results for this identity pair
-            # and update
-            result_no = 0
-            result_maybe = 0
-            result_yes = 0
 
-            # check if the person objects associated
-            # with the two identities are compatible.
-            # If they are irreconcilable, do not log
-            # the pair.
-            identity1,identity2 = key
+
+
+    def get_reachable_identities_graph(self, identity):
+        '''
+        Return a graph of all identities that are reachable from 
+        the given identity on the graph of related identities.
+        Edge 'weight' can be -1, 0, 1.
+        '''
+        
+        dict_weights = {-1:-100}
+        def func_weight(verdict):
+            '''weight = verdict, unless verdict is one
+            of the values defined in dict_weights.'''
             try:
-                person1 = self.dict_persons[identity1]
-                person2 = self.dict_persons[identity2]
-                mn1, mn2 = person1.get_dominant_attribute('N_middle_name'), person2.get_dominant_attribute('N_middle_name')
-                if mn1 and mn2:
-                    if mn1[0] != mn2[0]: 
-                        result_no += 1
+                weight = dict_weights[verdict]
             except:
-                print "Error in getting donimant middle names" 
-            
-            for result in list_results:
-                if result < 0:
-                    result_no += 1
-                elif result == 0:
-                    result_maybe += 1
-                elif result > 0:
-                    result_yes += result
+                weight = verdict
+            return weight
+                
+        edgelist = {}
 
-            self.dict_identity_adjacency[key] = (result_no, result_maybe, result_yes)
+        set_reachable_identities = set(self.get_reachable_identities(identity))
 
-        print "Done generating identities_adjacency."
+        for neighbor in set_reachable_identities:
+            dict_related = self.get_related_identities(neighbor)
+            for related, verdict in dict_related.iteritems():
+                if verdict < 0 and related not in set_reachable_identities: 
+                    continue
+                edge = tuple(sorted([neighbor,related]))
+                edgelist[edge] = func_weight(verdict)
+        edgelist = [(key[0],key[1],value) for key,value in edgelist.iteritems()]        
+        g = utils.igraph.Graph.TupleList(edgelist, weights=True)
+        return g
+
+
+
+    def get_linked_identities(self, identity):
+        '''
+        Using the table C{linked_identities}, return a list of all other
+        identities linked to C{identity}.
+        In previous versions, we did this just by using L{self.dict_identities_adjacency}
+        but now, that is not enough. We must use the contents of C{linked_identities}
+        which are the result of further processing of the said dict, after resolving
+        middle name conflicts and splitting some of the super identities.
+        '''
+        if not self.dict_linked_identities:
+            print "dict_linked_identities not loaded. Loading now..."
+            self.fetch_dict_linked_identities()
+
+        try:
+            return self.dict_linked_identities[identity]
+        except:
+            return []
+        
 
 
     def export_related_identities_csv(self):
@@ -922,6 +1030,50 @@ class IdentityManager(DatabaseManager):
 
 
 
+    def export_linked_identities(self):
+        '''
+        Using the contents of L{self.set_super_identities}, populate the 
+        table defined by L{IdentityManager.table_name_identity_adjacency}.
+        '''
+
+        if not self.set_super_identities:
+            raise Exception('self.set_super_identities is empty. Cannot export empty set')
+
+        print "Exporting linked_identities..."
+        self.__truncate_table_linked_identities()
+        print "linked_identities truncated successfully."
+
+
+        self.connection.autocommit(False)
+        counter = 0
+        list_values = []
+        for super_identity in self.set_super_identities:
+            for identity1 in super_identity:
+                for identity2 in super_identity:
+                    if identity1 == identity2: continue
+                    counter += 1
+                 
+                    list_values.append((identity1, identity2))
+                    if len(list_values) == 10000:
+                        list_values_str = ",".join(['("%s", "%s")' % values for values in list_values])
+                        query = 'INSERT INTO %s (identity1,identity2) VALUES %s;' \
+                       % (IdentityManager.table_name_linked_identities, list_values_str)
+                        self.runQuery(query)
+                        list_values = []
+        if list_values:
+            list_values_str = ", ".join(['("%s", "%s")' % values for values in list_values])
+            query = 'INSERT INTO %s (identity1,identity2) VALUES %s;' \
+               % (IdentityManager.table_name_linked_identities, list_values_str)
+            self.runQuery(query)
+            list_values = []
+
+        self.connection.commit()
+        self.connection.autocommit(True)
+        
+#         self.connection.close()
+        print "linked_identities exported succesfully."
+        print "Total number of entries: ", counter
+
 
 
     def drop_table_identities(self):
@@ -942,6 +1094,14 @@ class IdentityManager(DatabaseManager):
         self.runQuery(query)
         self.connection.commit()
 
+
+    def drop_table_linked_identities(self):
+        '''
+        Drop the table "linked_identities" if exists
+        '''
+        query = "DROP TABLE IF EXISTS %s;" % IdentityManager.table_name_linked_identities
+        self.runQuery(query)
+        self.connection.commit()
 
 
     def __init_table_identities(self, overwrite = False):
@@ -990,6 +1150,30 @@ class IdentityManager(DatabaseManager):
             print "Table '%s' exists." % IdentityManager.table_name_identity_adjacency
 
 
+    def __init_table_linked_identities(self, overwrite = False):
+        '''
+        Check whether the "linked_identities" table exists
+        and create it if not.
+        @param overwrite: whether to overwrite the table if it 
+        already exists. 
+        '''
+        if overwrite:
+            print "Dropping table %s" % IdentityManager.table_name_linked_identities
+            #TODO: implement
+            self.drop_table_linked_identities()
+
+        query = "SELECT COUNT(*) FROM information_schema.tables \
+                    WHERE table_schema = 'FEC' \
+                    AND table_name = '%s';" % IdentityManager.table_name_linked_identities
+
+        result = self.runQuery(query)
+        if result[0][0] == 0:
+            print "Table '%s' doesn't exist. Creating it." % IdentityManager.table_name_linked_identities
+            self.runQuery(self.query_create_table_linked_identities)
+        else:
+            print "Table '%s' exists." % IdentityManager.table_name_linked_identities
+
+
 
     def __truncate_table_identities_adjacency(self):
         '''
@@ -1002,6 +1186,38 @@ class IdentityManager(DatabaseManager):
         print "table %s dropped successfully" % IdentityManager.table_name_identity_adjacency 
         self.__init_table_identities_adjacency()
         print "table %s initialized successfully" % IdentityManager.table_name_identity_adjacency 
+
+
+    def __truncate_table_linked_identities(self):
+        '''
+        Empty the linked_identities table.
+        @note: Due to a known L{MySQL bug <http://bugs.mysql.com/bug.php?id=68184>},
+        the TRUNCATE statement may cause the code to freeze. Instead, we
+        drop and re-init the table.
+        '''
+        self.drop_table_linked_identities()
+        print "table %s dropped successfully" % IdentityManager.table_name_linked_identities 
+        self.__init_table_linked_identities()
+        print "table %s initialized successfully" % IdentityManager.table_name_linked_identities 
+
+
+    def fetch_dict_linked_identities(self):
+        '''
+        Fetch L{self.dict_linked_identities} from the C{linked_identities}
+        table. This dict contains the final data on identities that are
+        linked by our algorithm.
+        '''
+        query = "select identity1, identity2 from " + IdentityManager.table_name_linked_identities + ";"
+        print query
+        self.query = query
+        query_result = self.runQuery(query)
+
+        for identity1, identity2 in query_result:
+            try:
+                self.dict_linked_identities[identity1].append(identity2)
+            except KeyError:
+                self.dict_linked_identities[identity1] = [identity2]
+        del query_result
 
 
     def fetch_dict_id_2_identity(self):
@@ -1036,6 +1252,9 @@ class IdentityManager(DatabaseManager):
                 self.dict_identity_2_list_ids[identity] = [int(r_id)]
 
         del query_result
+
+
+
 
 
 

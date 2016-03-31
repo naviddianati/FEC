@@ -9,9 +9,8 @@ import random
 import pandas as pd
 
 
-version_data = 'v2'
+version_data = 'v%s' % utils.config.FEC_version_data
 
-version_disambiguation = 'v3'
 
 
 
@@ -99,7 +98,6 @@ def worker_get_similar_records_db(target_record):
         an artificial record created from a query.
     '''
 
-    db = Database.DatabaseManager()
 
     list_tokenized_fields = ['NAME', 'TRANSACTION_DT', 'ZIP_CODE' , 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
     list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
@@ -108,6 +106,13 @@ def worker_get_similar_records_db(target_record):
     firstname = target_record['N_first_name']
     lastname = target_record['N_last_name']
     middlename = target_record['N_middle_name']
+
+    # If either first name or last name is less than 3 charactes long,
+    # skip it. Database query results will be an unmanageable mess.
+    if len(target_record['N_first_name']) < 3 or len(target_record['N_last_name']) < 3:
+        return target_record, []
+
+
 
     db = Database.FecRetriever(table_name='individual_contributions_%s_MYISAM' % version_data,
     # db = Database.FecRetriever(table_name='newyork_combined',
@@ -134,7 +139,7 @@ def worker_get_similar_records_db(target_record):
         return target_record, []
 
     print "saving to file"
-    with open(firstname + "-" + lastname + ".txt", 'w') as f:
+    with open((firstname + "-" + lastname + ".txt").strip(), 'w') as f:
         f.write("="*70 + "\n")
         f.write("%s %s %s\n" % (target_record['N_first_name'], target_record['N_middle_name'], target_record['N_last_name']))
         f.write("="*70 + "\n")
@@ -354,7 +359,12 @@ def generate_coding_page_multiproc(list_of_records, num_procs, idm):
         page_number += 1
 
     print "Received results..."
-    pool.map(worker_generate_pages, list_pages)
+    
+    if num_procs == 1:    
+        for page in list_pages:
+            worker_generate_pages(page)
+    else:
+        pool.map(worker_generate_pages, list_pages)
     
 
 
@@ -485,7 +495,7 @@ if __name__ == "__main__":
     # Set of "records" we want to find matches for.
     # A records can be an artificial records build
     # from a query.
-    list_target_records = get_list_target_records(idm,n=400)
+    list_target_records = get_list_target_records(idm,n=100)
 
     #TEST: DELTE ME!
     #list_target_records = get_list_target_records(idm,n=200, 
@@ -493,7 +503,7 @@ if __name__ == "__main__":
     
 
     # Generate the pages
-    generate_coding_page_multiproc(list_target_records, 10, idm)
+    generate_coding_page_multiproc(list_target_records, 1, idm)
 
 
 

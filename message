@@ -1,0 +1,37 @@
+
+Improved single state disambiguation worker method.
+
+StageII: in get_edgelist_from_hashes_file, pruning the edgelist
+periodically is now optional.
+
+We can load identity pair partitions from a precomputed file now,
+or recompute.
+
+New graph partitioning algorithm implemented for partitioning
+the identity pairs graph: Partitioner.py
+
+The parallelization process in StageII is now more efficient:
+Child processes are initialized once, the big fixed data 
+are loaded once per child, and then blocks of data are sent to 
+each child process as they finish the previous block. Idle times
+eliminated, more efficient memory management.
+
+This is accomplished through a "distribute" method and a data
+generator. Now, the child processes receive a "pipe" through
+which they keep receiving successive data chunks.
+
+VerdictAuthority upgraded: the case of no middle names treated
+separately.
+
+Bootstrap method has data filenames abstracted. Other upgrades.
+The case of no middle name is also added to the results-processing.
+
+validate-national: very short names dropped. Single process search
+also enabled.
+
+config.py: variables for filenames of S2 acceptance coordinates
+derived from bootstrapping.
+MySQL table name for linked_identities table.
+
+init.py: tokenization process now accepts keyword arguments.
+

@@ -497,9 +497,14 @@ class Disambiguator():
             p1.identity = identity1 
             p2.identity = identity2 
             
-            # TODO: implement a comparison function for Person. Mostly done 
+            # Get the result of person comparison. If they are
+            # obviously not related, ignore the pair. Otherwise, 
+            # return the result and let VerdictAuthority deal with it.
             result = p1.compare(p2)
             print identity1, identity2, result
+
+            # NOTE: report the pair if they are a match OR if there is
+            # middle name mismatch (result = -1) (both must be recorded)
             if result:
                 yield((result, identity1, identity2))
 
@@ -738,6 +743,7 @@ class Disambiguator():
             list_procs.append(p)
             list_queues.append(data['queue'])
             p.start()
+            print "process started"
 
         # Receive outputs from processes
         for i, q in enumerate(list_queues):

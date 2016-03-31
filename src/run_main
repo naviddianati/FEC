@@ -1,0 +1,12 @@
+#! /bin/bash
+
+
+nohup ./monitor_memory.py &
+pid=$!
+
+nohup stdbuf -o0 python main.py  > output
+
+kill $pid
+echo "main.py is done!" >> output
+
+

@@ -48,7 +48,7 @@ from disambiguation.core import Project, search
 from disambiguation.core.Affiliations import AffiliationAnalyzerUndirected, MigrationAnalyzerUndirected
 from disambiguation.core.Database import FecRetriever, FecRetrieverByID
 import disambiguation.core.Disambiguator as Disambiguator
-from disambiguation.core.Tokenizer import Tokenizer, TokenizerNgram, TokenData
+from disambiguation.core.Tokenizer import Tokenizer, TokenizerNgram, TokenizerName, TokenData
 import disambiguation.config as config
 from disambiguation.core.states import *
 from disambiguation.core.utils import *
@@ -86,24 +86,31 @@ def DISAMBIGUATE_stage_1():
 
     # Create the identities and identities_adjacency tables
     # needed for disambiguation.
-    #stage1.create_tables()
+    stage1.create_tables(overwrite=True)
 
 
     # Disambiguate every state separately in parallel.
-    #list_states = get_state_order().items()
-    #list_states = [x for x,y in sorted(list_states, key = lambda x:x[1])]
+
+    #list_done_abbr = ['VA', 'MN' ,'PA' ,'CO' ,'IL' ,'AZ' ,'NJ' ,'SD' ,'NC' ,'OH' ,'OR' ,'NH' ,'OK' ,'NE' ,'MA' ,'AL' ,'KY' ,'DE' ,'VT' ,'HI' ,'AS' ,'FM']
+    #already_done = [dict_state[abbr] for abbr in list_done_abbr]
+    #print already_done
+    
+
+    list_states = get_state_order().items()
+    list_states = [x for x,y in sorted(list_states, key = lambda x:x[1])]
     #already_done = ['ohio','oklahoma','arizona','minnesota','colorado','connecticut','newjersey','massachusetts','pennsylvania','virginia','illinois']
     #for state in already_done: list_states.remove(state)
-    #list_states = ['palau', 'idaho', 'mississippi', 'kentucky', 'michigan']
-    list_states = []
-    #stage1.disambiguate_multiple_states(list_states=list_states, num_procs=10)
+    #list_states = ['california', 'florida','newyork']
+    #list_states = []
+    print list_states 
+    stage1.disambiguate_multiple_states(list_states=list_states, num_procs=10)
 
     # After stage1 disambiguation, use the identities to generate
     # a second iteration of the affiliation graphs.
-    stage1.generateAffiliationDataPostStage1_multiple_states(list_states=list_states, num_procs = 5)  
+    #stage1.generateAffiliationDataPostStage1_multiple_states(list_states=list_states, num_procs = 3)  
 
     # Combine post-stage1 affiliation graphs into a national one.
-    stage1.combine_affiliation_graphs(poststage1 = True)
+    #stage1.combine_affiliation_graphs(poststage1 = True)
 
 
 
@@ -153,11 +160,11 @@ def DISAMBIGUATE_stage_2():
     # Also, exoirt the list of all record ids associated with any
     # of the identities in each partition into a separate file for
     # that partition as well.
-    #stage2.partition_S1_identities(num_partitions = num_procs, state = 'USA', idm = idm)
+    #stage2.partition_S1_identities(num_partitions = 200, state = 'USA', idm = idm, recompute_identity_partitions=False)
 
 
     # Compare record pairs within each subset and save results.
-    stage2.disambiguate_subsets_multiproc(num_partitions=12, state="USA", num_procs=12, idm = idm)
+    stage2.disambiguate_subsets_multiproc(num_partitions=200, state="USA", num_procs=10, idm = idm)
 
     pass
 
@@ -270,15 +277,25 @@ def INIT():
         hashes, uniformly for the entire country. This will be used in stage2 to find candidate
         pairs at a national level.
     '''
+    # National level data preparation:
+    # Tokenize, vectorize and hashify all states using TokenizerName
+    # for the blocking phase of stage II
+    ltf = ['NAME']
+    init.INIT_process_multiple_states(TokenizerClass=TokenizerName, list_tokenized_fields=ltf, num_procs=10, tokenize_kwargs = {'export_normalized_attributes': False})
+    print "WARNING: Quitting after TokenizerName"
+    return
+
+
     # State level data preparation (for fine-grained intra state disambiguation)
     # Tokenize, vectorize and hashify all states using TokenizerNgram
-    ##init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)
+    init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 10)
 
     # National level data preparation:
     # Tokenize, vectorize and hashify all states using Tokenizer
     ltf = ['NAME', 'EMPLOYER', 'OCCUPATION']
-    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields=ltf, num_procs=12)
+    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields=ltf, num_procs=10)
 
+    
 
     # combine the vectors and tokens from all states into the national data files.
     init.INIT_combine_state_tokens_and_vectors()
@@ -440,8 +457,11 @@ if __name__ == "__main__":
 
 
 
-
     DISAMBIGUATE_stage_2()
+    quit()
+
+
+    INIT()
     quit()
 
 
@@ -452,8 +472,20 @@ if __name__ == "__main__":
 
 
 
-    INIT()
+
+
+
+
+
+
+
+
+    DISAMBIGUATE_stage_1()
     quit()
+
+
+
+
 
 
 

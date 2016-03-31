@@ -53,7 +53,7 @@ class Person(object):
         return  (id(self) == id(other)) 
     
     
-    def compare(self, other):
+    def compare(self, other, verbose = False):
         '''
         Compare C{self} with C{other} for the stage II disambiguation.
         For comparison, first go through all possible pairs of records
@@ -75,20 +75,38 @@ class Person(object):
         of L{Record}.
         '''    
         # This will cause this pair to simply be ignored.
-        if self is other: return False
+        if self is other: 
+            if verbose: print "self is other!"
+            return False
 
-        match1 = re.findall(r'(.*)\|([12])', self.identity)
-        match2 = re.findall(r'(.*)\|([12])', other.identity)
-        if match1 and match2:
-            if match1[0][0] == match2[0][0]: print "SAME ROOT"
+
+        #match1 = re.findall(r'(.*)\|([12])', self.identity)
+        #match2 = re.findall(r'(.*)\|([12])', other.identity)
+        #if match1 and match2:
+        #    if match1[0][0] == match2[0][0]: print "SAME ROOT"
 
         #print "-- ", len(self.set_of_records), len(other.set_of_records)
         results_name = [r1.compare_names(r1,r2) for r1 in self.set_of_records for r2 in other.set_of_records]
 
         # If the highest name match score is 2 or less, then reject.
         results_name.sort()
-        if results_name[-1][0] < 3: return False
-        
+        if results_name[-1][0] < 3 : 
+            if verbose: print "Names don't match"
+            return False
+
+        # if names match but have different middle names, keep and
+        # report the results. This is needed for constraint enforcement. 
+        # report the result (code -1), but with the name frequencies of
+        # The highest match.
+        # Here, the tuple looks like 
+        # (match_code, (freq_with_middlename, freq_without_middlename)).
+        # But still sorting doesn't pose a problem.
+        if  results_name[0][0] < 0: 
+            if verbose: print "Middle name mismatch"
+            max_name = (-1, results_name[-1][1])
+        else:
+            max_name = results_name[-1]
+
         # Otherwise, compare the other fields too.
         results_employer = [r1.compare_employers(r1,r2) for r1 in self.set_of_records for r2 in other.set_of_records]                                      
         results_occupation = [r1.compare_occupations(r1,r2) for r1 in self.set_of_records for r2 in other.set_of_records]                                      
@@ -98,15 +116,11 @@ class Person(object):
         max_occupation = max(results_occupation)
         max_employer = max(results_employer)
         
-        # Except for name. Here, the tuple looks like 
-        # (match_code, (freq_with_middlename, freq_without_middlename)).
-        # But still sorting doesn't pose a problem.e
-        max_name = results_name[-1]
        
-        # TODO: add a condition to take into account name frequency
-        if (max_occupation[0] >= 3) or (max_employer[0] >= 3):
+        if (max_occupation[0] >= 2) or (max_employer[0] >= 2):
             return (max_name, max_occupation, max_employer)
         else:    
+            if verbose: print "occupations and employers don't match"
             return False
 
  
@@ -298,7 +312,10 @@ class Person(object):
             dict_compatibilities = {}
             
             # Compute compatibilities between this record and the newly spawned children + the parent's neighbors
-            for new_person in set(dict_spawns.values()).union(self.town.getPersonsById(self.neighbors)):
+            # NOTE: shouldn't involve neighbors. Some neighbors may have totally different names
+            # but the same middle name.
+            #for new_person in set(dict_spawns.values()).union(self.town.getPersonsById(self.neighbors)):
+            for new_person in dict_spawns.values():
                 dict_compatibilities[new_person] = self.compatibility(tmp_person, new_person)
             
             winner_person = sorted(dict_compatibilities.keys(), key=lambda person:dict_compatibilities[person])[-1]

@@ -912,6 +912,12 @@ class Record(dict):
                 # Strings are close enough even though not linked on the affiliation graph
                 return (3, None)
 
+            # Check if strings have multiple words and a significant 
+            # number of them overlap, although possibly in different
+            # orders (e.g. "ALVARARDO & GERKEN" and "ALVARADO GERKAN & BENNETT"
+            elif utils.match_token_permuted(employer1, employer2):
+                return (3, None)
+
             # Check if one's employer is mistakenly reported as its occupation
             elif employer1 == occupation2 or employer2 == occupation1:
                 return (3, None)
@@ -923,9 +929,6 @@ class Record(dict):
                 # String distances not close enough
                 if Record.debug: print "employers are not adjacent in graph, and strings aren't close."
                 return (0, None)
-
-
-
 
 
 
@@ -1094,6 +1097,10 @@ class Record(dict):
                             identical = (2, None)
                     else: identical = (0, None)
 
+        # If they both had middle names and they were different,
+        # We would have returned already. So, at this point, either
+        # They have identical middle names, or neither has a middle name,
+        # or only one has a middle name.
         if identical == (3, None):
             identical = (4, None) if identical_middle_names else (3, None)
 
@@ -1104,7 +1111,28 @@ class Record(dict):
 
         match_code = identical[0]
 
-        if match_code == 3 or match_code == 4:
+        if match_code == 3:
+            # In this case, there is not matching middle name
+            lastname = r1['N_last_name'] or r2['N_last_name']
+            firstname = r1['N_first_name'] or r2['N_first_name']
+
+            fullname_without_middlename = "%s|%s|%s" % (lastname, '', firstname)
+
+            freq_without_middlename = 0
+
+            # We only need this in stage two when tokendata has a toke_identifier for "N_full_name"
+            # Othersie, just skip
+
+            try:
+                freq_without_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_without_middlename))
+            except:
+                pass
+
+
+
+            identical = (match_code, ('NA', freq_without_middlename))
+
+        elif match_code == 4:
             middlename = r1['N_middle_name'] or r2['N_middle_name']
             lastname = r1['N_last_name'] or r2['N_last_name']
             firstname = r1['N_first_name'] or r2['N_first_name']
@@ -1134,7 +1162,6 @@ class Record(dict):
 
 
             identical = (match_code, (freq_with_middlename, freq_without_middlename))
-
         elif match_code == 2:
             # names are similar but we can't verify if they are variants
             # or misspeling or just different. Just report the frequencies

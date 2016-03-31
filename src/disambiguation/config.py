@@ -29,7 +29,7 @@ FEC_version_data = '2'
 
 # Version of the disambiguation results generated.
 # This can be different from FEC_version_data.
-FEC_version_disambiguation = '4'
+FEC_version_disambiguation = '5'
 
 
 # Truncation level for the affiliation networks 
@@ -194,31 +194,71 @@ S2_bootstrap_results_file = dict_paths['data_path_identities'] + 'S2_bootstrap_r
 S2_identity_comparison_results_file = dict_paths['data_path_identities'] + 'S2_identity_comparison_results.txt' 
 
 
+
+# NAMES MATCH BUT NOT ON MIDDLE NAME
 # File containing the set of acceptable coordinates when
 # the occupations are identical. Generated via bootstrapping.
-filename_inds_o_4 =  dict_paths['data_path_identities'] + 'inds_o_4.json'
+filename_inds_n_3_o_4 =  dict_paths['data_path_identities'] + 'inds_n_3_o_4.json'
 
 # File containing the set of acceptable coordinates when
 # the employers are identical. Generated via bootstrapping.
-filename_inds_e_4 =  dict_paths['data_path_identities'] + 'inds_e_4.json'
+filename_inds_n_3_e_4 =  dict_paths['data_path_identities'] + 'inds_n_3_e_4.json'
 
 # File containing the set of acceptable coordinates when
 # the occupations are linked. Generated via bootstrapping.
-filename_inds_o_3 =  dict_paths['data_path_identities'] + 'inds_o_3.json'
+filename_inds_n_3_o_3 =  dict_paths['data_path_identities'] + 'inds_n_3_o_3.json'
 
 # File containing the set of acceptable coordinates when
 # the employers are linked. Generated via bootstrapping.
-filename_inds_e_3 =  dict_paths['data_path_identities'] + 'inds_e_3.json'
+filename_inds_n_3_e_3 =  dict_paths['data_path_identities'] + 'inds_n_3_e_3.json'
 
 # File containing the set of acceptable coordinates when
 # the occupations are identical but BAD. Generated via bootstrapping.
-filename_inds_o_2 =  dict_paths['data_path_identities'] + 'inds_o_2.json'
+filename_inds_n_3_o_2 =  dict_paths['data_path_identities'] + 'inds_n_3_o_2.json'
 
 # File containing the set of acceptable coordinates when
 # the employers are identical but BAD. Generated via bootstrapping.
-filename_inds_e_2 =  dict_paths['data_path_identities'] + 'inds_e_2.json'
+filename_inds_n_3_e_2 =  dict_paths['data_path_identities'] + 'inds_n_3_e_2.json'
 
 
+
+
+# NAMES MATCH INCLUDING ON MIDDLE NAME
+# File containing the set of acceptable coordinates when
+# the occupations are identical. Generated via bootstrapping.
+# For the case where names match including on the middle name
+filename_inds_n_4_o_4 =  dict_paths['data_path_identities'] + 'inds_n_4_o_4.json'
+
+# File containing the set of acceptable coordinates when
+# the employers are identical. Generated via bootstrapping.
+# For the case where names match including on the middle name
+filename_inds_n_4_e_4 =  dict_paths['data_path_identities'] + 'inds_n_4_e_4.json'
+
+# File containing the set of acceptable coordinates when
+# the occupations are linked. Generated via bootstrapping.
+# For the case where names match including on the middle name
+filename_inds_n_4_o_3 =  dict_paths['data_path_identities'] + 'inds_n_4_o_3.json'
+
+# File containing the set of acceptable coordinates when
+# the employers are linked. Generated via bootstrapping.
+# For the case where names match including on the middle name
+filename_inds_n_4_e_3 =  dict_paths['data_path_identities'] + 'inds_n_4_e_3.json'
+
+# File containing the set of acceptable coordinates when
+# the occupations are identical but BAD. Generated via bootstrapping.
+# For the case where names match including on the middle name
+filename_inds_n_4_o_2 =  dict_paths['data_path_identities'] + 'inds_n_4_o_2.json'
+
+# File containing the set of acceptable coordinates when
+# the employers are identical but BAD. Generated via bootstrapping.
+# For the case where names match including on the middle name
+filename_inds_n_4_e_2 =  dict_paths['data_path_identities'] + 'inds_n_4_e_2.json'
+
+
+# File containing the name frequency thresholds for various
+# affiliation match scores in the case where names match but
+# not on middle name. Content is a dict with keys like 'e_2' and 'e_3'
+filename_inds_n_3 = dict_paths['data_path_identities'] + 'inds_n_3.json'
 
 
 
@@ -262,6 +302,16 @@ MySQL_table_usa_combined = 'usa_combined_v%s' % FEC_version_data
 # Identities table. This table maps each record id to
 # an identity id.
 MySQL_table_identities = 'identities_v%s' % FEC_version_disambiguation
+
+
+# Linked identities table. It's basically the edgelist of the graph of
+# linked identities. Connected components of this graph are the final 
+# 'super-identities' our algorithm produces. 
+# Each row maps an S1 identity to another, specifying one edge of the
+# linked identities graph. 
+# Singleton S1 identities won't be recorded in this table.
+MySQL_table_linked_identities = 'linked_identities_v%s' % FEC_version_disambiguation
+
 
 # Identities adjacency table.
 MySQL_table_identities_adjacency = 'identities_adjacency_v%s' % FEC_version_disambiguation

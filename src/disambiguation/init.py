@@ -31,7 +31,7 @@ from core.states import *
 
 
 
-def tokenize_records(list_of_records, project, TokenizerClass):
+def tokenize_records(list_of_records, project, TokenizerClass, tokenize_kwargs):
     '''
     Return a TokenDadta object for L{list_of_records}, and update each
     record in L{list_of_records} by adding to it a vector attribute and
@@ -44,6 +44,14 @@ def tokenize_records(list_of_records, project, TokenizerClass):
 
     @param TokenizerClass: The Tokenizer class used. It can be
         TokenizerNgram, Tokenizer, etc.
+
+    @param tokenize_kwargs: a dict that will be used as the kwargs for the
+    tokenize() method. Here are the possible keywords:
+    @keyword num_procs: number of processes to use.
+    @keyword export_vectors: whether to export the feature vectors to file.
+    @keyword export_normalized_attributes: whether to export normalized 
+    attributes to file.
+    @keyword export_tokendata: whether to export tokendata to file.
     '''
     tokendata_file = config.tokendata_file_template % (project['state'], TokenizerClass.__name__)
     vectors_file = config.vectors_file_template % (project['state'], TokenizerClass.__name__)
@@ -77,10 +85,11 @@ def tokenize_records(list_of_records, project, TokenizerClass):
         tokenizer.project = project
         tokenizer.setRecords(list_of_records)
         tokenizer.setTokenizedFields(project['list_tokenized_fields'])
-
+        print "project['list_tokenized_fields']: ", project['list_tokenized_fields']
+        print "tokenizer.list_tokenized_fields: ", tokenizer.list_tokenized_fields
 
         print "Tokenizing records..."
-        tokenizer.tokenize()
+        tokenizer.tokenize(**tokenize_kwargs)
 
         print "Saving token data to file..."
         tokenizer.tokens.save_to_file(tokendata_file)
@@ -237,7 +246,7 @@ def INIT_combine_normalized_attributes():
 
 
 
-def INIT_process_single_state(state=None, TokenizerClass=None, list_tokenized_fields=[], record_limit=(0, 50000000), whereclause='', num_procs=1):
+def INIT_process_single_state(state=None, TokenizerClass=None, list_tokenized_fields=[], record_limit=(0, 50000000), whereclause='', num_procs=1, tokenize_kwargs={}):
     '''
     Using the TokenizerClass specified, tokenize all records from the specified
     state, save the tokendata as well as the feature vectors to files.
@@ -300,7 +309,7 @@ def INIT_process_single_state(state=None, TokenizerClass=None, list_tokenized_fi
     list_of_records = retriever.getRecords()
 
     # Tokenize, and save tokendata and vectors to file.
-    tokenizer, list_of_records = tokenize_records(list_of_records, project, TokenizerClass)
+    tokenizer, list_of_records = tokenize_records(list_of_records, project, TokenizerClass, tokenize_kwargs)
     tokendata = tokenizer.tokens
 
 
@@ -338,13 +347,18 @@ def worker_process_multiple_states(conn):
     proc_name = multiprocessing.current_process().name
 
     print proc_name, data['list_states']
+    tokenize_kwargs = data['tokenize_kwargs']
 
 
     for state in data['list_states']:
+        INIT_process_single_state(state, data['TokenizerClass'],
+                                   list_tokenized_fields=data['list_tokenized_fields'],
+                                   num_procs=1, tokenize_kwargs=tokenize_kwargs)
+        continue
         try:
             INIT_process_single_state(state, data['TokenizerClass'],
                                        list_tokenized_fields=data['list_tokenized_fields'],
-                                       num_procs=1)
+                                       num_procs=1, tokenize_kwargs=tokenize_kwargs)
         except Exception as e:
             print "Failed to run INIT_process_single_state for state ", state
             print "Error ", e
@@ -352,7 +366,7 @@ def worker_process_multiple_states(conn):
 
 
 
-def INIT_process_multiple_states(list_states=[], TokenizerClass=None, list_tokenized_fields=[], num_procs=12):
+def INIT_process_multiple_states(list_states=[], TokenizerClass=None, list_tokenized_fields=[], num_procs=12, tokenize_kwargs={}):
     '''
     Using multiple processes, perform INIT_process_single_state for multiple
     states at the same time.
@@ -362,6 +376,14 @@ def INIT_process_multiple_states(list_states=[], TokenizerClass=None, list_token
         intra state disambiguation, use TokenizerNgram. For coarse national
         disambiguation use Tokenizer.
     @param num_procs: total number of processes we can use in different stages.
+
+    @param tokenize_kwargs: a dict that will be used as the kwargs for the
+    Tokenizer.tokenize() method. Here are the possible keywords:
+    @keyword num_procs: number of processes to use.
+    @keyword export_vectors: whether to export the feature vectors to file.
+    @keyword export_normalized_attributes: whether to export normalized 
+    attributes to file.
+    @keyword export_tokendata: whether to export tokendata to file.
     '''
 
 
@@ -412,7 +434,8 @@ def INIT_process_multiple_states(list_states=[], TokenizerClass=None, list_token
         p.start()
         data = {'list_states': dict_states[id],
                 'TokenizerClass': TokenizerClass,
-                'list_tokenized_fields': list_tokenized_fields }
+                'list_tokenized_fields': list_tokenized_fields,
+                'tokenize_kwargs': tokenize_kwargs }
         conn_parent.send(data)
 
     for p in list_jobs:

@@ -33,17 +33,59 @@ random.seed()
 
 
 
-# list of just pieces often found in names. These must be
+# list of juink pieces often found in names. These must be
 # removed before the name can be parsed.
-name_junk= ['Ms','Miss','Mrs','Mr','Master','Rev' ,'Fr' ,'Dr' ,'Atty' ,'Prof' \
+name_junk= ['Ms','Miss','Mrs','Mr','Master','Rev' ,'Fr' ,'Dr' ,'MD', 'Atty' ,'Prof' \
     ,'Hon' ,'Pres','Gov' ,'Coach','Ofc' ,'Msgr' ,'Sr' ,'Br' ,'Supt','Rep' \
     ,'Sen' ,'Amb' ,'Treas','Sec' ,'Pvt' ,'Cpl' ,'Sgt' ,'Adm' ,'Maj' ,'Capt' \
     ,'Cmdr' ,'Lt' ,'Col' ,'Gen','esq','esquire','jr','jnr','sr','snr',\
-    'ii','iii','iv']
+    'ii','iii','iv', 'And', 'The', 'Is', 'Are', 'To', 'But', 'Over', 'At', 'Honorable', 'Judge' ]
 
 # Regex that matches junck pieces in a name.
 name_regex = re.compile('|'.join([r'(\b%s\b)'.encode('ASCII') % s.upper() for s in name_junk]))        
 
+
+
+# list of juink pieces often found in employers. 
+employer_junk = set(['AND', 'WITH', 'CO'])
+
+# Regex that matches junck pieces in a name.
+employer_regex = re.compile('|'.join([r'(\b%s\b)'.encode('ASCII') % s.upper() for s in employer_junk]))        
+
+
+
+def match_token_permuted(employer1, employer2, verbose = False):
+    '''
+    Split employer strings into tokens and check
+    if a significant number of the tokens are in common.
+    (e.g. "ALVARARDO & GERKEN" and "ALVARADO GERKAN & BENNETT"
+    Only count tokens that are 4 or more characters.
+    Returns True if either there are more than two tokens in common
+    with length more than 4, or there is one, but it is 6 characters or more.
+    '''
+    e1, e2 = employer1, employer2 
+
+    e1 = employer_regex.sub('', e1)
+    e1 = strip_string(re.sub(r'\.|\,|-|\&|\\|\/', ' ', e1))
+
+    e2 = employer_regex.sub('', e2)
+    e2 = strip_string(re.sub(r'\.|\,|-|\&|\\|\/', ' ', e2))
+    
+    s1 = set([x for x in e1.split(' ') if len(x) > 3])
+    s2 = set([x for x in e2.split(' ') if len(x) > 3])
+    
+    if verbose:
+        print s1
+        print s2
+
+    intersection = s1.intersection(s2)
+    n = len(intersection)
+    if n >= 2:
+        return True
+    elif n == 1 and len(intersection.pop()) >= 6:
+        return True
+    else:
+        return False          
 
 
 
@@ -74,6 +116,7 @@ def splitname(name):
     s = name
     s1 = name_regex.sub('', s)
     s1 = re.sub(r'\.', ' ', s1)
+    s1 = re.sub(r'[0-9]', ' ', s1)
     firstname, middlename, lastname = '', '', ''
     tree ='' 
     # If ',' exists, split based on that. Everything before
@@ -313,7 +356,7 @@ def partition_list_of_graphs(mylist, num_partitions):
         A.sort(key=lambda subset:subset[1])
         A[0][0].append(g)
         A[0][1] += g.vcount()
-#         print "Sizes of partitions: ", [subset[1] for subset in A]
+        #print "Sizes of partitions: ", [subset[1] for subset in A]
 
     return [item[0] for item in A]
 
@@ -335,13 +378,13 @@ def prune_dict(mydict, condition_fcn, filename=''):
     with open(filename, 'w') as f:
         for key, value in mydict.iteritems():
             if condition_fcn(value):
-                f.write("%s|%s\n" % (str(key), str(value)))
+                f.write("%s~~~%s\n" % (str(key), str(value)))
     mydict.clear()
     mydict = {}
     with open(filename) as f:
         for line in f:
             l = line.strip()
-            key, value = l.split("|")
+            key, value = l.split("~~~")
 
             # Parse the key string into a tuple of two ints
             key = literal_eval(key)
@@ -384,9 +427,17 @@ def find_all_in_list(regex, str_list):
 
 
 def get_next_batch_id():
+
+    return str(np.random.randint(0,10000000))
+
+
     with  open(config.src_path + '../../config/batches.list') as f:
         s = f.read()
-    i = int(s)
+    try:
+        i = int(s)
+    except:
+        print "ERROR: bad batch id found in file: " , s
+        raise
     with open(config.src_path + '../../config/batches.list', 'w') as f:
         f.write(str(i + 1))
     return(str(i))
@@ -478,7 +529,52 @@ def chunks(l, n):
     '''
     N = len(l)
     size = float(N) / n
-    return [l[int(i * size):int((i + 1) * size)] for i in range(n)]
+    return [l[int(i * size):int((i + 1) * size)] for i in xrange(n)]
+
+
+def chunks_gen(l, n):
+    '''
+    A generator to split a list into precisely n 
+    contiguous chunks of roughly equal size.
+    @param l: list to be split.
+    @param n: number of chunks
+    @return: one contiguous chunk at a time extracted from l.
+    '''
+    N = len(l)
+    size = float(N) / n
+    for i in xrange(n):
+        chunk =  l[int(i * size):int((i + 1) * size)] 
+        if chunk: yield chunk
+
+
+ 
+def chunks_size(l, size):
+    '''
+    Divide a list into chunks of size C{size}.
+    @return: a list of chunks (each one a list).
+    '''
+    list_chunks = []
+    i = 0
+    
+    while i * size < len(l):
+        list_chunks.append(l[int(i * size):int((i + 1) * size)])
+        i += 1
+    return list_chunks
+        
+        
+
+def chunks_size_gen(l, size):
+    '''
+    Generator that divide a list into chunks of size C{size}.
+    @return: one chunk at a time (each one a list).
+    '''
+    list_chunks = []
+    i = 0
+    
+    while i * size < len(l):
+        yield l[int(i * size):int((i + 1) * size)]
+        i += 1
+        
 
 
 

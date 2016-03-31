@@ -489,20 +489,27 @@ class Tokenizer():
             
 
         
-    def tokenize(self, num_procs=1, export_vectors=True, export_normalized_attributes=True, export_tokendata=True):
+    def tokenize(self, **kwargs): 
         '''
         Tokenize the records using either one process or multiple processes.
         @param num_procs: number of processes to use.
         @param export_vectors: whether to export the feature vectors to file.
+        @keyword num_procs: number of processes to use.
+        @keyword export_vectors: whether to export the feature vectors to file.
+        @keyword export_normalized_attributes: whether to export normalized 
+        attributes to file.
+        @keyword export_tokendata: whether to export tokendata to file.
         '''
+        num_procs = kwargs.get('num_procs', 1)
+
         if num_procs == 1:
-            self.__tokenize_single_proc(export_vectors, export_normalized_attributes, export_tokendata)
+            self.__tokenize_single_proc(**kwargs)
         elif num_procs > 1:
-            self.__tokenize_multi_proc(num_procs, export_vectors, export_normalized_attributes, export_tokendata) 
+            self.__tokenize_multi_proc(**kwargs)
         
     
     
-    def __tokenize_multi_proc(self, num_procs, export_vectors, export_normalized_attributes, export_tokendata):
+    def __tokenize_multi_proc(self, **kwargs):
         '''
         Divide the list_of_records into equal chunks. Send the chunks to a
         standalone method. In that method, multiple tokenizer instances will
@@ -512,6 +519,12 @@ class Tokenizer():
         combined results will then be returned to this method for saving and
         post processing.
         '''
+        num_procs = kwargs.get('num_procs')
+        export_vectors = kwargs.get('export_vectors', True)
+        export_normalized_attributes = kwargs.get('export_normalized_attributes', True)
+        export_tokendata = kwargs.get('export_tokendata', True)
+
+
         from utils import  chunks_replace
         print "splitting list of records..."
         list_of_list_records = chunks_replace(self.list_of_records, num_procs)
@@ -574,15 +587,22 @@ class Tokenizer():
         
         
         
-    def __tokenize_single_proc(self, export_vectors, export_normalized_attributes, export_tokendata):
+    def __tokenize_single_proc(self, **kwargs):
         if not self.list_tokenized_fields:
             raise Exception("ERROR: Specify the fields to be tokenized.")
         
+        num_procs = kwargs.get('num_procs')
+        export_vectors = kwargs.get('export_vectors', True)
+        export_normalized_attributes = kwargs.get('export_normalized_attributes', True)
+        export_tokendata = kwargs.get('export_tokendata', True)
+
         # The dict of record vectors. It will be computed here and 
         # exported to a file. When needed later, it should be loaded
         # from that file.
         self.dict_vectors = {}
         
+        print "Tokenizer instance has {} records.".format(len(self.list_of_records))
+        print "list_tokenized_fields: ", self.list_tokenized_fields 
         for record in self.list_of_records:
             
             # s_plit is a list of tuples: [(1,'sdfsadf'),(2,'ewre'),...]     
@@ -666,6 +686,42 @@ class Tokenizer():
         
     def getRecords(self):
         return self.list_of_records   
+
+
+
+
+
+class TokenizerName(Tokenizer):
+    '''
+    An alias for Tokenizer. IT has a different name just because the 
+    class name is used for vector and hash file names. 
+    This class does the exact same thing as Tokenizer, but is meant to
+    be used for tokenizing only the NAME field of the records. To to this,
+    we must make sure that list_tokenized_fields is set to ['NAME'] only.
+    This is done in the INIT() method in main.py
+    Just in case we forget, we also set this here in __init__.
+    '''
+    def __init__(self):
+        Tokenizer.__init__(self)
+        self.setTokenizedFields(['NAME'])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #===========================================================================
 #     Class containing all token data

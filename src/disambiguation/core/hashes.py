@@ -97,7 +97,7 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10, idm = None)
 
 
 
-def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_procs=12, num_pairs=1000, idm = None):
+def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_procs=12, num_pairs=1000, idm = None, prune = True):
     '''
     Using multiple child processes, load hashes, shuffle them multiple
     times and compute identity edgelist. Worker function: L{worker_get_edgelist_from_hashes_file}
@@ -108,6 +108,8 @@ def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_pr
     @param num_shuffles: total number of times to shuffle the hashes.
     @param num_procs:  number of processes to use.
     @param idm: L{IdentityManager} instance to use.
+    @param prune: whether to prune the adjacency list after every 10
+    shuffles. 
     '''
 
     # The full adjacency matrix. A dict.
@@ -145,8 +147,9 @@ def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_pr
         # of records haven't been adjacent after 10 reshuffles,
         # then they are hopeless, dead weight.
         if results_counter % 10 == 9:
-            print "--------- Pruning adj_full..."
-            adj_full = utils.prune_dict(adj_full, lambda x: (x > 1))
+            if prune:
+                print "--------- Pruning adj_full..."
+                adj_full = utils.prune_dict(adj_full, lambda x: (x > 1))
         edgelist_new = q.get()
         print "received results..."
         results_counter += 1
@@ -162,7 +165,7 @@ def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_pr
         print "Total size of adj_full: %d" % len(adj_full)
 
     # prune adj_full one last time.
-    adj_full = utils.prune_dict(adj_full, lambda x: (x > 2))
+    adj_full = utils.prune_dict(adj_full, lambda x: (x > 1))
     # Convert adj_full to a list of tuples
     edgelist = [(x[0], x[1], y) for x, y in adj_full.iteritems()]
 

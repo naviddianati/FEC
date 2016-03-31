@@ -11,16 +11,17 @@ from disambiguation.core.states import *
 from disambiguation.core.utils import *
 import resource
 from copy import copy
+import sys, traceback
 
 
-def create_tables():
+def create_tables(overwrite = False):
     '''
     Create the C{identities} and C{identities_adjacency} tables
     necessary for stage 1 and 2 disambiguations. The tables
     create here will have their versions defined by L{config}
     '''
     idm = IdentityManager('USA')
-    idm.init_tables()
+    idm.init_tables(overwrite=overwrite)
 
 
 
@@ -1025,7 +1026,7 @@ def print_resource_usage(msg):
 
 
 
-def worker_disambiguate_states(conn):
+def worker_disambiguate_states_old(conn):
     '''
     Worker function that receives a list of states and
     runs C{disambiguate_main} for each one.
@@ -1046,9 +1047,65 @@ def worker_disambiguate_states(conn):
             print "ERROR: Could not disambiguate state ", state, ":   ", e
 
 
+def disambiguate_multiple_states(list_states=[], num_procs=10):
+    '''
+    
+    Using multiple processes, disambiguate multiple states. Each process will run
+    the worker function L{worker_disambiguate_states}
+    @param list_states: list of state strings. If empty, disambiguate all states.
+    @param num_procs: number of processes to use.
+    '''
+    # NOTE: experimental
+
+    # if not specified,  load all states
+    if not list_states:
+        list_states = get_states_sorted()
+        list_states.reverse()
+
+    N = len(list_states)
+
+    # No more than num_procs processes
+    number_of_processes = min(N, num_procs)
+    #number_of_processes = 1
+    if number_of_processes == 1:
+        worker_disambiguate_states(list_states[0])
+    else:
+        pool = multiprocessing.Pool(number_of_processes, maxtasksperchild=1)
+        pool.map(wrapper_worker_disambiguate_states, list_states)
+        pool.close()
+        pool.join()
 
 
-def disambiguate_multiple_states(list_states=[], num_procs=12):
+def wrapper_worker_disambiguate_states(state):
+    '''
+    A wrapper to the worker methods that allows exceptions
+    in suvprocesses to be captured and displayed.
+    '''
+    try:
+        return worker_disambiguate_states(state)
+    except:
+        raise Exception("".join(traceback.format_exception(*sys.exc_info())))
+        
+
+def worker_disambiguate_states(state):
+    '''
+    Worker function that receives a list of states and
+    runs C{disambiguate_main} for each one.
+    '''
+    print "--%s--" % state
+    project = disambiguate_main(state, record_limit=(0, 500000000))
+
+    try:
+        project.D.save_identities_to_db(overwrite = False)
+    except Exception as e:
+        print "ERROR: Could not disambiguate state ", state, ":   ", e
+
+
+
+
+
+
+def disambiguate_multiple_states_old(list_states=[], num_procs=12):
     '''
     Using multiple processes, disambiguate multiple states. Each process will run
     the worker function L{worker_disambiguate_states}
@@ -1306,6 +1363,20 @@ def __combine_affiliation_graphs_employer(**kwds):
 
 import sys
 if __name__ == "__main__":
+
+
+    list_states = ['california','florida','newyork']
+    for state in list_states:
+        project = disambiguate_main(state, record_limit=(0, 500000000),num_procs = 6)
+        try:
+            project.D.save_identities_to_db(overwrite = False)
+        except Exception as e:
+            print "ERROR: Could not disambiguate state ", state, ":   ", e
+     
+    quit()
+ 
+
+
 
     generateAffiliationDataPostStage1(state = 'idaho', affiliation = 'occupation', idm = None)
     sys.exit()

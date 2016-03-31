@@ -1,17 +1,42 @@
-SIGNIFICANT CHANGES
+MORE DETAILED BOOTSTRAPPING + OTHER IMPROVEMENTS
 
-Most importantly, Stage II disambiguation is completely overhauled. A different identity comparison paradigm is implemented where two candidate S1 identities are compared throughly, meaning, every pair of records within them is compared. The overall design of stageII.py has changed significantly. 
+The bootstrapping now distinguishes between cases where name score is
+3 and those where it's 4. For the latter, VerdictAuthority makes the
+decision based on both name frequencies with and without the middle name.
+for the former, we only have one name frequency, so a simple thresholding
+is used to achieve the desired recall.
 
-The matchin decision for stage II is now made based on a a bootstrapping methodology where an artificially generated set of S1 identities are compared, and the pairs known (by design) to be matches are recovered. Then, we "train" our verdict function such that a certain recall is achieved on this artificial set of matches. The results of this bootstrapping stage are exported to new data files which are loaded by a VerdictAuthority instance and used to define the verdict function.
+Both the bootstrapping methods and the VerdictAuthority are updated to
+reflect the new approach.
 
-The identity_adjacency table has a new format. The verdict columns are collapsed into simply one integer verdict column.
+Some idiots have words like "THE" and "AND" "HONORABLE" in their names,
+like SEMBLER, MELVIN THE HONORA (What kind of a person calls himself
+"the honorable?!").  Remove such junk from names first.
 
-At the heart of the new identity comparison methodology is the funcion compare_list_of_identity_pairs in Disambiguator which uses a newly implemented compare() method of the Person class. This method rejects the obvious non-matches and for the rest, returns detailed results on the "best" matches between all pairs of records in the two identities, on the name, employer and occupation fields. These results will be used by the VerdictAuthority to render the final match decision.
+FECRetrieverByID() now populates the tmp_ tables faster by blocking.
 
-The name parser used in Tokenizer is changed. I wrote a custom name parser of my own in utils.py that does a slightly better job of parsing names.
+Person's compare() now reports a pair if the max name score is 3 or more,
+OR if the min score is -1 (middle name conflict). The latter shouldn't
+simply be skipped. It's important information that will be used later.
 
-New ipython notebook started (StageII.ipynb) to experiment with the bootstrapping stage. Final versions of the methods in this notebook are integrated into stage2.py.t 
+Person's compare() also returns if affiliation scores are 2. Used to be 3
+or more only.
 
-Versioning changed: We can now define which version of the data files (including MYSQL tables) to use, and independently, which version of disambiguated results to export to. Two separate parameters can be defined in config.py.
+Record's employer comparison now also looks for different permutations
+of a common set of words in employer strings.
 
-Percentages used to prune the affiliation graphs are now globally defined in config.py.
+Record's name frequencies are repoerted differently depending on whether 
+the name match score is 3 or 4. In the former, there is no point in
+reporting the frequency "with middle name".
+
+hashes.py stage 2 edgelist from file now doesn't prune as strictly.
+Now that instead of record pairs we keep track of identity pair, even
+2 occurrences of a pair is significant, so we only filter out pairs
+that occur only once.
+
+In tokenizing names, (utils.split_name), we also remove numerals
+from the name.
+
+New list chunking methods in utils.py. Both regular methods as
+well as generators for each case.
+Disambiguator now reports
