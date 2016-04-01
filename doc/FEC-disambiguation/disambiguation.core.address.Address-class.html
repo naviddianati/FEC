@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.address.Address</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        <a href="disambiguation.core.address-module.html">Module&nbsp;address</a> ::
+        Class&nbsp;Address
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Address</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address">source&nbsp;code</a></span></p>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__init__"></a><span class="summary-sig-name">__init__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address</span>,
+        <span class="summary-sig-arg">parser</span>,
+        <span class="summary-sig-arg">line_number</span>=<span class="summary-sig-default">-1</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="parse_address"></a><span class="summary-sig-name">parse_address</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.parse_address">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="preprocess_address"></a><span class="summary-sig-name">preprocess_address</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address</span>)</span><br />
+      Takes a basic address and attempts to clean it up, extract reasonably
+      assured bits that may throw off the rest of the parsing, and return 
+      the cleaned address.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.preprocess_address">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.address.Address-class.html#check_zip" class="summary-sig-name">check_zip</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">token</span>)</span><br />
+      Returns true if token is matches a zip code (5 numbers).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_zip">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.address.Address-class.html#check_state" class="summary-sig-name">check_state</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">token</span>)</span><br />
+      Check if state is in either the keys or values of our states list.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_state">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.address.Address-class.html#check_city" class="summary-sig-name">check_city</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">token</span>)</span><br />
+      Check if there is a known city from our city list.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_city">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.address.Address-class.html#check_apartment_number" class="summary-sig-name">check_apartment_number</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">token</span>)</span><br />
+      Finds apartment, unit, #, etc, regardless of spot in string.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_apartment_number">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.address.Address-class.html#check_street_suffix" class="summary-sig-name">check_street_suffix</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">token</span>)</span><br />
+      Attempts to match a street suffix.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_street_suffix">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.address.Address-class.html#check_street" class="summary-sig-name">check_street</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">token</span>)</span><br />
+      Let's assume a street comes before a prefix and after a suffix.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_street">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.address.Address-class.html#check_street_prefix" class="summary-sig-name">check_street_prefix</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">token</span>)</span><br />
+      Finds street prefixes, such as N.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_street_prefix">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.address.Address-class.html#check_house_number" class="summary-sig-name">check_house_number</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">token</span>)</span><br />
+      Attempts to find a house number, generally the first thing in an 
+      address.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_house_number">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.address.Address-class.html#check_building" class="summary-sig-name">check_building</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">token</span>)</span><br />
+      Building name check.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_building">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="guess_unmatched"></a><span class="summary-sig-name">guess_unmatched</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">token</span>)</span><br />
+      When we find something that doesn't match, we can make an educated 
+      guess and log it as such.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.guess_unmatched">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="full_address"></a><span class="summary-sig-name">full_address</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Print the address in a human readable format</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.full_address">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__repr__"></a><span class="summary-sig-name">__repr__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.__repr__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__str__"></a><span class="summary-sig-name">__str__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.__str__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="house_number"></a><span class="summary-name">house_number</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="street_prefix"></a><span class="summary-name">street_prefix</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="street"></a><span class="summary-name">street</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="street_suffix"></a><span class="summary-name">street_suffix</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="apartment"></a><span class="summary-name">apartment</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="building"></a><span class="summary-name">building</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="city"></a><span class="summary-name">city</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="state"></a><span class="summary-name">state</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="zip"></a><span class="summary-name">zip</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="original"></a><span class="summary-name">original</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="last_matched"></a><span class="summary-name">last_matched</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="unmatched"></a><span class="summary-name">unmatched</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="line_number"></a><span class="summary-name">line_number</span> = <code title="-1">-1</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="check_zip"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">check_zip</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">token</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_zip">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns true if token is matches a zip code (5 numbers). Zip code must
+  be the last token in an address (minus anything removed during 
+  preprocessing such as --2 units.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="check_state"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">check_state</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">token</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_state">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Check if state is in either the keys or values of our states list. 
+  Must come before the suffix.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="check_city"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">check_city</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">token</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_city">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Check if there is a known city from our city list. Must come before 
+  the suffix.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="check_apartment_number"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">check_apartment_number</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">token</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_apartment_number">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Finds apartment, unit, #, etc, regardless of spot in string. This 
+  needs to come after everything else has been ruled out, because it has a 
+  lot of false positives.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="check_street_suffix"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">check_street_suffix</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">token</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_street_suffix">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Attempts to match a street suffix. If found, it will return the 
+  abbreviation, with the first letter capitalized and a period after it. 
+  E.g. &quot;St.&quot; or &quot;Ave.&quot;</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="check_street"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">check_street</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">token</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_street">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Let's assume a street comes before a prefix and after a suffix. This 
+  isn't always the case, but we'll deal with that in our guessing game. 
+  Also, two word street names...well...</p>
+  <p>This check must come after the checks for house_number and 
+  street_prefix to help us deal with multi word streets.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="check_street_prefix"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">check_street_prefix</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">token</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_street_prefix">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Finds street prefixes, such as N. or Northwest, before a street name. 
+  Standardizes to 1 or two letters, followed by a period.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="check_house_number"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">check_house_number</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">token</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_house_number">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Attempts to find a house number, generally the first thing in an 
+  address. If anything is in front of it, we assume it is a building 
+  name.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="check_building"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">check_building</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">token</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.address-pysrc.html#Address.check_building">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Building name check. If we have leftover and everything else is set, 
+  probably building names. Allows for multi word building names.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:25 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

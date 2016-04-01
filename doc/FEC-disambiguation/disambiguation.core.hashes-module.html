@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.hashes</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        Module&nbsp;hashes
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module hashes</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.hashes-pysrc.html">source&nbsp;code</a></span></p>
+<p>This module contains the worker function that computes the LSH hashes 
+  for the records. It is called by Disambiguator instances.</p>
+
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.hashes-module.html#get_edgelist_from_hashes" class="summary-sig-name">get_edgelist_from_hashes</a>(<span class="summary-sig-arg">filename</span>,
+        <span class="summary-sig-arg">state</span>,
+        <span class="summary-sig-arg">B</span>=<span class="summary-sig-default">10</span>,
+        <span class="summary-sig-arg">num_shuffles</span>=<span class="summary-sig-default">10</span>,
+        <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Shuffle the given  hashes num_shuffles times and build an edgelist of
+      identities corresponding to item pairs most commonly found close to 
+      one another in the sorted hash list.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.hashes-pysrc.html#get_edgelist_from_hashes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.hashes-module.html#get_edgelist_from_hashes_file" class="summary-sig-name">get_edgelist_from_hashes_file</a>(<span class="summary-sig-arg">filename</span>,
+        <span class="summary-sig-arg">state</span>,
+        <span class="summary-sig-arg">B</span>=<span class="summary-sig-default">10</span>,
+        <span class="summary-sig-arg">num_shuffles</span>=<span class="summary-sig-default">40</span>,
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">12</span>,
+        <span class="summary-sig-arg">num_pairs</span>=<span class="summary-sig-default">1000</span>,
+        <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">prune</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Using multiple child processes, load hashes, shuffle them multiple 
+      times and compute identity edgelist.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.hashes-pysrc.html#get_edgelist_from_hashes_file">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="worker_get_edgelist_from_hashes_file"></a><span class="summary-sig-name">worker_get_edgelist_from_hashes_file</span>(<span class="summary-sig-arg">data</span>)</span><br />
+      Retrieve list of hashes from filename, and get an edgelist of 
+      identity pairs deemed close according to the hashes.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.hashes-pysrc.html#worker_get_edgelist_from_hashes_file">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.hashes-module.html#worker_compute_hashes" class="summary-sig-name">worker_compute_hashes</a>(<span class="summary-sig-arg">data</span>)</span><br />
+      Receive a chunk of the record vectors and compute their LSH hashes 
+      given a list of probe vectors.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.hashes-pysrc.html#worker_compute_hashes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="get_edgelist_from_hashes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_edgelist_from_hashes</span>(<span class="sig-arg">filename</span>,
+        <span class="sig-arg">state</span>,
+        <span class="sig-arg">B</span>=<span class="sig-default">10</span>,
+        <span class="sig-arg">num_shuffles</span>=<span class="sig-default">10</span>,
+        <span class="sig-arg">idm</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.hashes-pysrc.html#get_edgelist_from_hashes">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Shuffle the given  hashes num_shuffles times and build an edgelist of 
+  identities corresponding to item pairs most commonly found close to one 
+  another in the sorted hash list.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>filename</code></strong> - filename of the hashes.</li>
+        <li><strong class="pname"><code>B</code></strong> - total number of adjacenct hashes to log for each sorting of the 
+          list of hashes.</li>
+        <li><strong class="pname"><code>num_shuffles</code></strong> - number of times to shuffle the hashes and log the neighbors.</li>
+        <li><strong class="pname"><code>idm</code></strong> - <a href="disambiguation.core.Database.IdentityManager-class.html"
+          class="link">IdentityManager</a> instance to use
+          <p>OLD: return: a dictionary {(r_id1, r_id2): score}.</p></li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a dictionary {(identity1, identity2): score}.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_edgelist_from_hashes_file"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_edgelist_from_hashes_file</span>(<span class="sig-arg">filename</span>,
+        <span class="sig-arg">state</span>,
+        <span class="sig-arg">B</span>=<span class="sig-default">10</span>,
+        <span class="sig-arg">num_shuffles</span>=<span class="sig-default">40</span>,
+        <span class="sig-arg">num_procs</span>=<span class="sig-default">12</span>,
+        <span class="sig-arg">num_pairs</span>=<span class="sig-default">1000</span>,
+        <span class="sig-arg">idm</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">prune</span>=<span class="sig-default">True</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.hashes-pysrc.html#get_edgelist_from_hashes_file">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Using multiple child processes, load hashes, shuffle them multiple 
+  times and compute identity edgelist. Worker function: <a 
+  href="disambiguation.core.hashes-module.html#worker_get_edgelist_from_hashes_file"
+  class="link">worker_get_edgelist_from_hashes_file</a></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>filename</code></strong> - filename where hashes are pickled.</li>
+        <li><strong class="pname"><code>state</code></strong> - the state.</li>
+        <li><strong class="pname"><code>B</code></strong> - number of adjacency hashes to log.</li>
+        <li><strong class="pname"><code>num_shuffles</code></strong> - total number of times to shuffle the hashes.</li>
+        <li><strong class="pname"><code>num_procs</code></strong> - number of processes to use.</li>
+        <li><strong class="pname"><code>idm</code></strong> - <a href="disambiguation.core.Database.IdentityManager-class.html"
+          class="link">IdentityManager</a> instance to use.</li>
+        <li><strong class="pname"><code>prune</code></strong> - whether to prune the adjacency list after every 10 shuffles.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="worker_compute_hashes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">worker_compute_hashes</span>(<span class="sig-arg">data</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.hashes-pysrc.html#worker_compute_hashes">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Receive a chunk of the record vectors and compute their LSH hashes 
+  given a list of probe vectors.</p>
+  <p>data is a dict. data['id']: which chunk of data is being passed to 
+  this worker, integer data['vecs']: a set of record feature vectors 
+  data['hash_dim']: hash_dim data['probe_vecs']: a list of hash_dim (all) 
+  probe vectors</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:24 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

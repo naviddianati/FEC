@@ -1,0 +1,1737 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.Disambiguator.Disambiguator</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        <a href="disambiguation.core.Disambiguator-module.html">Module&nbsp;Disambiguator</a> ::
+        Class&nbsp;Disambiguator
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Disambiguator</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator">source&nbsp;code</a></span></p>
+<p>This class receives a list of records and computes a similarity matrix
+  between the nodes. Each record has a &quot;vector&quot;. Each vector is a
+  dictionary <code>{index:(0 or 1)}</code> where index is a unique integer 
+  representing a feature or token in the record. The tokens themselves can 
+  be specified via <code>index_2_token</code> and 
+  <code>token_2_index</code>.</p>
+  <p>The core action of the class is finding candidates for approximate 
+  nearest neighbors for each record using the feature vectr and the 
+  resulting LSH hash. The detailed record comparison is then performed by 
+  instance methods of the records themselves. This is where 
+  <code>index_2_token</code> and <code>token_2_index</code> can be 
+  used.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_of_records</span>,
+        <span class="summary-sig-arg">vector_dimension</span>,
+        <span class="summary-sig-arg">matching_mode</span>=<span class="summary-sig-default">&quot;strict_address&quot;</span>,
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">1</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#set_log_comparisons" class="summary-sig-name">set_log_comparisons</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Initialize attributes necessary for logging the results of all 
+      pairwise record comparisons.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.set_log_comparisons">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#sort_list_of_records" class="summary-sig-name">sort_list_of_records</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">orderby</span>=<span class="summary-sig-default">'id'</span>)</span><br />
+      sord the records in place by their id (other field(s)).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.sort_list_of_records">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="set_logstats"></a><span class="summary-sig-name">set_logstats</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">is_on</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Initialize instance attributes needed to log record link statistics.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.set_logstats">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="imshow_adjacency_matrix"></a><span class="summary-sig-name">imshow_adjacency_matrix</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">r</span>=<span class="summary-sig-default">()</span>)</span><br />
+      public wrapper for <code>__dict_imshow</code></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.imshow_adjacency_matrix">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__dict_imshow" class="summary-sig-name" onclick="show_private();">__dict_imshow</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dict1</span>,
+        <span class="summary-sig-arg">rng</span>)</span><br />
+      This function draws a plot similar to imshow for a sparse matrix 
+      represented as a dictionary of <code>x:y</code> key-values.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__dict_imshow">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__dict_to_mat"></a><span class="summary-sig-name">__dict_to_mat</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dict1</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__dict_to_mat">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__update_dict_of_sets" class="summary-sig-name" onclick="show_private();">__update_dict_of_sets</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dict1</span>,
+        <span class="summary-sig-arg">dict_add</span>)</span><br />
+      This function updates dict1 in place so that the corresponding values
+      of <code>dict_add</code> are added to and merged with the values in 
+      <code>dict1</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__update_dict_of_sets">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="print_list_of_vectors"></a><span class="summary-sig-name">print_list_of_vectors</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.print_list_of_vectors">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_name_pvalue"></a><span class="summary-sig-name">get_name_pvalue</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>,
+        <span class="summary-sig-arg">which</span>=<span class="summary-sig-default">'firstname'</span>)</span><br />
+      Return the p-value of the firstname-lastname combination given the 
+      null hypothesis that first names and last names are selected randomly
+      in such a way that the token frequencies are what we observe.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.get_name_pvalue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="logstats"></a><span class="summary-sig-name">logstats</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record1</span>,
+        <span class="summary-sig-arg">record2</span>,
+        <span class="summary-sig-arg">verdict</span>,
+        <span class="summary-sig-arg">result</span>)</span><br />
+      Log statistics for the two compared records.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.logstats">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__chunk_padded_list_of_records" class="summary-sig-name" onclick="show_private();">__chunk_padded_list_of_records</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">num_chunks</span>,
+        <span class="summary-sig-arg">overlap</span>)</span><br />
+      Divide <code>self.list_or_records</code> (which is assumed to be 
+      sorted according to the LSH Hashes) into chunks of equal size, and as
+      each one is generated, delete the corresponding slice from 
+      <code>self.list_of_records</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__chunk_padded_list_of_records">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__reconstruct_list_of_records" class="summary-sig-name" onclick="show_private();">__reconstruct_list_of_records</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_chunks</span>,
+        <span class="summary-sig-arg">overlap</span>)</span><br />
+      Reconstruct <code>self.list_of_records</code> by concatenating the 
+      values of the dictionaries in <code>list_chunks</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__reconstruct_list_of_records">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#compare_list_of_identity_pairs" class="summary-sig-name">compare_list_of_identity_pairs</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_of_identity_pairs</span>,
+        <span class="summary-sig-arg">dict_identities</span>)</span><br />
+      Compare pairs of S1 identities by going through all records in each 
+      one.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.compare_list_of_identity_pairs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#compare_list_of_pairs" class="summary-sig-name">compare_list_of_pairs</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_of_pairs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.compare_list_of_pairs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="update_nearest_neighbors"></a><span class="summary-sig-name">update_nearest_neighbors</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">B</span>,
+        <span class="summary-sig-arg">hashes</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">allow_repeats</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.update_nearest_neighbors">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__export_comparison" class="summary-sig-name" onclick="show_private();">__export_comparison</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">comparison_data</span>)</span><br />
+      Export the results of a pairwise record comparison to a file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__export_comparison">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__update_nearest_neighbors_single_proc" class="summary-sig-name" onclick="show_private();">__update_nearest_neighbors_single_proc</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">B</span>,
+        <span class="summary-sig-arg">hashes</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">allow_repeats</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Given a list of strings or hashes, this function finds the nearest 
+      neighbors of each string among the list.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__update_nearest_neighbors_single_proc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__update_nearest_neighbors_multi_proc" class="summary-sig-name" onclick="show_private();">__update_nearest_neighbors_multi_proc</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">B</span>,
+        <span class="summary-sig-arg">hashes</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">allow_repeats</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Given a list of strings or hashes, this function finds the nearest 
+      neighbors of each string among the list.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__update_nearest_neighbors_multi_proc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__compute_LSH_hash_single_proc" class="summary-sig-name" onclick="show_private();">__compute_LSH_hash_single_proc</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">hash_dim</span>)</span><br />
+      Returns:
+      list of hashes of the vectors.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__compute_LSH_hash_single_proc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__compute_LSH_hash_multi_proc" class="summary-sig-name" onclick="show_private();">__compute_LSH_hash_multi_proc</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">hash_dim</span>,
+        <span class="summary-sig-arg">num_procs</span>)</span><br />
+      Returns:
+      list of hashes of the vectors.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__compute_LSH_hash_multi_proc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__load_LSH_hashes_from_file" class="summary-sig-name" onclick="show_private();">__load_LSH_hashes_from_file</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Load the list of hashes from file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__load_LSH_hashes_from_file">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__load_record_vectors_from_file"></a><span class="summary-sig-name">__load_record_vectors_from_file</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Load record vectors from file if exists.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__load_record_vectors_from_file">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="compute_hashes"></a><span class="summary-sig-name">compute_hashes</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">hash_dim</span>,
+        <span class="summary-sig-arg">num_procs</span>,
+        <span class="summary-sig-arg">overwrite</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Load record vectors from file and compute 
+      <code>self.dict_hashes</code> and save this dictionary to file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.compute_hashes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#get_LSH_hashes" class="summary-sig-name">get_LSH_hashes</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">hash_dim</span>,
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">1</span>)</span><br />
+      Load hashes and set <code>self.LSH_hash</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.get_LSH_hashes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__save_LSH_hash"></a><span class="summary-sig-name">__save_LSH_hash</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Save a dict of hashes to file: <code>{r.id: hash for r in 
+      list_of_records}</code> It is expected that 
+      <code>self.list_of_records</code> and <code>self.LSH_hash</code> are 
+      aligned.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__save_LSH_hash">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#initialize_index_adjacency" class="summary-sig-name">initialize_index_adjacency</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      This function creates an empty <code>self.index_adjacency</code> 
+      dictionary and then populates it initially as follows: it goes over 
+      the list of (sorted) hashes and among adjacent entries it finds 
+      maximal groups of identical hashes, and creates complete subgraphs 
+      corresponding to them in self.index_adjacency.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.initialize_index_adjacency">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#compute_edgelist" class="summary-sig-name">compute_edgelist</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Compute the edgelist of the graph of linked records.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.compute_edgelist">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#__export_match_buffer" class="summary-sig-name" onclick="show_private();">__export_match_buffer</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Save the match buffer to a file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__export_match_buffer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__post_compute_similarity"></a><span class="summary-sig-name">__post_compute_similarity</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Tie loose ends after finishing self.compute_similarity</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__post_compute_similarity">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="compute_similarity"></a><span class="summary-sig-name">compute_similarity</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">B1</span>=<span class="summary-sig-default">30</span>,
+        <span class="summary-sig-arg">m</span>=<span class="summary-sig-default">100</span>,
+        <span class="summary-sig-arg">sigma1</span>=<span class="summary-sig-default">0.2</span>)</span><br />
+      permutate the hash strings m times then create dictionary of B 
+      nearest neighbors with distance threshold sigma = 0.7 sigma is the 
+      fraction of digits in hash that are equal between the two strings</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.compute_similarity">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="print_index_adjacency"></a><span class="summary-sig-name">print_index_adjacency</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      print the similarity matrix <code>index_adjacency</code></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.print_index_adjacency">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="print_sample_index_adjacency"></a><span class="summary-sig-name">print_sample_index_adjacency</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Print a random sample of far-off-diagonal elements of the adjaceqncy 
+      matrix and the content of the corresponding vectors.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.print_sample_index_adjacency">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#generate_identities" class="summary-sig-name">generate_identities</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Generate Person objects from the records and the 
+      <code>index_adjacency</code> matrix.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.generate_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="print_compatibility"></a><span class="summary-sig-name">print_compatibility</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">p1</span>,
+        <span class="summary-sig-arg">p2</span>)</span><br />
+      print two persons and their compatibility to stdout.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.print_compatibility">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="print_list_of_persons"></a><span class="summary-sig-name">print_list_of_persons</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_persons</span>,
+        <span class="summary-sig-arg">message</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.print_list_of_persons">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_set_of_persons_multistate"></a><span class="summary-sig-name">get_set_of_persons_multistate</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return a list of persons with multiple states in their timeline</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.get_set_of_persons_multistate">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="refine_identities_on_MIDDLENAME"></a><span class="summary-sig-name">refine_identities_on_MIDDLENAME</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.refine_identities_on_MIDDLENAME">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#merge_identities" class="summary-sig-name">merge_identities</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Use <code>self.new_matches_buffer</code> to look for Person objects 
+      that are potentially connected.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.merge_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#refine_identities_merge_similars" class="summary-sig-name">refine_identities_merge_similars</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">m</span>)</span><br />
+      Run <code>self.update_nearest_neighbors()</code> a few more times; 
+      this time consider matches across different Persons and if necessary 
+      merge the corresponding Persons.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.refine_identities_merge_similars">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="refine_identities"></a><span class="summary-sig-name">refine_identities</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Refine the list of Persons: split, merge, etc.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.refine_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#generator_identity_list" class="summary-sig-name">generator_identity_list</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      generate tuples: <code>[(record_id, Person_id)]</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.generator_identity_list">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#save_identities_to_db" class="summary-sig-name">save_identities_to_db</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">overwrite</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Export the calculated identities of the records to a database table 
+      called &quot;identities&quot;.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.save_identities_to_db">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator.Disambiguator-class.html#getCompoundDisambiguator" class="summary-sig-name">getCompoundDisambiguator</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">list_of_Ds</span>,
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">1</span>)</span><br />
+      Receive a list of Disambiguator objects and combine them into one 
+      fresh object Records of each <code>D</code> have a separate TokenData
+      object.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.getCompoundDisambiguator">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">list_of_records</span>,
+        <span class="sig-arg">vector_dimension</span>,
+        <span class="sig-arg">matching_mode</span>=<span class="sig-default">&quot;strict_address&quot;</span>,
+        <span class="sig-arg">num_procs</span>=<span class="sig-default">1</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>matching_mode</code></strong> - <ul>
+            <li>
+              &quot;strict_address&quot;: strict matching where addresses 
+              must exist and match. used for extracting affiliation 
+              networks.
+            </li>
+            <li>
+              &quot;thorough&quot;: for state level. All different record 
+              fields are considered, but name frequencies aren't taken into
+              account. This is still somewhat conservative.
+            </li>
+            <li>
+              &quot;national&quot;: for the national level. Here, we use 
+              token frequencies computed at the &quot;person&quot; level, 
+              using the state-level identities computed in stage1.In this 
+              stage, it is expected that the tokendata object contains 
+              frequencies for an additional normalized attribute too, 
+              namely &quot;N_full_name&quot;. The frequencies
+            </li>
+          </ul></li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="set_log_comparisons"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">set_log_comparisons</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.set_log_comparisons">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Initialize attributes necessary for logging the results of all 
+  pairwise record comparisons. self.project must be already defined and 
+  must contain 'state' key.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="sort_list_of_records"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">sort_list_of_records</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">orderby</span>=<span class="sig-default">'id'</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.sort_list_of_records">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>sord the records in place by their id (other field(s)). The default 
+  ordering is by r.id which makes it easier to reconstruct 
+  <code>list_of_records</code> from a partitioning of it. Usefull mainly 
+  for multi-processing.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getCompoundDisambiguator"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getCompoundDisambiguator</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">list_of_Ds</span>,
+        <span class="sig-arg">num_procs</span>=<span class="sig-default">1</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.getCompoundDisambiguator">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Receive a list of Disambiguator objects and combine them into one 
+  fresh object Records of each <code>D</code> have a separate TokenData 
+  object. Those need to be combined Each record has a vector. Those need to
+  be updated according to the new unified TokenData Each D has a separate 
+  <code>G_employer</code> and <code>G_occupation</code>. They need to be 
+  combined. update <code>self.input_dimension</code></p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>To Do:</strong>
+        Towns need to be combined too
+      </p>
+</div></td></tr></table>
+</div>
+<a name="__dict_imshow"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__dict_imshow</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">dict1</span>,
+        <span class="sig-arg">rng</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__dict_imshow">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>This function draws a plot similar to imshow for a sparse matrix 
+  represented as a dictionary of <code>x:y</code> key-values. Designed to 
+  be used with sparse <code>index_adjacency</code> matrices produced by the
+  method <code>get_nearest_neighbors</code>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__update_dict_of_sets"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__update_dict_of_sets</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">dict1</span>,
+        <span class="sig-arg">dict_add</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__update_dict_of_sets">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>This function updates dict1 in place so that the corresponding values 
+  of <code>dict_add</code> are added to and merged with the values in 
+  <code>dict1</code>. It's assumed that the values of the dicts are 
+  sets.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__chunk_padded_list_of_records"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__chunk_padded_list_of_records</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">num_chunks</span>,
+        <span class="sig-arg">overlap</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__chunk_padded_list_of_records">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Divide <code>self.list_or_records</code> (which is assumed to be 
+  sorted according to the LSH Hashes) into chunks of equal size, and as 
+  each one is generated, delete the corresponding slice from 
+  <code>self.list_of_records</code>.</p>
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd>A list of dictionaries, where each dictionary <code>X</code> maps
+          an integer to a record such that <code>X[i] = 
+          self.list_of_records[i]</code> (with self.list_of_records now 
+          sorted according to the hashes) as defined in 
+          <code>update_nearest_neighbors()</code>.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__reconstruct_list_of_records"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reconstruct_list_of_records</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">list_chunks</span>,
+        <span class="sig-arg">overlap</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__reconstruct_list_of_records">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Reconstruct <code>self.list_of_records</code> by concatenating the 
+  values of the dictionaries in <code>list_chunks</code>. 
+  <code>list_chunks</code> is assumed to be generated by 
+  <code>self.__chunk_padded_list_of_records()</code> Note: the chunks in 
+  <code>list_chunks</code> overlap. You must take this into account.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="compare_list_of_identity_pairs"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">compare_list_of_identity_pairs</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">list_of_identity_pairs</span>,
+        <span class="sig-arg">dict_identities</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.compare_list_of_identity_pairs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Compare pairs of S1 identities by going through all records in each 
+  one. Used in stage II disambiguation. This is a generator. It yields a 
+  tuple <code>(result, identity1, identity2)</code></p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>list_of_identity_pairs</code></strong> - list of tuples <code>(identity1, identity2)</code> to be 
+          compared.</li>
+        <li><strong class="pname"><code>dict_identities</code></strong> - a dict that maps an S1 identity to the list of all record ids 
+          associated with it. The records themselves can be accessed 
+          through <code class="link">self.list_of_records</code>.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a 3-tuple <code>(result, identity1, identity2)</code> where 
+          <code>result</code> is itself a 3-tuple returned by <code 
+          class="link">Person.compare</code>. It contains the 
+          highest-valued comparison results of any record pair between the 
+          two identities. See <code class="link">Person.compare</code> for 
+          details.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="compare_list_of_pairs"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">compare_list_of_pairs</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">list_of_pairs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.compare_list_of_pairs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>list_of_pairs</code></strong> - list of tuples (rid1,rid2)</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Deprecated:</strong>
+        used in v1 where pairs of records were compared in stage II 
+    disambiguation. For the method used instead in v2, see <a 
+    href="disambiguation.core.Disambiguator.Disambiguator-class.html#compare_list_of_identity_pairs"
+    class="link">compare_list_of_identity_pairs</a>. Disambiguate by 
+    performing comparisons between a given list of record pairs. Can be 
+    used instead of <code>compute_similarity</code>, when we know which 
+    pairs of records we should compare already, for example because we've 
+    already processed the hashes and found the nearest neighbors. The same 
+    instance variables are set by this function as with 
+    <code>update_nearest_neighbors</code>.
+    <p>This is a &quot;generator&quot;. It yields a tuple of 4 values: 
+    <code>(verdict, result, rid1, rid2)</code></p>
+      </p>
+</div></td></tr></table>
+</div>
+<a name="__export_comparison"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__export_comparison</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">comparison_data</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__export_comparison">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Export the results of a pairwise record comparison to a file.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>comparison_data</code></strong> - a list of tuples of the form <code>(record1, record2, verdict, 
+          result)</code>.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__update_nearest_neighbors_single_proc"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__update_nearest_neighbors_single_proc</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">B</span>,
+        <span class="sig-arg">hashes</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">allow_repeats</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__update_nearest_neighbors_single_proc">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given a list of strings or hashes, this function finds the nearest 
+  neighbors of each string among the list. Use only one process.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>B</code></strong> - an even integer. The number of adjacent strings to check for 
+          proximity for each string.</li>
+        <li><strong class="pname"><code>hashes</code></strong> - a list of strings of same length. The default is self.LSH_hashes:
+          the strings comprise 0 and 1. pass non-default hashes to perform 
+          the updating using a custom ordering of the records.</li>
+        <li><strong class="pname"><code>allow_repeats</code></strong> - Boolean. whether to compare record pairs that have been compared 
+          before.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>dictionary of indices. For each key (string index), the value is 
+          a list of indices of all its nearest neighbors.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__update_nearest_neighbors_multi_proc"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__update_nearest_neighbors_multi_proc</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">B</span>,
+        <span class="sig-arg">hashes</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">allow_repeats</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">num_procs</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__update_nearest_neighbors_multi_proc">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given a list of strings or hashes, this function finds the nearest 
+  neighbors of each string among the list. Use multiple processes.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>B</code></strong> - an even integer. The number of adjacent strings to check for 
+          proximity for each string.</li>
+        <li><strong class="pname"><code>hashes</code></strong> - a list of strings of same length. The default is self.LSH_hashes:
+          the strings comprise 0 and 1. pass non-default hashes to perform 
+          the updating using a custom ordering of the records.</li>
+        <li><strong class="pname"><code>allow_repeats</code></strong> - Boolean. whether to compare record pairs that have been compared 
+          before.</li>
+        <li><strong class="pname"><code>num_procs</code></strong> - number of processes to use.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>dictionary of indices. For each key (string index), the value is 
+          a list of indices of all its nearest neighbors.
+          <p>Data passed to worker functions:</p>
+          <ul>
+            <li>
+              <code>data['pid']</code>: process id
+            </li>
+            <li>
+              <code>data['queue']</code>: queue for communication with 
+              parent process
+            </li>
+            <li>
+              <code>data['matching_mode']</code>: same as 
+              <code>self.matching_mode</code>
+            </li>
+            <li>
+              <code>data['do_stats']</code>: whether to log stats. same as 
+              <code>self.do_stats</code>
+            </li>
+            <li>
+              <code>data['index_adjacency']</code>: a sub-dictionary of the
+              full <code>index_adjacency</code> with entries for records 
+              relevant to this process.
+            </li>
+            <li>
+              <code>data['sort_indices']</code>
+            </li>
+            <li>
+              <code>data['list_indices']</code>: list of indices for the 
+              chunk assigned to the child.
+            </li>
+            <li>
+              <code>data['B']</code>
+            </li>
+            <li>
+              <code>data['allow_repeats']</code>
+            </li>
+            <li>
+              <code>data['D_id']</code>: id of the Disambiguator instance 
+              that is spawning the child process. This is necessary so that
+              the child worker
+            </li>
+          </ul>
+          <p>can call processManager and retrieve a reference to the 
+          Disambiguator instance that actually spawned it, as a global 
+          variable.</p></dd>
+  </dl>
+<div class="fields">      <strong>Notes:</strong>
+      <ul class="nomargin-top">
+        <li>
+        the largest piece of data needed by the child processes is 
+        <code>self.list_of_records</code>. I no longer pass this to each 
+        child separately, as it almost doubles the memory used. Instead, I 
+        will try to make the disambiguator instance <code>D</code> visible 
+        to all children as a global variable. They will only read this 
+        variable, so the system won't make any copies of it. This will 
+        hopefully reduce memory usage substantially.
+        </li>
+        <li>
+        Passing <code>lisrt_of_records</code> to child processes as a 
+        global variable isn't going to work. The global namespace will 
+        still be COPIED to each of the child processes.
+        </li>
+      </ul>
+</div></td></tr></table>
+</div>
+<a name="__compute_LSH_hash_single_proc"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__compute_LSH_hash_single_proc</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">hash_dim</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__compute_LSH_hash_single_proc">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>hash_dim</code></strong> - dimension of the generated hash.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>list of hashes of the vectors. Each hash is an m-tuple.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__compute_LSH_hash_multi_proc"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__compute_LSH_hash_multi_proc</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">hash_dim</span>,
+        <span class="sig-arg">num_procs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__compute_LSH_hash_multi_proc">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>hash_dim</code></strong> - dimension of the generated hash.</li>
+        <li><strong class="pname"><code>num_procs</code></strong> - number of processes to use</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>list of hashes of the vectors. Each hash is an m-tuple.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__load_LSH_hashes_from_file"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__load_LSH_hashes_from_file</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__load_LSH_hashes_from_file">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Load the list of hashes from file. Raise exception if fail. Also raise
+  if the hashes found in file have length different from 
+  <code>self.hash_dim</code></p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_LSH_hashes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_LSH_hashes</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">hash_dim</span>,
+        <span class="sig-arg">num_procs</span>=<span class="sig-default">1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.get_LSH_hashes">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Load hashes and set <code>self.LSH_hash</code>. If hases already exist
+  in a file, load it. Otherwise, load record vectors from file and compute 
+  the hashes from them. If that fails, then raise. This must be invoked 
+  only when <code>self.list_of_records</code> is set, because that is 
+  necessary for computing <code>self.LSH_hash</code> from the dictionary 
+  that is loaded from the exported hash file. If 
+  <code>self.list_of_records</code> is not set, raise.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="initialize_index_adjacency"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">initialize_index_adjacency</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.initialize_index_adjacency">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>This function creates an empty <code>self.index_adjacency</code> 
+  dictionary and then populates it initially as follows: it goes over the 
+  list of (sorted) hashes and among adjacent entries it finds maximal 
+  groups of identical hashes, and creates complete subgraphs corresponding 
+  to them in self.index_adjacency. This is necessary if the original 
+  <code>list_of_vectors</code> contains repeated entries, such as when we 
+  are dealing with multiple transactions per person.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="compute_edgelist"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">compute_edgelist</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.compute_edgelist">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Compute the edgelist of the graph of linked records. Uses 
+  <code>self.index_adjacency</code>. Sets 
+  <code>self.index_adjacency_edgelist</code>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__export_match_buffer"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__export_match_buffer</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.__export_match_buffer">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Save the match buffer to a file. This will be basically an edge list 
+  <code>(r_id0, r_id1)</code>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="generate_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_identities</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.generate_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Generate Person objects from the records and the 
+  <code>index_adjacency</code> matrix. The main product is self.town</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>To Do:</strong>
+        finding neighbors is unnecessary now that we have stage 2.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="merge_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">merge_identities</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.merge_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Use <code>self.new_matches_buffer</code> to look for Person objects 
+  that are potentially connected. If so, merge the Persons.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="refine_identities_merge_similars"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">refine_identities_merge_similars</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">m</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.refine_identities_merge_similars">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Run <code>self.update_nearest_neighbors()</code> a few more times; 
+  this time consider matches across different Persons and if necessary 
+  merge the corresponding Persons.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>m</code></strong> - how many times to shuffle the hashes and recompute</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="generator_identity_list"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">generator_identity_list</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.generator_identity_list">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>generate tuples: <code>[(record_id, Person_id)]</code>. person id is 
+  an string unique string such as &quot;NY-83472837&quot; specifying the 
+  state and a unique integer id unique within this state.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="save_identities_to_db"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">save_identities_to_db</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">overwrite</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#Disambiguator.save_identities_to_db">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Export the calculated identities of the records to a database table 
+  called &quot;identities&quot;.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>overwrite</code></strong> - It True, drop the identities table and create an empty one.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:25 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

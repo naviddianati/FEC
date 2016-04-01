@@ -1,0 +1,1238 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>stage2</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        Module&nbsp;stage2
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module stage2</h1><p class="nomargin-top"><span class="codelink"><a href="stage2-pysrc.html">source&nbsp;code</a></span></p>
+<p>This module contains methods used for the second stage of 
+  disambiguation. in this stage, we use combined national hashes and the 
+  state-level results to identify pairs of records that are candidates for 
+  comparison but haven't already been clustered together (will be mostly 
+  cross-state pairs). Then, We divide these records into approximately 
+  independent partitions each of which can be independently analyzed by a 
+  child process. This analysis consists of performing pairwise comparisons 
+  for each specified pair and deciding about whether to merge their 
+  corresponding clusters. In making this decision, cluster level statistics
+  will be used. That is, information regarding 
+  name/employer/occupation/etc. frequencies obtained from stage1 clusters 
+  are used.</p>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="stage2.VerdictAuthorityBase-class.html" class="summary-name">VerdictAuthorityBase</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="stage2.VerdictAuthority-class.html" class="summary-name">VerdictAuthority</a>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#__get_list_identity_pairs" class="summary-sig-name" onclick="show_private();">__get_list_identity_pairs</a>(<span class="summary-sig-arg">list_record_pairs</span>,
+        <span class="summary-sig-arg">idm</span>)</span><br />
+      Returns:
+      list of tuples <code>(identity1, identity2)</code> where identity1 
+      &lt; identity2</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#__get_list_identity_pairs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#partition_S1_identities" class="summary-sig-name">partition_S1_identities</a>(<span class="summary-sig-arg">num_partitions</span>,
+        <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">&quot;USA&quot;</span>,
+        <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">&quot;disambiguation&quot;</span>,
+        <span class="summary-sig-arg">recompute_identity_partitions</span>=<span class="summary-sig-default">True</span>)</span><br />
+      NEW: don't do graph partitioning.Do the most naive partitioning of 
+      the list of pairs.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#partition_S1_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#partition_S1_identities_OLD" class="summary-sig-name">partition_S1_identities_OLD</a>(<span class="summary-sig-arg">num_partitions</span>,
+        <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">&quot;USA&quot;</span>,
+        <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">&quot;disambiguation&quot;</span>,
+        <span class="summary-sig-arg">recompute_identity_partitions</span>=<span class="summary-sig-default">True</span>)</span><br />
+      SLOW GRAPH PARTITIONING&gt; Replacing <a 
+      href="stage2-module.html#partition_records" 
+      class="link">partition_records</a>, this method uses the record 
+      edgelist to identify which S1 &quot;identities&quot; are potential 
+      matches, and then partitions the identities--rather than the 
+      records--into minimally overlapping sets.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#partition_S1_identities_OLD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="data_generator"></a><span class="summary-sig-name">data_generator</span>(<span class="summary-sig-arg">num_partitions</span>,
+        <span class="summary-sig-arg">idm</span>,
+        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">'disambiguation'</span>,
+        <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">'USA'</span>)</span><br />
+      Used in disambiguate_subsets_multiproc() Generator that yields the 
+      data necessary for each data partition, to be used in the child 
+      workers.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#data_generator">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="distribute"></a><span class="summary-sig-name">distribute</span>(<span class="summary-sig-arg">data_generator</span>,
+        <span class="summary-sig-arg">num_procs</span>,
+        <span class="summary-sig-arg">worker_fcn</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#distribute">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#disambiguate_subsets_multiproc" class="summary-sig-name">disambiguate_subsets_multiproc</a>(<span class="summary-sig-arg">num_partitions</span>,
+        <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">&quot;USA&quot;</span>,
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">12</span>,
+        <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">&quot;disambiguation&quot;</span>)</span><br />
+      NEW: compare pairs of <a 
+      href="disambiguation.core.Person-module.html" class="link">Person</a>
+      objects derived from the candidate identity pairs withing each 
+      partition.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#disambiguate_subsets_multiproc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#disambiguate_subsets_multiproc_OLD" class="summary-sig-name">disambiguate_subsets_multiproc_OLD</a>(<span class="summary-sig-arg">num_partitions</span>,
+        <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">&quot;USA&quot;</span>,
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">12</span>)</span><br />
+      Compare record pairs within each subset and save results.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#disambiguate_subsets_multiproc_OLD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#__get_customized_verdict" class="summary-sig-name" onclick="show_private();">__get_customized_verdict</a>(<span class="summary-sig-arg">detailed_comparison_result</span>)</span><br />
+      Returns:
+      a simple numerical verdict:</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#__get_customized_verdict">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="wrapper_worker_disambiguate_subset_of_identities_edgelist"></a><span class="summary-sig-name">wrapper_worker_disambiguate_subset_of_identities_edgelist</span>(<span class="summary-sig-arg">pipe</span>)</span><br />
+      A wrapper to the worker methods that allows exceptions in 
+      suvprocesses to be captured and displayed.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#wrapper_worker_disambiguate_subset_of_identities_edgelist">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#task_process_one_partition" class="summary-sig-name">task_process_one_partition</a>(<span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">tokendata_usa</span>)</span><br />
+      This is the function that processes one data partition at a time.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#task_process_one_partition">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#worker_disambiguate_subset_of_identities_edgelist" class="summary-sig-name">worker_disambiguate_subset_of_identities_edgelist</a>(<span class="summary-sig-arg">pipe</span>)</span><br />
+      Disambiguate by comparing the S1 identity pairs in provided file, 
+      using all their records as provided by the other file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#worker_disambiguate_subset_of_identities_edgelist">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__update_tokendata_with_person"></a><span class="summary-sig-name">__update_tokendata_with_person</span>(<span class="summary-sig-arg">list_normalized_attrs</span>,
+        <span class="summary-sig-arg">tokendata</span>,
+        <span class="summary-sig-arg">list_virtual_records</span>)</span><br />
+      Instantiate a Person object from the list of records, then for all 
+      normalized attributes, compute the dominant value among the records 
+      for that person, and using that dominant value, update the specified 
+      tokendata instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#__update_tokendata_with_person">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#compute_person_tokens" class="summary-sig-name">compute_person_tokens</a>()</span><br />
+      Using the ientities comptued in stage1 and the tokendata, compute the
+      token frequencies at the person level, that is the number of 
+      identities with a given token rather than the number of records.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#compute_person_tokens">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#split_dict_identity_ids" class="summary-sig-name">split_dict_identity_ids</a>(<span class="summary-sig-arg">dict_identity_2_list_ids</span>,
+        <span class="summary-sig-arg">split_prob</span>=<span class="summary-sig-default">0.8</span>)</span><br />
+      Take a <code>dict_identity_2_list_ids</code> such as the one found in
+      <a href="disambiguation.core.Database.IdentityManager-class.html" 
+      class="link">IdentityManager</a> and split the identities at random.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#split_dict_identity_ids">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="bootstrap_stageII"></a><span class="summary-sig-name">bootstrap_stageII</span>()</span><br />
+      Bootstrap the stage II identity linking by splitting stage I 
+      identities randomly and observing the relationship between identity 
+      field comparison scores and matching likelihood.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#bootstrap_stageII">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__get_split_matches"></a><span class="summary-sig-name">__get_split_matches</span>()</span><br />
+      Load the set of identity matches recovered via the bootstrapping 
+      process.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#__get_split_matches">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#__cum_threshold" class="summary-sig-name" onclick="show_private();">__cum_threshold</a>(<span class="summary-sig-arg">myarray</span>,
+        <span class="summary-sig-arg">percentile</span>)</span><br />
+      For an array (possibly 2d), return the threshold value corresponding 
+      to the top percentile of the cumulative sum of the sorted array.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#__cum_threshold">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#__heatmap" class="summary-sig-name" onclick="show_private();">__heatmap</a>(<span class="summary-sig-arg">xx</span>,
+        <span class="summary-sig-arg">yy</span>,
+        <span class="summary-sig-arg">title</span>,
+        <span class="summary-sig-arg">subplot</span>,
+        <span class="summary-sig-arg">cum_percent</span>=<span class="summary-sig-default">95</span>,
+        <span class="summary-sig-arg">aspect</span>=<span class="summary-sig-default">1</span>,
+        <span class="summary-sig-arg">xlim</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">ylim</span>=<span class="summary-sig-default">None</span>)</span><br />
+      This method takes the coordinates for a bunch of points, calculates a
+      2D histogram of them, then finds the region in the parameter space 
+      that contains a certain percentage of the total point frequency.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#__heatmap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__threshold_freqs"></a><span class="summary-sig-name">__threshold_freqs</span>(<span class="summary-sig-arg">xx</span>,
+        <span class="summary-sig-arg">subplot</span>,
+        <span class="summary-sig-arg">cum_percent</span>=<span class="summary-sig-default">95</span>,
+        <span class="summary-sig-arg">title</span>=<span class="summary-sig-default">''</span>)</span><br />
+      Compute and export to file the name frequency thresholds for various 
+      affiliation match scores in the case where names match but not on the
+      middle name.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#__threshold_freqs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="process_bootstrapping_results"></a><span class="summary-sig-name">process_bootstrapping_results</span>()</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#process_bootstrapping_results">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#__get_customized_verdict_OLD" class="summary-sig-name" onclick="show_private();">__get_customized_verdict_OLD</a>(<span class="summary-sig-arg">verdict</span>,
+        <span class="summary-sig-arg">detailed_comparison_result</span>)</span><br />
+      Returns:
+      a simple numerical verdict:</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#__get_customized_verdict_OLD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#get_candidate_pairs" class="summary-sig-name">get_candidate_pairs</a>(<span class="summary-sig-arg">num_pairs</span>,
+        <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">'USA'</span>,
+        <span class="summary-sig-arg">recompute</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">'disambiguation'</span>)</span><br />
+      Get pairs of record ids that are similar according to the national 
+      (combined) hashes, but aren't already linked at the state level.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#get_candidate_pairs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#partition_records" class="summary-sig-name">partition_records</a>(<span class="summary-sig-arg">num_partitions</span>,
+        <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">&quot;USA&quot;</span>)</span><br />
+      @deprecated: 
+Partition the set of records appearing in the pairs identified
+by L{get_candidate_pairs()} into num_partitions subsets
+with minimal inter-set links, and export the edgelists within
+each sibset to a separate file for each subset.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#partition_records">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="np"></a><span class="summary-name">np</span> = <code title="utils.np">utils.np</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__get_list_identity_pairs"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_list_identity_pairs</span>(<span class="sig-arg">list_record_pairs</span>,
+        <span class="sig-arg">idm</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#__get_list_identity_pairs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>list_record_pairs</code></strong> - list of 3-tuples <code>(id1, id2, weight)</code></li>
+        <li><strong class="pname"><code>idm</code></strong> - an <a 
+          href="disambiguation.core.Database.IdentityManager-class.html" 
+          class="link">IdentityManager</a> instance</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>list of tuples <code>(identity1, identity2)</code> where 
+          identity1 &lt; identity2</dd>
+  </dl>
+<div class="fields">      <p><strong>Deprecated:</strong>
+        Now we directly find candidate identity pairs using the hashes, so we 
+    don't need to compute identity pairs from record pairs. Determine which
+    identity pairs should be compared. Given a list of record id pairs, 
+    find all S1 identity pairs such that one of the record pairs has one 
+    record in one identity and another in the other. Each pair
+      </p>
+</div></td></tr></table>
+</div>
+<a name="partition_S1_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">partition_S1_identities</span>(<span class="sig-arg">num_partitions</span>,
+        <span class="sig-arg">state</span>=<span class="sig-default">&quot;USA&quot;</span>,
+        <span class="sig-arg">idm</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">mode</span>=<span class="sig-default">&quot;disambiguation&quot;</span>,
+        <span class="sig-arg">recompute_identity_partitions</span>=<span class="sig-default">True</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#partition_S1_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>NEW: don't do graph partitioning.Do the most naive partitioning of the
+  list of pairs. Replacing <a href="stage2-module.html#partition_records" 
+  class="link">partition_records</a>, this method uses the record edgelist 
+  to identify which S1 &quot;identities&quot; are potential matches, and 
+  then partitions the identities--rather than the records--into minimally 
+  overlapping sets. The goal is to compare pairs of identities rather than 
+  records. This method has 2 main outputs: 1- 
+  <code>config.candidate_S1_identity_pairs_partitioned_file_template</code>
+  for each partition. This file conains a list of pairs of S1 identities 
+  that must be compared. 2- 
+  <code>config.candidate_list_records_partitioned_file_template</code> for 
+  each partition. This file contains a list of record ids associated with 
+  any of the identities found in the previous file.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="partition_S1_identities_OLD"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">partition_S1_identities_OLD</span>(<span class="sig-arg">num_partitions</span>,
+        <span class="sig-arg">state</span>=<span class="sig-default">&quot;USA&quot;</span>,
+        <span class="sig-arg">idm</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">mode</span>=<span class="sig-default">&quot;disambiguation&quot;</span>,
+        <span class="sig-arg">recompute_identity_partitions</span>=<span class="sig-default">True</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#partition_S1_identities_OLD">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>SLOW GRAPH PARTITIONING&gt; Replacing <a 
+  href="stage2-module.html#partition_records" 
+  class="link">partition_records</a>, this method uses the record edgelist 
+  to identify which S1 &quot;identities&quot; are potential matches, and 
+  then partitions the identities--rather than the records--into minimally 
+  overlapping sets. The goal is to compare pairs of identities rather than 
+  records. This method has 2 main outputs: 1- 
+  <code>config.candidate_S1_identity_pairs_partitioned_file_template</code>
+  for each partition. This file conains a list of pairs of S1 identities 
+  that must be compared. 2- 
+  <code>config.candidate_list_records_partitioned_file_template</code> for 
+  each partition. This file contains a list of record ids associated with 
+  any of the identities found in the previous file.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="disambiguate_subsets_multiproc"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">disambiguate_subsets_multiproc</span>(<span class="sig-arg">num_partitions</span>,
+        <span class="sig-arg">state</span>=<span class="sig-default">&quot;USA&quot;</span>,
+        <span class="sig-arg">num_procs</span>=<span class="sig-default">12</span>,
+        <span class="sig-arg">idm</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">mode</span>=<span class="sig-default">&quot;disambiguation&quot;</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#disambiguate_subsets_multiproc">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>NEW: compare pairs of <a href="disambiguation.core.Person-module.html"
+  class="link">Person</a> objects derived from the candidate identity pairs
+  withing each partition.</p>
+  <p>Compare record pairs within each subset and save results. Can be done 
+  with 1 process or multiple processes. Uses the worker function <code 
+  class="link">worker_disambiguate_subset_of_edgelist</code>.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>mode</code></strong> - String. Whether this run is for bootstrapping stage II 
+          disambiguation or the real deal. If it's boostrapping, the 
+          results of identity pair comparisons will be written to file, and
+          the database tables won't be written. The results can be read 
+          from file and then used for the actual stage II disambiguation.</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <strong>Requires:</strong>
+      <ul class="nomargin-top">
+        <li>
+        The full stage1 'identities' table
+        </li>
+        <li>
+        List of candidate record pairs already partitioned and written to 
+        separate files.
+        </li>
+      </ul>
+</div></td></tr></table>
+</div>
+<a name="disambiguate_subsets_multiproc_OLD"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">disambiguate_subsets_multiproc_OLD</span>(<span class="sig-arg">num_partitions</span>,
+        <span class="sig-arg">state</span>=<span class="sig-default">&quot;USA&quot;</span>,
+        <span class="sig-arg">num_procs</span>=<span class="sig-default">12</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#disambiguate_subsets_multiproc_OLD">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Compare record pairs within each subset and save results. Can be done 
+  with 1 process or multiple processes. Uses the worker function <code 
+  class="link">worker_disambiguate_subset_of_edgelist</code>.</p>
+  <dl class="fields">
+  </dl>
+<div class="fields">      <strong>Requires:</strong>
+      <ul class="nomargin-top">
+        <li>
+        The full stage1 'identities' table
+        </li>
+        <li>
+        List of candidate record pairs already partitioned and written to 
+        separate files.
+        </li>
+      </ul>
+</div></td></tr></table>
+</div>
+<a name="__get_customized_verdict"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_customized_verdict</span>(<span class="sig-arg">detailed_comparison_result</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#__get_customized_verdict">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>detailed_comparison_result</code></strong> - The comparison results returned by <code 
+          class="link">Record.compare</code>. It is a tuple (currently) 
+          like <code>(max_name, max_occupation, max_employer)</code> where 
+          the entries are the return values of <a 
+          href="disambiguation.core.Record-module.html" 
+          class="link">Record</a>'s comparison methods for the respective 
+          fields. See <code class="link">Person.compare</code> for more 
+          details.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a simple numerical verdict:
+          <ul>
+            <li>
+              <b>-1</b>: strongly inconsistent, such as when middle names 
+              are different.
+            </li>
+            <li>
+              <b>0</b>: records are similar, but we don't have a conclusive
+              verdict either way. We don't know that they're clearly a 
+              match, or clearly not a match.
+            </li>
+            <li>
+              <b>&gt;0</b>: records are a match.
+            </li>
+            <li>
+              <b>None</b>: records are't similar, just ignore them.
+            </li>
+          </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Deprecated:</strong>
+        the final verdict is now managed by <a 
+    href="stage2.VerdictAuthority-class.html" 
+    class="link">VerdictAuthority</a>
+    <p>Function that makes the final judgment on the relationship between 
+    two identities. It receives the output of the <code 
+    class="link">Person.compare</code> method consisting of the detailed 
+    comparison results which give the best match scores for between all 
+    record pairs of the two identities for the different fields. Implement 
+    this method to define how these preliminary comparison results are to 
+    be interpreted ultimately. The output of this function will be used to 
+    determine the relationship between a pair of stage1 identities when all
+    pairs of records one from each are compared. The output of this 
+    function will determine if the two identities are to be merged, to be 
+    kept as irreconcilably separate, or as inconclusively similar.</p>
+    <p>As an exmple, the fullname frequencies can be used.</p>
+      </p>
+</div></td></tr></table>
+</div>
+<a name="task_process_one_partition"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">task_process_one_partition</span>(<span class="sig-arg">data</span>,
+        <span class="sig-arg">tokendata_usa</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#task_process_one_partition">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>This is the function that processes one data partition at a time. This
+  function will be called multiple times withing a child process. The point
+  is that the most expensive data reading operations are done OUTSIDE this 
+  function, only once by each child process. Then that data is used for all
+  partitions processed by the child process.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="worker_disambiguate_subset_of_identities_edgelist"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">worker_disambiguate_subset_of_identities_edgelist</span>(<span class="sig-arg">pipe</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#worker_disambiguate_subset_of_identities_edgelist">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Disambiguate by comparing the S1 identity pairs in provided file, 
+  using all their records as provided by the other file.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>tuple_filenames</code></strong> - a tuple consisting of two strings. The first string is the 
+          filename containing a list of pairs of S1 identities. The second 
+          string is the filename containing a list of all the records 
+          associated with any of the identities present in the first file.</li>
+        <li><strong class="pname"><code>dict_identities</code></strong> - a dict that maps each of the S1 identities passed to this method 
+          to a list of its associated records. We pass this dict in order 
+          to avoid instantiating an IdentityManager for each process 
+          running this method.
+          <p>The record comparisons performed in this function use the 
+          <code>&quot;national&quot;</code> <code>method_id</code>. This 
+          comparison method is slightly more lax than the stage1 
+          comparisons, but we make additional judgments based on token 
+          frequencies here in <a 
+          href="stage2-module.html#__get_customized_verdict" class="link" 
+          onclick="show_private();">__get_customized_verdict</a>.</p></li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>list_identity_pairs: a list where each element looks like 
+          <code>((identity1, identity2), final_result)</code>.</dd>
+  </dl>
+<div class="fields">      <p><strong>Note:</strong>
+        the records need to be tokenized first, since record comparison 
+        relies on normalized names, etc.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="compute_person_tokens"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">compute_person_tokens</span>()</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#compute_person_tokens">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Using the ientities comptued in stage1 and the tokendata, compute the 
+  token frequencies at the person level, that is the number of identities 
+  with a given token rather than the number of records. For this, we 
+  instantiate a new TokenData object and update it with the token data. It 
+  will then be exported to a file. Since It is not based on tokenz produced
+  by a <code>Tokenizer</code> object, but rather using the normalized 
+  attributes, the file label contains &quot;Normalized&quot; rather than 
+  the Tokenizer class name.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="split_dict_identity_ids"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">split_dict_identity_ids</span>(<span class="sig-arg">dict_identity_2_list_ids</span>,
+        <span class="sig-arg">split_prob</span>=<span class="sig-default">0.8</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#split_dict_identity_ids">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Take a <code>dict_identity_2_list_ids</code> such as the one found in 
+  <a href="disambiguation.core.Database.IdentityManager-class.html" 
+  class="link">IdentityManager</a> and split the identities at random. Also
+  compute the corresponding <code>dict_id_2_identity</code> and return as 
+  well.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__cum_threshold"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__cum_threshold</span>(<span class="sig-arg">myarray</span>,
+        <span class="sig-arg">percentile</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#__cum_threshold">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>For an array (possibly 2d), return the threshold value corresponding 
+  to the top percentile of the cumulative sum of the sorted array. In other
+  words, the return value <code>y</code> is such that all entries in 
+  <code>myarray</code> with values above c{y} will add up to c{percentile} 
+  percent of the total sum of <code>myarray</code>'s entries.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__heatmap"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__heatmap</span>(<span class="sig-arg">xx</span>,
+        <span class="sig-arg">yy</span>,
+        <span class="sig-arg">title</span>,
+        <span class="sig-arg">subplot</span>,
+        <span class="sig-arg">cum_percent</span>=<span class="sig-default">95</span>,
+        <span class="sig-arg">aspect</span>=<span class="sig-default">1</span>,
+        <span class="sig-arg">xlim</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">ylim</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#__heatmap">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>This method takes the coordinates for a bunch of points, calculates a 
+  2D histogram of them, then finds the region in the parameter space that 
+  contains a certain percentage of the total point frequency. Then, the 
+  histogram is plotted with the region delineated by a contour line. 
+  Finally, the function returns a list of coordinate tuples that fall in 
+  the region.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__get_customized_verdict_OLD"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_customized_verdict_OLD</span>(<span class="sig-arg">verdict</span>,
+        <span class="sig-arg">detailed_comparison_result</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#__get_customized_verdict_OLD">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>verdict</code></strong> - the verdict issued by <code class="link">Record.compare</code>. 
+          It can be True, False, or a large negative number. In the latter 
+          case, we have an irreconcilable difference such as different 
+          middle names.</li>
+        <li><strong class="pname"><code>detailed_comparison_result</code></strong> - the result of comparisons of the various fields of the records. 
+          See <code class="link">Record._compare_THOROUGH</code> for the 
+          details.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a simple numerical verdict:
+          <ul>
+            <li>
+              <b>-1</b>: strongly inconsistent, such as when middle names 
+              are different.
+            </li>
+            <li>
+              <b>0</b>: records are similar, but we don't have a conclusive
+              verdict either way. We don't know that they're clearly a 
+              match, or clearly not a match.
+            </li>
+            <li>
+              <b>&gt;0</b>: records are a match.
+            </li>
+            <li>
+              <b>None</b>: records are't similar, just ignore them.
+            </li>
+          </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Deprecated:</strong>
+        used for v1 and v2. Function that makes the final judgment on the 
+    relationship between two records. It receives the output of the <code 
+    class="link">Record.compare</code> method consisting of a (preliminary)
+    verdict and the detailed comparison results which provide information 
+    about the comparison results for the various fields of the records. 
+    Implement this method to define how these preliminary comparison 
+    results are to be interpreted ultimately. The output of this function 
+    will be used to determine the relationship between a pair of stage1 
+    identities when a pair of records one from each are compared. The 
+    output of this function will determine if the two identities are to be 
+    merged, to be kept as irreconcilably separate, or as inconclusively 
+    similar.
+    <p>As an exmple, the fullname frequencies can be used to compute a 
+    positive score if <code>verdict == True</code>.</p>
+      </p>
+</div></td></tr></table>
+</div>
+<a name="get_candidate_pairs"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_candidate_pairs</span>(<span class="sig-arg">num_pairs</span>,
+        <span class="sig-arg">state</span>=<span class="sig-default">'USA'</span>,
+        <span class="sig-arg">recompute</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">idm</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">mode</span>=<span class="sig-default">'disambiguation'</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#get_candidate_pairs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get pairs of record ids that are similar according to the national 
+  (combined) hashes, but aren't already linked at the state level.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>state</code></strong> - the state whose hashes will be used.</li>
+        <li><strong class="pname"><code>num_pairs</code></strong> - number of new records to select for comparison</li>
+        <li><strong class="pname"><code>idm</code></strong> - <a href="disambiguation.core.Database.IdentityManager-class.html"
+          class="link">IdentityManager</a> instance to use. This is used to
+          that records pairs both from the same identity are simply 
+          skipped.</li>
+        <li><strong class="pname"><code>mode</code></strong> - can be 'disambiguation' or &quot;bootstrapping&quot;. The results
+          are written to different files depending on the value of this 
+          parameter.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>list of tuples of record ids.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="partition_records"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">partition_records</span>(<span class="sig-arg">num_partitions</span>,
+        <span class="sig-arg">state</span>=<span class="sig-default">&quot;USA&quot;</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#partition_records">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+@deprecated: 
+Partition the set of records appearing in the pairs identified
+by L{get_candidate_pairs()} into num_partitions subsets
+with minimal inter-set links, and export the edgelists within
+each sibset to a separate file for each subset. The list of record
+pairs is read from a file generated by L{get_candidate_pairs()}.
+
+@param num_partitions: number of partitions to divide C{list_record_pairs} into.
+@status: only works if the giant component isn't &quot;too&quot; large. Otherwise,
+the partitions aren't balanced.
+    print &quot;Running D.compare_list_of_pairs(list_of_pairs)&quot;
+    # D.compare_list_of_pairs is a generator: it yields the full results of
+    # the pairwise comparisons and we are able to perform one last analysis and
+    # decide what whether the math is a &quot;no&quot;, &quot;maybe&quot; or &quot;yes&quot;.
+    for verdict, detailed_comparison_result, rid1, rid2 in  D.compare_list_of_pairs(list_of_pairs):
+        final_result = __get_customized_verdict_OLD(verdict, detailed_comparison_result)
+        list_record_pairs.append(((rid1, rid2), final_result))
+
+    return list_record_pairs
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:24 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

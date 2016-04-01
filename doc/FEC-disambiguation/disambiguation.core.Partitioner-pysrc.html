@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.Partitioner</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        Module&nbsp;Partitioner
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="disambiguation.core.Partitioner-module.html">Module disambiguation.core.Partitioner</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># from collections import deque</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment">#import networks as nt</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">igraph</tt> <tt class="py-keyword">as</tt> <tt class="py-name">ig</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">matplotlib</tt><tt class="py-op">.</tt><tt class="py-name">pyplot</tt> <tt class="py-keyword">as</tt> <tt class="py-name">plt</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package disambiguation=disambiguation-module.html"><a title="disambiguation" class="py-name" href="#" onclick="return doclink('link-0', 'disambiguation', 'link-0');">disambiguation</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module disambiguation.config=disambiguation.config-module.html"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-1', 'config', 'link-1');">config</a></tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">cPickle</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">bisect</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"> </tt>
+<a name="Partitioner"></a><div id="Partitioner-def"><a name="L11"></a><tt class="py-lineno"> 11</tt> <a class="py-toggle" href="#" id="Partitioner-toggle" onclick="return toggle('Partitioner');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html">Partitioner</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Partitioner-expanded"><a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-docstring">    Class for dividing a graph into edge partitions with</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">    minimal vertex overlap.</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="Partitioner.__init__"></a><div id="Partitioner.__init__-def"><a name="L16"></a><tt class="py-lineno"> 16</tt> <a class="py-toggle" href="#" id="Partitioner.__init__-toggle" onclick="return toggle('Partitioner.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">g</tt><tt class="py-op">,</tt> <tt class="py-param">num_partitions</tt> <tt class="py-op">=</tt> <tt class="py-number">10</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.__init__-expanded"><a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Variable disambiguation.graph_visualize.g=disambiguation.graph_visualize-module.html#g,Variable disambiguation.graph_visualize_Modern_employers.g=disambiguation.graph_visualize_Modern_employers-module.html#g,Variable disambiguation.graph_visualize_newyork_occupations.g=disambiguation.graph_visualize_newyork_occupations-module.html#g"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-2', 'g', 'link-2');">g</a></tt> <tt class="py-op">=</tt> <tt id="link-3" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-3', 'g', 'link-2');">g</a></tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">num_partitions</tt> <tt class="py-op">=</tt> <tt class="py-name">num_partitions</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n_edges_per_partition</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line">         </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dict_colors</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-number">1</tt><tt class="py-op">:</tt> <tt class="py-string">'red'</tt><tt class="py-op">,</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line">                   <tt class="py-number">2</tt><tt class="py-op">:</tt> <tt class="py-string">'blue'</tt><tt class="py-op">,</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line">                   <tt class="py-number">3</tt><tt class="py-op">:</tt> <tt class="py-string">'green'</tt><tt class="py-op">,</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line">                   <tt class="py-number">4</tt><tt class="py-op">:</tt> <tt class="py-string">'yellow'</tt><tt class="py-op">,</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line">                   <tt class="py-number">5</tt><tt class="py-op">:</tt><tt class="py-string">'black'</tt><tt class="py-op">,</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line">                   <tt class="py-number">6</tt><tt class="py-op">:</tt><tt class="py-string">'cyan'</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">                  <tt class="py-op">}</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">        <tt class="py-comment"># Components of the graph</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">components</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">         </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">        <tt class="py-comment"># dict component_id: size</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dict_component_sizes</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Variable disambiguation.graph_visualize.mylayout=disambiguation.graph_visualize-module.html#mylayout,Variable disambiguation.graph_visualize_Modern_employers.mylayout=disambiguation.graph_visualize_Modern_employers-module.html#mylayout,Variable disambiguation.graph_visualize_newyork_occupations.mylayout=disambiguation.graph_visualize_newyork_occupations-module.html#mylayout"><a title="disambiguation.graph_visualize.mylayout
+disambiguation.graph_visualize_Modern_employers.mylayout
+disambiguation.graph_visualize_newyork_occupations.mylayout" class="py-name" href="#" onclick="return doclink('link-4', 'mylayout', 'link-4');">mylayout</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">         </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">         </tt>
+<a name="Partitioner.__get_color"></a><div id="Partitioner.__get_color-def"><a name="L38"></a><tt class="py-lineno"> 38</tt> <a class="py-toggle" href="#" id="Partitioner.__get_color-toggle" onclick="return toggle('Partitioner.__get_color');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#__get_color">__get_color</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">group</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.__get_color-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.__get_color-expanded"><a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">group</tt><tt class="py-op">:</tt> <tt class="py-keyword">return</tt> <tt class="py-string">'#dddddd'</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt>  </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dict_colors</tt><tt class="py-op">[</tt><tt class="py-name">group</tt><tt class="py-op">]</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-string">'gray'</tt> </tt>
+</div><a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">         </tt>
+<a name="Partitioner.compute_layout"></a><div id="Partitioner.compute_layout-def"><a name="L45"></a><tt class="py-lineno"> 45</tt> <a class="py-toggle" href="#" id="Partitioner.compute_layout-toggle" onclick="return toggle('Partitioner.compute_layout');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#compute_layout">compute_layout</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.compute_layout-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.compute_layout-expanded"><a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-comment">#         self.mylayout = self.g.layout_fruchterman_reingold()</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-5" class="py-name"><a title="disambiguation.graph_visualize.mylayout
+disambiguation.graph_visualize_Modern_employers.mylayout
+disambiguation.graph_visualize_newyork_occupations.mylayout" class="py-name" href="#" onclick="return doclink('link-5', 'mylayout', 'link-4');">mylayout</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-6', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt class="py-name">layout_graphopt</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-comment">#         self.mylayout = self.g.layout_drl()</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">     </tt>
+<a name="Partitioner.backup_g"></a><div id="Partitioner.backup_g-def"><a name="L50"></a><tt class="py-lineno"> 50</tt> <a class="py-toggle" href="#" id="Partitioner.backup_g-toggle" onclick="return toggle('Partitioner.backup_g');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#backup_g">backup_g</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.backup_g-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.backup_g-expanded"><a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">g_backup</tt> <tt class="py-op">=</tt> <tt class="py-name">cPickle</tt><tt class="py-op">.</tt><tt class="py-name">loads</tt><tt class="py-op">(</tt><tt class="py-name">cPickle</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-7', 'g', 'link-2');">g</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">         </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"> </tt>
+<a name="Partitioner.tally_leftover_components"></a><div id="Partitioner.tally_leftover_components-def"><a name="L54"></a><tt class="py-lineno"> 54</tt> <a class="py-toggle" href="#" id="Partitioner.tally_leftover_components-toggle" onclick="return toggle('Partitioner.tally_leftover_components');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#tally_leftover_components">tally_leftover_components</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.tally_leftover_components-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.tally_leftover_components-expanded"><a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-comment"># A dictionary that maps a group id to</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">        <tt class="py-comment"># its size.</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">        <tt class="py-name">dict_component_sizes</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">group</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">components</tt><tt class="py-op">.</tt><tt class="py-name">membership</tt><tt class="py-op">:</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dict_component_sizes</tt><tt class="py-op">[</tt><tt class="py-name">group</tt><tt class="py-op">]</tt> <tt class="py-op">+=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dict_component_sizes</tt><tt class="py-op">[</tt><tt class="py-name">group</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-comment"># A list of tuples (component_id, size), sorted</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_component_sizes</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dict_component_sizes</tt><tt class="py-op">.</tt><tt class="py-name">items</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_component_sizes</tt><tt class="py-op">.</tt><tt class="py-name">sort</tt><tt class="py-op">(</tt><tt class="py-name">key</tt> <tt class="py-op">=</tt> <tt class="py-keyword">lambda</tt> <tt class="py-name">x</tt><tt class="py-op">:</tt><tt class="py-name">x</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">reverse</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">        <tt class="py-comment"># A dict that maps vertex id to component id</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">        <tt class="py-comment"># dict_v_ids = {x:y for x,y in enumerate(components.membership)}</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">        <tt class="py-comment"># A dict that maps component id to list of vertex_ids</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dict_v_ids</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">vid</tt><tt class="py-op">,</tt> <tt class="py-name">component_id</tt> <tt class="py-keyword">in</tt> <tt class="py-name">enumerate</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">components</tt><tt class="py-op">.</tt><tt class="py-name">membership</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dict_v_ids</tt><tt class="py-op">[</tt><tt class="py-name">component_id</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">vid</tt><tt class="py-op">)</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dict_v_ids</tt><tt class="py-op">[</tt><tt class="py-name">component_id</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">vid</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">         </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">     </tt>
+<a name="Partitioner.get_small_component_edgelists"></a><div id="Partitioner.get_small_component_edgelists-def"><a name="L80"></a><tt class="py-lineno"> 80</tt> <a class="py-toggle" href="#" id="Partitioner.get_small_component_edgelists-toggle" onclick="return toggle('Partitioner.get_small_component_edgelists');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#get_small_component_edgelists">get_small_component_edgelists</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">skip_giant</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.get_small_component_edgelists-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.get_small_component_edgelists-expanded"><a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"><tt class="py-docstring">        loop through all components except for the giant component,</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"><tt class="py-docstring">        and for each one yield the list of edges as (e.source, e.target)</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"><tt class="py-docstring">        @param g: the original graph.</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-docstring">        @param list_component_sizes: A list of tuples (component_id, size),</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-docstring">        sorted in descending order.</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"><tt class="py-docstring">        @param dict_v_ids: A dict that maps component id to list of vertex_ids</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"><tt class="py-docstring">        @param skip_giant: whether to skip the giant component or not. We</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"><tt class="py-docstring">        won't skip the giant component when it's small enough to fit into</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-docstring">        a partition and we don't need to partition it first.</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt id="link-8" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-8', 'g', 'link-2');">g</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-9', 'g', 'link-2');">g</a></tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-name">list_component_sizes</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_component_sizes</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-name">dict_v_ids</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dict_v_ids</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">         </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-name">start_index</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> <tt class="py-keyword">if</tt> <tt class="py-name">skip_giant</tt> <tt class="py-keyword">else</tt> <tt class="py-number">0</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">component_id</tt><tt class="py-op">,</tt> <tt class="py-name">size</tt> <tt class="py-keyword">in</tt> <tt class="py-name">list_component_sizes</tt><tt class="py-op">[</tt><tt class="py-name">start_index</tt><tt class="py-op">:</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">        <tt class="py-comment">#     print component_id, size</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">            <tt class="py-name">list_vids</tt> <tt class="py-op">=</tt> <tt class="py-name">dict_v_ids</tt><tt class="py-op">[</tt><tt class="py-name">component_id</tt><tt class="py-op">]</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">            <tt class="py-name">edgelist</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">size</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">2</tt><tt class="py-op">:</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">                <tt class="py-keyword">for</tt> <tt class="py-name">vid</tt> <tt class="py-keyword">in</tt> <tt class="py-name">list_vids</tt><tt class="py-op">:</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-10', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Variable disambiguation.graph_visualize.vs=disambiguation.graph_visualize-module.html#vs,Variable disambiguation.graph_visualize_Modern_employers.vs=disambiguation.graph_visualize_Modern_employers-module.html#vs,Variable disambiguation.graph_visualize_newyork_occupations.vs=disambiguation.graph_visualize_newyork_occupations-module.html#vs"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-11', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-name">vid</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">'original_index'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-12', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-13', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-name">vid</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">index</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">                <tt class="py-name">g_component</tt> <tt class="py-op">=</tt> <tt id="link-14" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-14', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt class="py-name">induced_subgraph</tt><tt class="py-op">(</tt><tt class="py-name">list_vids</tt><tt class="py-op">)</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">                 </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">                <tt class="py-keyword">for</tt> <tt class="py-name">e</tt> <tt class="py-keyword">in</tt> <tt class="py-name">g_component</tt><tt class="py-op">.</tt><tt class="py-name">es</tt><tt class="py-op">:</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"><tt class="py-comment">#                     edgelist.append(tuple(sorted([g_component.vs[e.source]['original_index'], g_component.vs[e.target]['original_index']])))</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">                    <tt class="py-name">edgelist</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">tuple</tt><tt class="py-op">(</tt><tt class="py-name">sorted</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">g_component</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-15', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">source</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">'original_index'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">g_component</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-16', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-name">e</tt><tt class="py-op">.</tt><tt class="py-name">target</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">'original_index'</tt><tt class="py-op">]</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"><tt class="py-comment">#                 print "added %d edges....." % len(edgelist)</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt class="py-name">size</tt> <tt class="py-op">==</tt> <tt class="py-number">2</tt><tt class="py-op">:</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"><tt class="py-comment">#                 print "added one edge..."</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">                <tt class="py-name">edgelist</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">tuple</tt><tt class="py-op">(</tt><tt class="py-name">sorted</tt><tt class="py-op">(</tt><tt class="py-name">list_vids</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">]</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">                <tt class="py-keyword">pass</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-name">edgelist</tt> </tt>
+</div><a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line"> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">         </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">         </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">     </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">     </tt>
+<a name="Partitioner.collect_leftovers"></a><div id="Partitioner.collect_leftovers-def"><a name="L122"></a><tt class="py-lineno">122</tt> <a class="py-toggle" href="#" id="Partitioner.collect_leftovers-toggle" onclick="return toggle('Partitioner.collect_leftovers');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#collect_leftovers">collect_leftovers</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.collect_leftovers-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.collect_leftovers-expanded"><a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line"><tt class="py-docstring">        Put together the small components left over into</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"><tt class="py-docstring">        partitions. This method should be called after the</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line"><tt class="py-docstring">        Giant component is broken up enough times so that </tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line"><tt class="py-docstring">        it's finally smaller than the desired partition size.</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line"><tt class="py-docstring">        Now we have a large number of small leftover components</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line"><tt class="py-docstring">        that should be clustered into the remaining partitions.</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">        <tt class="py-comment"># compute self.dict_v_ids and self.dict_component_sizes</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Method disambiguation.core.Partitioner.Partitioner.tally_leftover_components()=disambiguation.core.Partitioner.Partitioner-class.html#tally_leftover_components"><a title="disambiguation.core.Partitioner.Partitioner.tally_leftover_components" class="py-name" href="#" onclick="return doclink('link-17', 'tally_leftover_components', 'link-17');">tally_leftover_components</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"><tt class="py-comment">#         print "component sizes after giant partition:", self.list_component_sizes</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Method disambiguation.core.Partitioner.Partitioner.fill_in_the_blanks()=disambiguation.core.Partitioner.Partitioner-class.html#fill_in_the_blanks"><a title="disambiguation.core.Partitioner.Partitioner.fill_in_the_blanks" class="py-name" href="#" onclick="return doclink('link-18', 'fill_in_the_blanks', 'link-18');">fill_in_the_blanks</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">     </tt>
+<a name="Partitioner.fill_in_the_blanks"></a><div id="Partitioner.fill_in_the_blanks-def"><a name="L139"></a><tt class="py-lineno">139</tt> <a class="py-toggle" href="#" id="Partitioner.fill_in_the_blanks-toggle" onclick="return toggle('Partitioner.fill_in_the_blanks');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#fill_in_the_blanks">fill_in_the_blanks</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.fill_in_the_blanks-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.fill_in_the_blanks-expanded"><a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"><tt class="py-docstring">        Create a temp list of edgelists, and using</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"><tt class="py-docstring">        L{get_small_component_edgelists}, fill them with the</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"><tt class="py-docstring">        edgelists of the leftover small component edgelists.</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">        <tt class="py-comment"># Number of remaining edges in the graph after</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">        <tt class="py-comment"># the giant component is broken up into small pieces.</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">        <tt class="py-name">num_remaining_partitions</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">num_partitions</tt> <tt class="py-op">-</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt><tt class="py-op">)</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">        <tt class="py-name">list_edgelists</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">[</tt><tt class="py-op">]</tt> <tt class="py-keyword">for</tt> <tt class="py-name">i</tt> <tt class="py-keyword">in</tt> <tt class="py-name">range</tt><tt class="py-op">(</tt><tt class="py-name">num_remaining_partitions</tt><tt class="py-op">)</tt><tt class="py-op">]</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">list_edgelists</tt><tt class="py-op">:</tt> <tt class="py-keyword">return</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">         </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">edgelist</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Method disambiguation.core.Partitioner.Partitioner.get_small_component_edgelists()=disambiguation.core.Partitioner.Partitioner-class.html#get_small_component_edgelists"><a title="disambiguation.core.Partitioner.Partitioner.get_small_component_edgelists" class="py-name" href="#" onclick="return doclink('link-19', 'get_small_component_edgelists', 'link-19');">get_small_component_edgelists</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line"><tt class="py-comment">#             print 'len of leftover edgelists: ', [len(x) for x in list_edgelists]</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">            <tt class="py-name">list_edgelists</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> <tt class="py-op">+=</tt> <tt class="py-name">edgelist</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">            <tt class="py-name">list_edgelists</tt><tt class="py-op">.</tt><tt class="py-name">sort</tt><tt class="py-op">(</tt><tt class="py-name">key</tt> <tt class="py-op">=</tt> <tt class="py-keyword">lambda</tt> <tt class="py-name">item</tt><tt class="py-op">:</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">item</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">         </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt> <tt class="py-op">+=</tt> <tt class="py-name">list_edgelists</tt> </tt>
+</div><a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">         </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"> </tt>
+<a name="Partitioner.partition"></a><div id="Partitioner.partition-def"><a name="L159"></a><tt class="py-lineno">159</tt> <a class="py-toggle" href="#" id="Partitioner.partition-toggle" onclick="return toggle('Partitioner.partition');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#partition">partition</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.partition-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.partition-expanded"><a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">         </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">        <tt class="py-comment"># A flag that shows which node has been chosen</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">        <tt class="py-comment"># as the seed for a partition.</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-20', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-21', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-string">'seed'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line"> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">        <tt class="py-comment"># Find the connected components</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">components</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-22', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt class="py-name">components</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line"> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">        <tt class="py-comment"># find the giant component</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">        <tt class="py-name">g_giant</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">components</tt><tt class="py-op">.</tt><tt class="py-name">giant</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line"> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">        <tt class="py-comment"># Number of edges of the giant component</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">        <tt class="py-name">n_edges_giant</tt> <tt class="py-op">=</tt> <tt class="py-name">g_giant</tt><tt class="py-op">.</tt><tt class="py-name">ecount</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line"> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line"> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">        <tt class="py-comment"># Desired number of edges in each partition</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n_edges_per_partition</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-23', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt class="py-name">ecount</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">num_partitions</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"number of edges per partition: "</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n_edges_per_partition</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line"> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">        <tt class="py-comment"># As long as the "size" of the giant component</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">        <tt class="py-comment"># is larger than the desired chunk size, extract a </tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">        <tt class="py-comment"># partition from it and break it up.</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">        <tt class="py-name">counter</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">        <tt class="py-keyword">while</tt> <tt class="py-name">n_edges_giant</tt> <tt class="py-op">&gt;</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n_edges_per_partition</tt><tt class="py-op">:</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"iteration "</tt><tt class="py-op">,</tt> <tt class="py-name">counter</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">            <tt class="py-name">counter</tt> <tt class="py-op">+=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line"> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">            <tt class="py-comment"># Get the edgelist of the partition extracted</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line">            <tt class="py-comment"># from the giant component. And, alter the graph</tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">            <tt class="py-comment"># by deleting those edges. Now, the graph has changede</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">            <tt class="py-comment"># and has a new giant component. The loop continues</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line">            <tt class="py-comment"># until this giant component is small enough.</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line">            <tt class="py-comment"># TODO: implement</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line">            <tt class="py-name">edgelist</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name" targets="Method disambiguation.core.Partitioner.Partitioner.extract_partition()=disambiguation.core.Partitioner.Partitioner-class.html#extract_partition"><a title="disambiguation.core.Partitioner.Partitioner.extract_partition" class="py-name" href="#" onclick="return doclink('link-24', 'extract_partition', 'link-24');">extract_partition</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">edgelist</tt><tt class="py-op">)</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">            <tt class="py-comment"># Find the connected components</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">components</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-25', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt class="py-name">components</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line"><tt class="py-comment">#             print "Component sizes: ", sorted(self.components.sizes(), reverse = True)</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">             </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">            <tt class="py-comment"># find the giant component</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">            <tt class="py-name">g_giant</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">components</tt><tt class="py-op">.</tt><tt class="py-name">giant</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line"> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">            <tt class="py-comment"># Number of edges of the giant component</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">            <tt class="py-name">n_edges_giant</tt> <tt class="py-op">=</tt> <tt class="py-name">g_giant</tt><tt class="py-op">.</tt><tt class="py-name">ecount</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">         </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">         </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">        <tt class="py-comment"># Now, all the remaining components are smaller than</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">        <tt class="py-comment"># the desired partition size.</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name" targets="Method disambiguation.core.Partitioner.Partitioner.collect_leftovers()=disambiguation.core.Partitioner.Partitioner-class.html#collect_leftovers"><a title="disambiguation.core.Partitioner.Partitioner.collect_leftovers" class="py-name" href="#" onclick="return doclink('link-26', 'collect_leftovers', 'link-26');">collect_leftovers</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line">     </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line"> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">    </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line"> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">             </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">     </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">     </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line"> </tt>
+<a name="Partitioner.extract_partition"></a><div id="Partitioner.extract_partition-def"><a name="L220"></a><tt class="py-lineno">220</tt> <a class="py-toggle" href="#" id="Partitioner.extract_partition-toggle" onclick="return toggle('Partitioner.extract_partition');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#extract_partition">extract_partition</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt>      </tt>
+</div><a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">        <tt class="py-name">gg</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-27', 'g', 'link-2');">g</a></tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">         </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line">        <tt class="py-comment"># Actually a set, not a list</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">        <tt class="py-name">edgelist</tt> <tt class="py-op">=</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line"> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line">        <tt class="py-comment"># id of the node to start the walk from</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line">        <tt class="py-name">start_id</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name" targets="Method disambiguation.core.Partitioner.Partitioner.get_start_id()=disambiguation.core.Partitioner.Partitioner-class.html#get_start_id"><a title="disambiguation.core.Partitioner.Partitioner.get_start_id" class="py-name" href="#" onclick="return doclink('link-28', 'get_start_id', 'link-28');">get_start_id</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line"> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">        <tt class="py-comment"># Buffer of node ids. Push from left, pop from right.</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line"><tt class="py-comment">#         node_buffer_nonleaf = deque([start_id])</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line"><tt class="py-comment">#         node_buffer_leaf = deque([])</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">         </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line">        <tt class="py-name">node_buffer</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">start_id</tt><tt class="py-op">]</tt> </tt>
+<a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line"> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">        <tt class="py-name">current_group_id</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line"> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line"><tt class="py-comment">#         gg.vs['group'] = False</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line"><tt class="py-comment">#         gg.vs[start_id]['group'] = current_group_id </tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line"> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line"> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line">        <tt class="py-comment"># compute the degrees once and assign to node attribute.</tt> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">        <tt class="py-name">gg</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-29', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-string">'degree'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">gg</tt><tt class="py-op">.</tt><tt class="py-name">degree</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line"> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line">        <tt class="py-comment"># Explore the graph until</tt> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line">        <tt class="py-keyword">while</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">edgelist</tt><tt class="py-op">)</tt> <tt class="py-op">&lt;</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n_edges_per_partition</tt> <tt class="py-op">:</tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line"> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line">                <tt class="py-name">vid</tt> <tt class="py-op">=</tt> <tt class="py-name">node_buffer</tt><tt class="py-op">.</tt><tt class="py-name">pop</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">                <tt class="py-keyword">break</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line"> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">            <tt id="link-30" class="py-name" targets="Variable disambiguation.graph_visualize.v=disambiguation.graph_visualize-module.html#v,Variable disambiguation.graph_visualize_newyork_occupations.v=disambiguation.graph_visualize_newyork_occupations-module.html#v"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-30', 'v', 'link-30');">v</a></tt> <tt class="py-op">=</tt> <tt class="py-name">gg</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-31', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-name">vid</tt><tt class="py-op">]</tt> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line"> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line">            <tt class="py-comment"># Sort the list of neighbors by their degrees in </tt> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line">            <tt class="py-comment"># descending order</tt> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line">            <tt class="py-name">list_neighbors_all</tt> <tt class="py-op">=</tt> <tt class="py-name">sorted</tt><tt class="py-op">(</tt><tt id="link-32" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-32', 'v', 'link-30');">v</a></tt><tt class="py-op">.</tt><tt class="py-name">neighbors</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">key</tt> <tt class="py-op">=</tt> <tt class="py-keyword">lambda</tt> <tt id="link-33" class="py-name" targets="Function disambiguation.nameparser.u()=disambiguation.nameparser-module.html#u"><a title="disambiguation.nameparser.u" class="py-name" href="#" onclick="return doclink('link-33', 'u', 'link-33');">u</a></tt> <tt class="py-op">:</tt> <tt id="link-34" class="py-name"><a title="disambiguation.nameparser.u" class="py-name" href="#" onclick="return doclink('link-34', 'u', 'link-33');">u</a></tt><tt class="py-op">.</tt><tt class="py-name">degree</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">reverse</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line">            <tt class="py-name">list_neighbors_all</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt id="link-35" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-35', 'v', 'link-30');">v</a></tt> <tt class="py-keyword">for</tt> <tt id="link-36" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-36', 'v', 'link-30');">v</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">list_neighbors_all</tt> <tt class="py-keyword">if</tt> <tt id="link-37" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-37', 'v', 'link-30');">v</a></tt><tt class="py-op">[</tt><tt class="py-string">'degree'</tt><tt class="py-op">]</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt> <tt class="py-op">]</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line"> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">neighbor</tt> <tt class="py-keyword">in</tt> <tt class="py-name">list_neighbors_all</tt><tt class="py-op">:</tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line"><tt class="py-comment">#                 if neighbor.degree() == 1:</tt> </tt>
+<a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">neighbor</tt><tt class="py-op">[</tt><tt class="py-string">'degree'</tt><tt class="py-op">]</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line">                    <tt class="py-name">bisect</tt><tt class="py-op">.</tt><tt class="py-name">insort_right</tt><tt class="py-op">(</tt><tt class="py-name">node_buffer</tt><tt class="py-op">,</tt> <tt class="py-name">neighbor</tt><tt class="py-op">.</tt><tt class="py-name">index</tt><tt class="py-op">)</tt> </tt>
+<a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line">                <tt class="py-name">neighbor</tt><tt class="py-op">[</tt><tt class="py-string">'degree'</tt><tt class="py-op">]</tt> <tt class="py-op">-=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line">                 </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line"><tt class="py-comment">#                 neighbor['group'] = current_group_id</tt> </tt>
+<a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line">            <tt class="py-name">set_edges_tmp</tt> <tt class="py-op">=</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">tuple</tt><tt class="py-op">(</tt><tt class="py-name">sorted</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">vid</tt><tt class="py-op">,</tt> <tt class="py-name">neighbor</tt><tt class="py-op">.</tt><tt class="py-name">index</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">neighbor</tt> <tt class="py-keyword">in</tt> <tt class="py-name">list_neighbors_all</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L267"></a><tt class="py-lineno">267</tt>  <tt class="py-line">            <tt class="py-name">edgelist</tt><tt class="py-op">.</tt><tt class="py-name">update</tt><tt class="py-op">(</tt><tt class="py-name">set_edges_tmp</tt><tt class="py-op">)</tt> </tt>
+<a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line">         </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line">            <tt class="py-comment"># Edges must be deleted only once for each partition.</tt> </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line">            <tt class="py-comment"># Deleting them one at a time is incredibly slow.</tt> </tt>
+<a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line">        <tt class="py-name">gg</tt><tt class="py-op">.</tt><tt class="py-name">delete_edges</tt><tt class="py-op">(</tt><tt class="py-name">edgelist</tt><tt class="py-op">)</tt> </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line">             </tt>
+<a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line">             </tt>
+<a name="L274"></a><tt class="py-lineno">274</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"gg.ecount(): "</tt><tt class="py-op">,</tt> <tt class="py-name">gg</tt><tt class="py-op">.</tt><tt class="py-name">ecount</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line"><tt class="py-comment">#         gg.delete_edges(edgelist)</tt> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line"><tt class="py-comment">#         list_singletons = [v.index for v in gg.vs if v.degree() == 0]</tt> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line"><tt class="py-comment">#         gg.delete_vertices(list_singletons)</tt> </tt>
+<a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line">        <tt class="py-comment">#gg.vs['color'] = [self.__get_color(v['group'])  for v in gg.vs]</tt> </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">edgelist</tt> </tt>
+</div><a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line"> </tt>
+<a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line">     </tt>
+<a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line">     </tt>
+<a name="Partitioner.__get_highest_degree_in_giant"></a><div id="Partitioner.__get_highest_degree_in_giant-def"><a name="L283"></a><tt class="py-lineno">283</tt> <a class="py-toggle" href="#" id="Partitioner.__get_highest_degree_in_giant-toggle" onclick="return toggle('Partitioner.__get_highest_degree_in_giant');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#__get_highest_degree_in_giant">__get_highest_degree_in_giant</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.__get_highest_degree_in_giant-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.__get_highest_degree_in_giant-expanded"><a name="L284"></a><tt class="py-lineno">284</tt>  <tt class="py-line">        <tt class="py-name">giant_component_id</tt> <tt class="py-op">=</tt> <tt class="py-name">sorted</tt><tt class="py-op">(</tt><tt class="py-name">list</tt><tt class="py-op">(</tt><tt class="py-name">enumerate</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">components</tt><tt class="py-op">.</tt><tt class="py-name">sizes</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">key</tt><tt class="py-op">=</tt><tt class="py-keyword">lambda</tt> <tt class="py-name">x</tt><tt class="py-op">:</tt><tt class="py-name">x</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt>\ </tt>
+<a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line">                                    <tt class="py-name">reverse</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line">        <tt class="py-name">giant_component_vids</tt> <tt class="py-op">=</tt>  <tt class="py-op">[</tt><tt class="py-name">vid</tt> <tt class="py-keyword">for</tt> <tt class="py-name">vid</tt><tt class="py-op">,</tt> <tt class="py-name">component_id</tt> <tt class="py-keyword">in</tt> <tt class="py-name">enumerate</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">components</tt><tt class="py-op">.</tt><tt class="py-name">membership</tt><tt class="py-op">)</tt> \ </tt>
+<a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line">                                 <tt class="py-keyword">if</tt> <tt class="py-name">component_id</tt> <tt class="py-op">==</tt> <tt class="py-name">giant_component_id</tt><tt class="py-op">]</tt> </tt>
+<a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line">        <tt class="py-name">giant_component_degrees</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">(</tt><tt class="py-name">vid</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-38', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-39', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-name">vid</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">degree</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">vid</tt> <tt class="py-keyword">in</tt> <tt class="py-name">giant_component_vids</tt><tt class="py-op">]</tt> </tt>
+<a name="L289"></a><tt class="py-lineno">289</tt>  <tt class="py-line">        <tt class="py-name">giant_component_degrees</tt><tt class="py-op">.</tt><tt class="py-name">sort</tt><tt class="py-op">(</tt><tt class="py-name">key</tt> <tt class="py-op">=</tt> <tt class="py-keyword">lambda</tt> <tt class="py-name">x</tt><tt class="py-op">:</tt><tt class="py-name">x</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">reverse</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line">         </tt>
+<a name="L291"></a><tt class="py-lineno">291</tt>  <tt class="py-line">        <tt class="py-name">vid_max</tt> <tt class="py-op">=</tt> <tt class="py-name">giant_component_degrees</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L292"></a><tt class="py-lineno">292</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-40" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-40', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-41', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-name">vid_max</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">'seed'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L293"></a><tt class="py-lineno">293</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">vid_max</tt> </tt>
+<a name="L294"></a><tt class="py-lineno">294</tt>  <tt class="py-line">         </tt>
+<a name="L295"></a><tt class="py-lineno">295</tt>  <tt class="py-line">        <tt class="py-comment"># Just return the first one</tt> </tt>
+<a name="L296"></a><tt class="py-lineno">296</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">giant_component_vids</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+</div><a name="L297"></a><tt class="py-lineno">297</tt>  <tt class="py-line"> </tt>
+<a name="L298"></a><tt class="py-lineno">298</tt>  <tt class="py-line"> </tt>
+<a name="Partitioner.get_start_id"></a><div id="Partitioner.get_start_id-def"><a name="L299"></a><tt class="py-lineno">299</tt> <a class="py-toggle" href="#" id="Partitioner.get_start_id-toggle" onclick="return toggle('Partitioner.get_start_id');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#get_start_id">get_start_id</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.get_start_id-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.get_start_id-expanded"><a name="L300"></a><tt class="py-lineno">300</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L301"></a><tt class="py-lineno">301</tt>  <tt class="py-line"><tt class="py-docstring">        Get the id of the higest-degree node in</tt> </tt>
+<a name="L302"></a><tt class="py-lineno">302</tt>  <tt class="py-line"><tt class="py-docstring">        the giant component.</tt> </tt>
+<a name="L303"></a><tt class="py-lineno">303</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L304"></a><tt class="py-lineno">304</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name" targets="Method disambiguation.core.Partitioner.Partitioner.__get_highest_degree_in_giant()=disambiguation.core.Partitioner.Partitioner-class.html#__get_highest_degree_in_giant"><a title="disambiguation.core.Partitioner.Partitioner.__get_highest_degree_in_giant" class="py-name" href="#" onclick="return doclink('link-42', '__get_highest_degree_in_giant', 'link-42');">__get_highest_degree_in_giant</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L305"></a><tt class="py-lineno">305</tt>  <tt class="py-line"> </tt>
+<a name="L306"></a><tt class="py-lineno">306</tt>  <tt class="py-line">     </tt>
+<a name="Partitioner.print_stats"></a><div id="Partitioner.print_stats-def"><a name="L307"></a><tt class="py-lineno">307</tt> <a class="py-toggle" href="#" id="Partitioner.print_stats-toggle" onclick="return toggle('Partitioner.print_stats');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#print_stats">print_stats</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.print_stats-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.print_stats-expanded"><a name="L308"></a><tt class="py-lineno">308</tt>  <tt class="py-line">        <tt class="py-comment"># Each element is the vids of the nodes relevant to</tt> </tt>
+<a name="L309"></a><tt class="py-lineno">309</tt>  <tt class="py-line">        <tt class="py-comment"># a partition</tt> </tt>
+<a name="L310"></a><tt class="py-lineno">310</tt>  <tt class="py-line">        <tt class="py-name">list_list_nodes</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">node</tt> <tt class="py-keyword">for</tt> <tt class="py-name">edge</tt> <tt class="py-keyword">in</tt> <tt class="py-name">edgelist</tt> <tt class="py-keyword">for</tt> <tt class="py-name">node</tt> <tt class="py-keyword">in</tt> <tt class="py-name">edge</tt><tt class="py-op">]</tt><tt class="py-op">)</tt>   <tt class="py-keyword">for</tt> <tt class="py-name">edgelist</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt><tt class="py-op">]</tt> </tt>
+<a name="L311"></a><tt class="py-lineno">311</tt>  <tt class="py-line">        <tt class="py-name">set_all_nodes</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-name">node</tt> <tt class="py-keyword">for</tt> <tt class="py-name">list_nodes</tt> <tt class="py-keyword">in</tt> <tt class="py-name">list_list_nodes</tt> <tt class="py-keyword">for</tt> <tt class="py-name">node</tt> <tt class="py-keyword">in</tt> <tt class="py-name">list_nodes</tt><tt class="py-op">}</tt> </tt>
+<a name="L312"></a><tt class="py-lineno">312</tt>  <tt class="py-line">        <tt class="py-name">list_vcounts</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">x</tt> <tt class="py-keyword">in</tt> <tt class="py-name">list_list_nodes</tt><tt class="py-op">]</tt> </tt>
+<a name="L313"></a><tt class="py-lineno">313</tt>  <tt class="py-line">        <tt class="py-name">list_ecounts</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">x</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt><tt class="py-op">]</tt> </tt>
+<a name="L314"></a><tt class="py-lineno">314</tt>  <tt class="py-line"> </tt>
+<a name="L315"></a><tt class="py-lineno">315</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">'list of all partition node counts: '</tt><tt class="py-op">,</tt> <tt class="py-name">list_vcounts</tt> </tt>
+<a name="L316"></a><tt class="py-lineno">316</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">'Total number of nodes in all partitions: '</tt><tt class="py-op">,</tt> <tt class="py-name">sum</tt><tt class="py-op">(</tt><tt class="py-name">list_vcounts</tt><tt class="py-op">)</tt> </tt>
+<a name="L317"></a><tt class="py-lineno">317</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">'Total number of unique nodes in all partitions: '</tt><tt class="py-op">,</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">set_all_nodes</tt><tt class="py-op">)</tt> </tt>
+<a name="L318"></a><tt class="py-lineno">318</tt>  <tt class="py-line">         </tt>
+<a name="L319"></a><tt class="py-lineno">319</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"list of all partition edge counts:"</tt><tt class="py-op">,</tt> <tt class="py-name">list_ecounts</tt> </tt>
+<a name="L320"></a><tt class="py-lineno">320</tt>  <tt class="py-line">        <tt class="py-name">set_all_edges</tt> <tt class="py-op">=</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">edge</tt> <tt class="py-keyword">for</tt> <tt class="py-name">edgelist</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt> <tt class="py-keyword">for</tt> <tt class="py-name">edge</tt> <tt class="py-keyword">in</tt> <tt class="py-name">edgelist</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L321"></a><tt class="py-lineno">321</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"Total number of edges in all partitions: "</tt><tt class="py-op">,</tt> <tt class="py-name">sum</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">x</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L322"></a><tt class="py-lineno">322</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"Total number of unique edges in all partitions: "</tt><tt class="py-op">,</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">set_all_edges</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L323"></a><tt class="py-lineno">323</tt>  <tt class="py-line">         </tt>
+<a name="Partitioner.plot"></a><div id="Partitioner.plot-def"><a name="L324"></a><tt class="py-lineno">324</tt> <a class="py-toggle" href="#" id="Partitioner.plot-toggle" onclick="return toggle('Partitioner.plot');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#plot">plot</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">filename</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.plot-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.plot-expanded"><a name="L325"></a><tt class="py-lineno">325</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L326"></a><tt class="py-lineno">326</tt>  <tt class="py-line">            <tt id="link-43" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-43', 'g', 'link-2');">g</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">g_backup</tt> </tt>
+<a name="L327"></a><tt class="py-lineno">327</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L328"></a><tt class="py-lineno">328</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"In order to plot the graph, you must backup self.g before partitioning."</tt> </tt>
+<a name="L329"></a><tt class="py-lineno">329</tt>  <tt class="py-line">        <tt class="py-name">list_edgelists</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt> </tt>
+<a name="L330"></a><tt class="py-lineno">330</tt>  <tt class="py-line">        <tt class="py-name">edgelist_group</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-name">edge</tt><tt class="py-op">:</tt> <tt class="py-name">i</tt> <tt class="py-keyword">for</tt> <tt class="py-name">i</tt><tt class="py-op">,</tt><tt class="py-name">tmp</tt> <tt class="py-keyword">in</tt> <tt class="py-name">enumerate</tt><tt class="py-op">(</tt><tt class="py-name">list_edgelists</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">edge</tt> <tt class="py-keyword">in</tt> <tt class="py-name">tmp</tt><tt class="py-op">}</tt> </tt>
+<a name="L331"></a><tt class="py-lineno">331</tt>  <tt class="py-line">        <tt class="py-name">edgelist</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">edge</tt> <tt class="py-keyword">for</tt> <tt class="py-name">tmp</tt> <tt class="py-keyword">in</tt> <tt class="py-name">list_edgelists</tt> <tt class="py-keyword">for</tt> <tt class="py-name">edge</tt> <tt class="py-keyword">in</tt> <tt class="py-name">tmp</tt><tt class="py-op">]</tt> </tt>
+<a name="L332"></a><tt class="py-lineno">332</tt>  <tt class="py-line">         </tt>
+<a name="L333"></a><tt class="py-lineno">333</tt>  <tt class="py-line">        <tt id="link-44" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-44', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt class="py-name">es</tt><tt class="py-op">[</tt><tt class="py-string">'color'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">'gray'</tt> </tt>
+<a name="L334"></a><tt class="py-lineno">334</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">edge</tt> <tt class="py-keyword">in</tt> <tt class="py-name">edgelist</tt><tt class="py-op">:</tt> </tt>
+<a name="L335"></a><tt class="py-lineno">335</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L336"></a><tt class="py-lineno">336</tt>  <tt class="py-line">                <tt class="py-name">e</tt> <tt class="py-op">=</tt> <tt id="link-45" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-45', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt class="py-name">es</tt><tt class="py-op">.</tt><tt class="py-name">find</tt><tt class="py-op">(</tt><tt class="py-name">_between</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">edge</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-name">edge</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L337"></a><tt class="py-lineno">337</tt>  <tt class="py-line">                <tt class="py-name">e</tt><tt class="py-op">[</tt><tt class="py-string">'color'</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">edgelist_group</tt><tt class="py-op">[</tt><tt class="py-name">edge</tt><tt class="py-op">]</tt> </tt>
+<a name="L338"></a><tt class="py-lineno">338</tt>  <tt class="py-line"> </tt>
+<a name="L339"></a><tt class="py-lineno">339</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">Exception</tt> <tt class="py-keyword">as</tt> <tt class="py-name">error</tt><tt class="py-op">:</tt> </tt>
+<a name="L340"></a><tt class="py-lineno">340</tt>  <tt class="py-line">                <tt class="py-keyword">print</tt> <tt class="py-name">error</tt><tt class="py-op">,</tt> <tt class="py-name">edge</tt> </tt>
+<a name="L341"></a><tt class="py-lineno">341</tt>  <tt class="py-line"> </tt>
+<a name="L342"></a><tt class="py-lineno">342</tt>  <tt class="py-line">         </tt>
+<a name="L343"></a><tt class="py-lineno">343</tt>  <tt class="py-line"><tt class="py-comment">#         g_tmp = ig.Graph.TupleList(edgelist)</tt> </tt>
+<a name="L344"></a><tt class="py-lineno">344</tt>  <tt class="py-line"><tt class="py-comment">#         edgecolors = [x[1] for x in edgelist_group]</tt> </tt>
+<a name="L345"></a><tt class="py-lineno">345</tt>  <tt class="py-line"><tt class="py-comment">#         g_tmp.es['color'] = edgecolors</tt> </tt>
+<a name="L346"></a><tt class="py-lineno">346</tt>  <tt class="py-line">        <tt class="py-name">n_partitions</tt> <tt class="py-op">=</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt><tt class="py-op">)</tt> </tt>
+<a name="L347"></a><tt class="py-lineno">347</tt>  <tt class="py-line">        <tt class="py-name">ig</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name" targets="Method disambiguation.core.Partitioner.Partitioner.plot()=disambiguation.core.Partitioner.Partitioner-class.html#plot"><a title="disambiguation.core.Partitioner.Partitioner.plot" class="py-name" href="#" onclick="return doclink('link-46', 'plot', 'link-46');">plot</a></tt><tt class="py-op">(</tt><tt id="link-47" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-47', 'g', 'link-2');">g</a></tt><tt class="py-op">,</tt> <tt id="link-48" class="py-name" targets="Variable disambiguation.data.disp.filename=disambiguation.data.disp-module.html#filename"><a title="disambiguation.data.disp.filename" class="py-name" href="#" onclick="return doclink('link-48', 'filename', 'link-48');">filename</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L348"></a><tt class="py-lineno">348</tt>  <tt class="py-line">            <tt class="py-name">vertex_size</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-number">14</tt> <tt class="py-keyword">if</tt> <tt id="link-49" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-49', 'v', 'link-30');">v</a></tt><tt class="py-op">[</tt><tt class="py-string">'seed'</tt><tt class="py-op">]</tt> <tt class="py-keyword">else</tt> <tt class="py-number">4</tt> <tt class="py-keyword">for</tt> <tt id="link-50" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-50', 'v', 'link-30');">v</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-51', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-52', 'vs', 'link-11');">vs</a></tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L349"></a><tt class="py-lineno">349</tt>  <tt class="py-line">            <tt class="py-name">vertex_color</tt> <tt class="py-op">=</tt> <tt class="py-string">'#000000'</tt><tt class="py-op">,</tt> </tt>
+<a name="L350"></a><tt class="py-lineno">350</tt>  <tt class="py-line">            <tt class="py-name">edge_color</tt> <tt class="py-op">=</tt> <tt id="link-53" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-53', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt class="py-name">es</tt><tt class="py-op">[</tt><tt class="py-string">'color'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L351"></a><tt class="py-lineno">351</tt>  <tt class="py-line">            <tt class="py-name">edge_width</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt> </tt>
+<a name="L352"></a><tt class="py-lineno">352</tt>  <tt class="py-line">            <tt class="py-name">palette</tt> <tt class="py-op">=</tt> <tt class="py-name">nt</tt><tt class="py-op">.</tt><tt id="link-54" class="py-name" targets="Class disambiguation.core.mypalettes.mplPalette=disambiguation.core.mypalettes.mplPalette-class.html"><a title="disambiguation.core.mypalettes.mplPalette" class="py-name" href="#" onclick="return doclink('link-54', 'mplPalette', 'link-54');">mplPalette</a></tt><tt class="py-op">(</tt><tt class="py-name">n_partitions</tt><tt class="py-op">,</tt> <tt class="py-string">'hsv'</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L353"></a><tt class="py-lineno">353</tt>  <tt class="py-line"><tt class="py-comment">#             vertex_label = [str(v.index) for v in g.vs],</tt> </tt>
+<a name="L354"></a><tt class="py-lineno">354</tt>  <tt class="py-line">            <tt class="py-name">vertex_label_dist</tt> <tt class="py-op">=</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> </tt>
+<a name="L355"></a><tt class="py-lineno">355</tt>  <tt class="py-line">            <tt class="py-name">layout</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-55" class="py-name"><a title="disambiguation.graph_visualize.mylayout
+disambiguation.graph_visualize_Modern_employers.mylayout
+disambiguation.graph_visualize_newyork_occupations.mylayout" class="py-name" href="#" onclick="return doclink('link-55', 'mylayout', 'link-4');">mylayout</a></tt> </tt>
+<a name="L356"></a><tt class="py-lineno">356</tt>  <tt class="py-line">        <tt class="py-op">)</tt> </tt>
+</div><a name="L357"></a><tt class="py-lineno">357</tt>  <tt class="py-line">         </tt>
+<a name="Partitioner.plot_g"></a><div id="Partitioner.plot_g-def"><a name="L358"></a><tt class="py-lineno">358</tt> <a class="py-toggle" href="#" id="Partitioner.plot_g-toggle" onclick="return toggle('Partitioner.plot_g');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#plot_g">plot_g</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">filename</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.plot_g-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.plot_g-expanded"><a name="L359"></a><tt class="py-lineno">359</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L360"></a><tt class="py-lineno">360</tt>  <tt class="py-line"><tt class="py-docstring">        Plot the original graph.</tt> </tt>
+<a name="L361"></a><tt class="py-lineno">361</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L362"></a><tt class="py-lineno">362</tt>  <tt class="py-line">        <tt id="link-56" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-56', 'g', 'link-2');">g</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">g_backup</tt> </tt>
+<a name="L363"></a><tt class="py-lineno">363</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-57" class="py-name" targets="Method disambiguation.core.Partitioner.Partitioner.compute_layout()=disambiguation.core.Partitioner.Partitioner-class.html#compute_layout"><a title="disambiguation.core.Partitioner.Partitioner.compute_layout" class="py-name" href="#" onclick="return doclink('link-57', 'compute_layout', 'link-57');">compute_layout</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L364"></a><tt class="py-lineno">364</tt>  <tt class="py-line">        <tt class="py-name">ig</tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="disambiguation.core.Partitioner.Partitioner.plot" class="py-name" href="#" onclick="return doclink('link-58', 'plot', 'link-46');">plot</a></tt><tt class="py-op">(</tt><tt id="link-59" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-59', 'g', 'link-2');">g</a></tt><tt class="py-op">,</tt> <tt id="link-60" class="py-name"><a title="disambiguation.data.disp.filename" class="py-name" href="#" onclick="return doclink('link-60', 'filename', 'link-48');">filename</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L365"></a><tt class="py-lineno">365</tt>  <tt class="py-line">            <tt class="py-name">vertex_size</tt> <tt class="py-op">=</tt> <tt class="py-number">4</tt><tt class="py-op">,</tt> </tt>
+<a name="L366"></a><tt class="py-lineno">366</tt>  <tt class="py-line">            <tt class="py-name">vertex_color</tt> <tt class="py-op">=</tt> <tt class="py-string">'#000000'</tt><tt class="py-op">,</tt> </tt>
+<a name="L367"></a><tt class="py-lineno">367</tt>  <tt class="py-line">            <tt class="py-name">edge_color</tt> <tt class="py-op">=</tt> <tt class="py-string">'gray'</tt><tt class="py-op">,</tt> </tt>
+<a name="L368"></a><tt class="py-lineno">368</tt>  <tt class="py-line">            <tt class="py-name">edge_width</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt> </tt>
+<a name="L369"></a><tt class="py-lineno">369</tt>  <tt class="py-line"><tt class="py-comment">#             palette = nt.mplPalette(n_partitions, 'hsv'),</tt> </tt>
+<a name="L370"></a><tt class="py-lineno">370</tt>  <tt class="py-line">            <tt class="py-name">vertex_label</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt id="link-61" class="py-name" targets="Class str=str-class.html"><a title="str" class="py-name" href="#" onclick="return doclink('link-61', 'str', 'link-61');">str</a></tt><tt class="py-op">(</tt><tt id="link-62" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-62', 'v', 'link-30');">v</a></tt><tt class="py-op">.</tt><tt class="py-name">index</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt id="link-63" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-63', 'v', 'link-30');">v</a></tt> <tt class="py-keyword">in</tt> <tt id="link-64" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-64', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt id="link-65" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-65', 'vs', 'link-11');">vs</a></tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L371"></a><tt class="py-lineno">371</tt>  <tt class="py-line">            <tt class="py-name">vertex_label_dist</tt> <tt class="py-op">=</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> </tt>
+<a name="L372"></a><tt class="py-lineno">372</tt>  <tt class="py-line">            <tt class="py-name">layout</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-66" class="py-name"><a title="disambiguation.graph_visualize.mylayout
+disambiguation.graph_visualize_Modern_employers.mylayout
+disambiguation.graph_visualize_newyork_occupations.mylayout" class="py-name" href="#" onclick="return doclink('link-66', 'mylayout', 'link-4');">mylayout</a></tt> </tt>
+<a name="L373"></a><tt class="py-lineno">373</tt>  <tt class="py-line">        <tt class="py-op">)</tt> </tt>
+</div><a name="L374"></a><tt class="py-lineno">374</tt>  <tt class="py-line">     </tt>
+<a name="L375"></a><tt class="py-lineno">375</tt>  <tt class="py-line">      </tt>
+<a name="Partitioner.get_named_edgelist"></a><div id="Partitioner.get_named_edgelist-def"><a name="L376"></a><tt class="py-lineno">376</tt> <a class="py-toggle" href="#" id="Partitioner.get_named_edgelist-toggle" onclick="return toggle('Partitioner.get_named_edgelist');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.Partitioner.Partitioner-class.html#get_named_edgelist">get_named_edgelist</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">partition_number</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Partitioner.get_named_edgelist-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Partitioner.get_named_edgelist-expanded"><a name="L377"></a><tt class="py-lineno">377</tt>  <tt class="py-line">        <tt class="py-docstring">''' Genereator'''</tt> </tt>
+<a name="L378"></a><tt class="py-lineno">378</tt>  <tt class="py-line"><tt class="py-comment">#         for edgelist in self.list_edgelists:</tt> </tt>
+<a name="L379"></a><tt class="py-lineno">379</tt>  <tt class="py-line">        <tt class="py-name">edgelist</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">list_edgelists</tt><tt class="py-op">[</tt><tt class="py-name">partition_number</tt><tt class="py-op">]</tt> </tt>
+<a name="L380"></a><tt class="py-lineno">380</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">edge</tt> <tt class="py-keyword">in</tt> <tt class="py-name">edgelist</tt><tt class="py-op">:</tt> </tt>
+<a name="L381"></a><tt class="py-lineno">381</tt>  <tt class="py-line">            <tt class="py-name">vid1</tt><tt class="py-op">,</tt> <tt class="py-name">vid2</tt> <tt class="py-op">=</tt> <tt class="py-name">edge</tt> </tt>
+<a name="L382"></a><tt class="py-lineno">382</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-67" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-67', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt id="link-68" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-68', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-name">vid1</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">'name'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="disambiguation.graph_visualize.g
+disambiguation.graph_visualize_Modern_employers.g
+disambiguation.graph_visualize_newyork_occupations.g" class="py-name" href="#" onclick="return doclink('link-69', 'g', 'link-2');">g</a></tt><tt class="py-op">.</tt><tt id="link-70" class="py-name"><a title="disambiguation.graph_visualize.vs
+disambiguation.graph_visualize_Modern_employers.vs
+disambiguation.graph_visualize_newyork_occupations.vs" class="py-name" href="#" onclick="return doclink('link-70', 'vs', 'link-11');">vs</a></tt><tt class="py-op">[</tt><tt class="py-name">vid2</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">'name'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L383"></a><tt class="py-lineno">383</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:25 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

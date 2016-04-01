@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.Tokenizer.TokenizerNgram</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        <a href="disambiguation.core.Tokenizer-module.html">Module&nbsp;Tokenizer</a> ::
+        Class&nbsp;TokenizerNgram
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class TokenizerNgram</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+<a href="disambiguation.core.Tokenizer.Tokenizer-class.html">Tokenizer</a> --+
+            |
+           <strong class="uidshort">TokenizerNgram</strong>
+</pre>
+
+<hr />
+<p>Subclass of Tokenizer that implements different tokenizer functions 
+  for FIRST_NAME,LAST_NAME,etc.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.TokenizerNgram-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ngrams"></a><span class="summary-sig-name">ngrams</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">sentence</span>,
+        <span class="summary-sig-arg">n</span>)</span><br />
+      split string into tokens and then extract all ngrams in all tokens.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram.ngrams">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.TokenizerNgram-class.html#_get_tokens_NAME" class="summary-sig-name" onclick="show_private();">_get_tokens_NAME</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span><br />
+      Override: here, tokenz are ngrams.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._get_tokens_NAME">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.TokenizerNgram-class.html#_normalize_STREET" class="summary-sig-name" onclick="show_private();">_normalize_STREET</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._normalize_STREET">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.TokenizerNgram-class.html#_get_tokens_FIRST_NAME" class="summary-sig-name" onclick="show_private();">_get_tokens_FIRST_NAME</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._get_tokens_FIRST_NAME">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.TokenizerNgram-class.html#_get_tokens_LAST_NAME" class="summary-sig-name" onclick="show_private();">_get_tokens_LAST_NAME</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._get_tokens_LAST_NAME">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.TokenizerNgram-class.html#_get_tokens_ZIP" class="summary-sig-name" onclick="show_private();">_get_tokens_ZIP</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._get_tokens_ZIP">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.TokenizerNgram-class.html#_get_tokens_STREET" class="summary-sig-name" onclick="show_private();">_get_tokens_STREET</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._get_tokens_STREET">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html">Tokenizer</a></code></b>:
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#getRecords">getRecords</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#load_from_file">load_from_file</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#setRecords">setRecords</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#setTokenizedFields">setTokenizedFields</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#tokenize">tokenize</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#update_normalized_token_counts">update_normalized_token_counts</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html">Tokenizer</a></code></b> (private):
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_get_tokens" onclick="show_private();">_get_tokens</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_get_tokens_EMPLOYER" onclick="show_private();">_get_tokens_EMPLOYER</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_get_tokens_OCCUPATION" onclick="show_private();">_get_tokens_OCCUPATION</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_EMPLOYER" onclick="show_private();">_normalize_EMPLOYER</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_FIRST_NAME" onclick="show_private();">_normalize_FIRST_NAME</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_LAST_NAME" onclick="show_private();">_normalize_LAST_NAME</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_NAME" onclick="show_private();">_normalize_NAME</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_NAME_old" onclick="show_private();">_normalize_NAME_old</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_NAME_v12" onclick="show_private();">_normalize_NAME_v12</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_OCCUPATION" onclick="show_private();">_normalize_OCCUPATION</a></code>,
+      <code><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_ZIP" onclick="show_private();">_normalize_ZIP</a></code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Tokenizer.Tokenizer-class.html#__init__">Tokenizer.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_get_tokens_NAME"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_get_tokens_NAME</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">record</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._get_tokens_NAME">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Override: here, tokenz are ngrams. NOTE: with the new name normalizer,
+  each of the following are a single string: N_last_name, 
+  N_first_name,N_middle_name.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_get_tokens_NAME" onclick="show_private();">Tokenizer._get_tokens_NAME</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_normalize_STREET"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_normalize_STREET</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">record</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._normalize_STREET">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_STREET" onclick="show_private();">Tokenizer._normalize_STREET</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_get_tokens_FIRST_NAME"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_get_tokens_FIRST_NAME</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">record</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._get_tokens_FIRST_NAME">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_get_tokens_FIRST_NAME" onclick="show_private();">Tokenizer._get_tokens_FIRST_NAME</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_get_tokens_LAST_NAME"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_get_tokens_LAST_NAME</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">record</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._get_tokens_LAST_NAME">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_get_tokens_LAST_NAME" onclick="show_private();">Tokenizer._get_tokens_LAST_NAME</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_get_tokens_ZIP"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_get_tokens_ZIP</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">record</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._get_tokens_ZIP">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_get_tokens_ZIP" onclick="show_private();">Tokenizer._get_tokens_ZIP</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="_get_tokens_STREET"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_get_tokens_STREET</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">record</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#TokenizerNgram._get_tokens_STREET">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_get_tokens_STREET" onclick="show_private();">Tokenizer._get_tokens_STREET</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:25 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

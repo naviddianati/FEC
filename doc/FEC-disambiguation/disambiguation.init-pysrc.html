@@ -1,0 +1,734 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.init</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        Module&nbsp;init
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="disambiguation.init-module.html">Module disambiguation.init</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-docstring">'''</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-docstring">This module contains methods that prepare data and export intermediate computation results to files.</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-docstring">If all methods in this module are run once successfully, the following data files will exist in the</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-docstring">relevant paths and will be available to disambiguation methods:</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-docstring">    - tokendata files for each state, both using Tokenizer and TokenizerNgram tokenization schemes.</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-docstring">    - feature vector files for each state both using Tokenizer and TokenizerNgram tokenization schemes.</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-docstring">    - LHS hash files for each state both using Tokenizer and TokenizerNgram tokenization schemes.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-docstring">    - combined (national, "USA") tokendata file derived from Tokenizer (coarse) results.</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-docstring">    - combined (national, "USA") feature vector file derived from Tokenizer (coarse) results.</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-docstring">    - combined (national, "USA") hash file derived from Tokenizer (coarse) results.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-docstring">    1. For fine-grained intra-state disambiguation:</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-docstring">        - Tokenize and compute vectors for every state using TokenizerNgram.</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-docstring">        - Compute hashes from the vectors computed above.</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-docstring">    2. For coarse-grained nationwide disambiguation:</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-docstring">        - Tokenize and compute vectors for every state using Tokenizer.</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-docstring">        - Combine Tokenizer tokendata into the "USA" files and update the vectors.</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">        - Compute coarse national hashes from the vectors computed above.</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">'''</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package disambiguation.core=disambiguation.core-module.html"><a title="disambiguation.core" class="py-name" href="#" onclick="return doclink('link-0', 'core', 'link-0');">core</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Module disambiguation.core.utils=disambiguation.core.utils-module.html"><a title="disambiguation.core.utils" class="py-name" href="#" onclick="return doclink('link-1', 'utils', 'link-1');">utils</a></tt> <tt class="py-keyword">import</tt> <tt class="py-op">*</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-2" class="py-name"><a title="disambiguation.core" class="py-name" href="#" onclick="return doclink('link-2', 'core', 'link-0');">core</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Module disambiguation.core.Project=disambiguation.core.Project-module.html,Class disambiguation.core.Project.Project=disambiguation.core.Project.Project-class.html"><a title="disambiguation.core.Project
+disambiguation.core.Project.Project" class="py-name" href="#" onclick="return doclink('link-3', 'Project', 'link-3');">Project</a></tt> <tt class="py-keyword">as</tt> <tt id="link-4" class="py-name"><a title="disambiguation.core.Project
+disambiguation.core.Project.Project" class="py-name" href="#" onclick="return doclink('link-4', 'Project', 'link-3');">Project</a></tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Package disambiguation=disambiguation-module.html"><a title="disambiguation" class="py-name" href="#" onclick="return doclink('link-5', 'disambiguation', 'link-5');">disambiguation</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Module disambiguation.config=disambiguation.config-module.html"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-6', 'config', 'link-6');">config</a></tt> <tt class="py-keyword">as</tt> <tt id="link-7" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-7', 'config', 'link-6');">config</a></tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-8" class="py-name"><a title="disambiguation.core" class="py-name" href="#" onclick="return doclink('link-8', 'core', 'link-0');">core</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Module disambiguation.core.Database=disambiguation.core.Database-module.html"><a title="disambiguation.core.Database" class="py-name" href="#" onclick="return doclink('link-9', 'Database', 'link-9');">Database</a></tt> <tt class="py-keyword">import</tt> <tt id="link-10" class="py-name" targets="Class disambiguation.core.Database.FecRetriever=disambiguation.core.Database.FecRetriever-class.html"><a title="disambiguation.core.Database.FecRetriever" class="py-name" href="#" onclick="return doclink('link-10', 'FecRetriever', 'link-10');">FecRetriever</a></tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-11" class="py-name"><a title="disambiguation.core" class="py-name" href="#" onclick="return doclink('link-11', 'core', 'link-0');">core</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Module disambiguation.core.Disambiguator=disambiguation.core.Disambiguator-module.html,Class disambiguation.core.Disambiguator.Disambiguator=disambiguation.core.Disambiguator.Disambiguator-class.html"><a title="disambiguation.core.Disambiguator
+disambiguation.core.Disambiguator.Disambiguator" class="py-name" href="#" onclick="return doclink('link-12', 'Disambiguator', 'link-12');">Disambiguator</a></tt> <tt class="py-keyword">as</tt> <tt id="link-13" class="py-name"><a title="disambiguation.core.Disambiguator
+disambiguation.core.Disambiguator.Disambiguator" class="py-name" href="#" onclick="return doclink('link-13', 'Disambiguator', 'link-12');">Disambiguator</a></tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-14" class="py-name"><a title="disambiguation.core" class="py-name" href="#" onclick="return doclink('link-14', 'core', 'link-0');">core</a></tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Module disambiguation.core.Tokenizer=disambiguation.core.Tokenizer-module.html,Class disambiguation.core.Tokenizer.Tokenizer=disambiguation.core.Tokenizer.Tokenizer-class.html"><a title="disambiguation.core.Tokenizer
+disambiguation.core.Tokenizer.Tokenizer" class="py-name" href="#" onclick="return doclink('link-15', 'Tokenizer', 'link-15');">Tokenizer</a></tt> <tt class="py-keyword">import</tt> <tt id="link-16" class="py-name"><a title="disambiguation.core.Tokenizer
+disambiguation.core.Tokenizer.Tokenizer" class="py-name" href="#" onclick="return doclink('link-16', 'Tokenizer', 'link-15');">Tokenizer</a></tt><tt class="py-op">,</tt> <tt id="link-17" class="py-name" targets="Class disambiguation.core.Tokenizer.TokenizerNgram=disambiguation.core.Tokenizer.TokenizerNgram-class.html"><a title="disambiguation.core.Tokenizer.TokenizerNgram" class="py-name" href="#" onclick="return doclink('link-17', 'TokenizerNgram', 'link-17');">TokenizerNgram</a></tt><tt class="py-op">,</tt> <tt id="link-18" class="py-name" targets="Class disambiguation.core.Tokenizer.TokenData=disambiguation.core.Tokenizer.TokenData-class.html"><a title="disambiguation.core.Tokenizer.TokenData" class="py-name" href="#" onclick="return doclink('link-18', 'TokenData', 'link-18');">TokenData</a></tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-19" class="py-name"><a title="disambiguation.core" class="py-name" href="#" onclick="return doclink('link-19', 'core', 'link-0');">core</a></tt><tt class="py-op">.</tt><tt id="link-20" class="py-name" targets="Variable disambiguation.core.address.AddressParser.states=disambiguation.core.address.AddressParser-class.html#states,Module disambiguation.core.states=disambiguation.core.states-module.html"><a title="disambiguation.core.address.AddressParser.states
+disambiguation.core.states" class="py-name" href="#" onclick="return doclink('link-20', 'states', 'link-20');">states</a></tt> <tt class="py-keyword">import</tt> <tt class="py-op">*</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"> </tt>
+<a name="tokenize_records"></a><div id="tokenize_records-def"><a name="L34"></a><tt class="py-lineno"> 34</tt> <a class="py-toggle" href="#" id="tokenize_records-toggle" onclick="return toggle('tokenize_records');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.init-module.html#tokenize_records">tokenize_records</a><tt class="py-op">(</tt><tt class="py-param">list_of_records</tt><tt class="py-op">,</tt> <tt class="py-param">project</tt><tt class="py-op">,</tt> <tt class="py-param">TokenizerClass</tt><tt class="py-op">,</tt> <tt class="py-param">tokenize_kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="tokenize_records-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="tokenize_records-expanded"><a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-docstring">    Return a TokenDadta object for L{list_of_records}, and update each</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-docstring">    record in L{list_of_records} by adding to it a vector attribute and</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-docstring">    associating the TokenData instance to the record. If a file</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-docstring">    containing the pickled TokenData instance already exists, load it.</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-docstring">    Also, make sure that the vectors are available in a file for later</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-docstring">    use. If either file doesn't exist, start a new TokenizerClass instance</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-docstring">    and compute and export both. At the end of this function, both the</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-docstring">    tokendata and the vectors will exist in pickled format in files.</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-docstring">    @param TokenizerClass: The Tokenizer class used. It can be</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-docstring">        TokenizerNgram, Tokenizer, etc.</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">    @param tokenize_kwargs: a dict that will be used as the kwargs for the</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">    tokenize() method. Here are the possible keywords:</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword num_procs: number of processes to use.</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword export_vectors: whether to export the feature vectors to file.</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword export_normalized_attributes: whether to export normalized </tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring">    attributes to file.</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword export_tokendata: whether to export tokendata to file.</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">    <tt class="py-name">tokendata_file</tt> <tt class="py-op">=</tt> <tt id="link-21" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-21', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name" targets="Variable disambiguation.config.tokendata_file_template=disambiguation.config-module.html#tokendata_file_template"><a title="disambiguation.config.tokendata_file_template" class="py-name" href="#" onclick="return doclink('link-22', 'tokendata_file_template', 'link-22');">tokendata_file_template</a></tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">project</tt><tt class="py-op">[</tt><tt class="py-string">'state'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">TokenizerClass</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">)</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">    <tt class="py-name">vectors_file</tt> <tt class="py-op">=</tt> <tt id="link-23" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-23', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-24" class="py-name" targets="Variable disambiguation.config.vectors_file_template=disambiguation.config-module.html#vectors_file_template"><a title="disambiguation.config.vectors_file_template" class="py-name" href="#" onclick="return doclink('link-24', 'vectors_file_template', 'link-24');">vectors_file_template</a></tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">project</tt><tt class="py-op">[</tt><tt class="py-string">'state'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">TokenizerClass</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">)</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">    <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt> <tt class="py-op">=</tt> <tt class="py-name">TokenizerClass</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-number">1</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">        <tt class="py-name">project</tt><tt class="py-op">.</tt><tt class="py-name">tokenizer</tt> <tt class="py-op">=</tt> <tt class="py-name">tokenizer</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-number">2</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt class="py-name">project</tt> <tt class="py-op">=</tt> <tt class="py-name">project</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-number">3</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name" targets="Method disambiguation.core.Tokenizer.Tokenizer.setRecords()=disambiguation.core.Tokenizer.Tokenizer-class.html#setRecords"><a title="disambiguation.core.Tokenizer.Tokenizer.setRecords" class="py-name" href="#" onclick="return doclink('link-25', 'setRecords', 'link-25');">setRecords</a></tt><tt class="py-op">(</tt><tt class="py-name">list_of_records</tt><tt class="py-op">)</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-number">4</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name" targets="Method disambiguation.core.Tokenizer.Tokenizer.setTokenizedFields()=disambiguation.core.Tokenizer.Tokenizer-class.html#setTokenizedFields"><a title="disambiguation.core.Tokenizer.Tokenizer.setTokenizedFields" class="py-name" href="#" onclick="return doclink('link-26', 'setTokenizedFields', 'link-26');">setTokenizedFields</a></tt><tt class="py-op">(</tt><tt class="py-name">project</tt><tt class="py-op">[</tt><tt class="py-string">'list_tokenized_fields'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-number">5</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Method disambiguation.core.Tokenizer.Tokenizer.load_from_file()=disambiguation.core.Tokenizer.Tokenizer-class.html#load_from_file"><a title="disambiguation.core.Tokenizer.Tokenizer.load_from_file" class="py-name" href="#" onclick="return doclink('link-27', 'load_from_file', 'link-27');">load_from_file</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-number">6</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">        <tt class="py-comment"># Just make sure the vectors are also there.</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">stat</tt><tt class="py-op">(</tt><tt class="py-name">vectors_file</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">st_size</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">Exception</tt><tt class="py-op">(</tt><tt class="py-string">"vectors file not found."</tt><tt class="py-op">)</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">        <tt class="py-name">list_of_records</tt> <tt class="py-op">=</tt> <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name" targets="Method disambiguation.core.Database.FecRetriever.getRecords()=disambiguation.core.Database.FecRetriever-class.html#getRecords,Method disambiguation.core.Database.FecRetrieverByID.getRecords()=disambiguation.core.Database.FecRetrieverByID-class.html#getRecords,Method disambiguation.core.Tokenizer.Tokenizer.getRecords()=disambiguation.core.Tokenizer.Tokenizer-class.html#getRecords"><a title="disambiguation.core.Database.FecRetriever.getRecords
+disambiguation.core.Database.FecRetrieverByID.getRecords
+disambiguation.core.Tokenizer.Tokenizer.getRecords" class="py-name" href="#" onclick="return doclink('link-28', 'getRecords', 'link-28');">getRecords</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">    <tt class="py-keyword">except</tt> <tt class="py-name">Exception</tt> <tt class="py-keyword">as</tt> <tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"error occurred"</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt id="link-29" class="py-name" targets="Class str=str-class.html"><a title="str" class="py-name" href="#" onclick="return doclink('link-29', 'str', 'link-29');">str</a></tt><tt class="py-op">(</tt><tt class="py-name">e</tt><tt class="py-op">)</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt> <tt class="py-op">=</tt> <tt class="py-name">TokenizerClass</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">        <tt class="py-name">project</tt><tt class="py-op">.</tt><tt class="py-name">tokenizer</tt> <tt class="py-op">=</tt> <tt class="py-name">tokenizer</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt class="py-name">project</tt> <tt class="py-op">=</tt> <tt class="py-name">project</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="disambiguation.core.Tokenizer.Tokenizer.setRecords" class="py-name" href="#" onclick="return doclink('link-30', 'setRecords', 'link-25');">setRecords</a></tt><tt class="py-op">(</tt><tt class="py-name">list_of_records</tt><tt class="py-op">)</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="disambiguation.core.Tokenizer.Tokenizer.setTokenizedFields" class="py-name" href="#" onclick="return doclink('link-31', 'setTokenizedFields', 'link-26');">setTokenizedFields</a></tt><tt class="py-op">(</tt><tt class="py-name">project</tt><tt class="py-op">[</tt><tt class="py-string">'list_tokenized_fields'</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"project['list_tokenized_fields']: "</tt><tt class="py-op">,</tt> <tt class="py-name">project</tt><tt class="py-op">[</tt><tt class="py-string">'list_tokenized_fields'</tt><tt class="py-op">]</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"tokenizer.list_tokenized_fields: "</tt><tt class="py-op">,</tt> <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt class="py-name">list_tokenized_fields</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"Tokenizing records..."</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name" targets="Method disambiguation.core.Tokenizer.Tokenizer.tokenize()=disambiguation.core.Tokenizer.Tokenizer-class.html#tokenize"><a title="disambiguation.core.Tokenizer.Tokenizer.tokenize" class="py-name" href="#" onclick="return doclink('link-32', 'tokenize', 'link-32');">tokenize</a></tt><tt class="py-op">(</tt><tt class="py-op">**</tt><tt class="py-name">tokenize_kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"Saving token data to file..."</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">        <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name" targets="Variable DNC_matching.tokens=DNC_matching-module.html#tokens"><a title="DNC_matching.tokens" class="py-name" href="#" onclick="return doclink('link-33', 'tokens', 'link-33');">tokens</a></tt><tt class="py-op">.</tt><tt id="link-34" class="py-name" targets="Method disambiguation.core.Tokenizer.TokenData.save_to_file()=disambiguation.core.Tokenizer.TokenData-class.html#save_to_file"><a title="disambiguation.core.Tokenizer.TokenData.save_to_file" class="py-name" href="#" onclick="return doclink('link-34', 'save_to_file', 'link-34');">save_to_file</a></tt><tt class="py-op">(</tt><tt class="py-name">tokendata_file</tt><tt class="py-op">)</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-name">list_of_records</tt> <tt class="py-op">=</tt> <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="disambiguation.core.Database.FecRetriever.getRecords
+disambiguation.core.Database.FecRetrieverByID.getRecords
+disambiguation.core.Tokenizer.Tokenizer.getRecords" class="py-name" href="#" onclick="return doclink('link-35', 'getRecords', 'link-28');">getRecords</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">tokenizer</tt><tt class="py-op">,</tt> <tt class="py-name">list_of_records</tt> </tt>
+</div><a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"> </tt>
+<a name="INIT_compute_national_hashes"></a><div id="INIT_compute_national_hashes-def"><a name="L104"></a><tt class="py-lineno">104</tt> <a class="py-toggle" href="#" id="INIT_compute_national_hashes-toggle" onclick="return toggle('INIT_compute_national_hashes');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.init-module.html#INIT_compute_national_hashes">INIT_compute_national_hashes</a><tt class="py-op">(</tt><tt class="py-param">num_procs</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="INIT_compute_national_hashes-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="INIT_compute_national_hashes-expanded"><a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line"><tt class="py-docstring">    From the combined national vector and tokendata files, compute</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"><tt class="py-docstring">    LSH hashes and export to "USA" hash file. Use coarse feature</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"><tt class="py-docstring">    vectors for this purpose. That is, take words as tokens not</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"><tt class="py-docstring">    unigrams and bigrams. The goal is to be able to quickly and</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line"><tt class="py-docstring">    easily detect identical names, employers, etc. across different states.</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">    <tt class="py-name">project</tt> <tt class="py-op">=</tt> <tt id="link-36" class="py-name"><a title="disambiguation.core.Project
+disambiguation.core.Project.Project" class="py-name" href="#" onclick="return doclink('link-36', 'Project', 'link-3');">Project</a></tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="disambiguation.core.Project
+disambiguation.core.Project.Project" class="py-name" href="#" onclick="return doclink('link-37', 'Project', 'link-3');">Project</a></tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name" targets="Method disambiguation.core.Project.Project.putData()=disambiguation.core.Project.Project-class.html#putData"><a title="disambiguation.core.Project.Project.putData" class="py-name" href="#" onclick="return doclink('link-38', 'putData', 'link-38');">putData</a></tt><tt class="py-op">(</tt><tt class="py-string">'state'</tt> <tt class="py-op">,</tt> <tt class="py-string">'USA'</tt><tt class="py-op">)</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">    <tt class="py-name">filelabel</tt> <tt class="py-op">=</tt> <tt class="py-string">"USA"</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">    <tt class="py-name">file_tokens</tt> <tt class="py-op">=</tt> <tt id="link-39" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-39', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-40" class="py-name"><a title="disambiguation.config.tokendata_file_template" class="py-name" href="#" onclick="return doclink('link-40', 'tokendata_file_template', 'link-22');">tokendata_file_template</a></tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">filelabel</tt><tt class="py-op">,</tt> <tt class="py-string">'Tokenizer'</tt><tt class="py-op">)</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">    <tt id="link-41" class="py-name" targets="Variable disambiguation.data.compileNames.f=disambiguation.data.compileNames-module.html#f,Variable disambiguation.data.compile_name_variants.f=disambiguation.data.compile_name_variants-module.html#f,Variable disambiguation.data.disp.f=disambiguation.data.disp-module.html#f,Variable disambiguation.graph_visualize.f=disambiguation.graph_visualize-module.html#f,Variable disambiguation.graph_visualize_Modern_employers.f=disambiguation.graph_visualize_Modern_employers-module.html#f,Variable disambiguation.graph_visualize_newyork_occupations.f=disambiguation.graph_visualize_newyork_occupations-module.html#f"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-41', 'f', 'link-41');">f</a></tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">file_tokens</tt><tt class="py-op">)</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">    <tt class="py-name">tokendata</tt> <tt class="py-op">=</tt> <tt class="py-name">cPickle</tt><tt class="py-op">.</tt><tt class="py-name">load</tt><tt class="py-op">(</tt><tt id="link-42" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-42', 'f', 'link-41');">f</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">    <tt id="link-43" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-43', 'f', 'link-41');">f</a></tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">    <tt class="py-comment"># dimension of input vectors</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">    <tt class="py-name">dim</tt> <tt class="py-op">=</tt> <tt class="py-name">tokendata</tt><tt class="py-op">.</tt><tt class="py-name">no_of_tokens</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line"> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">    <tt class="py-name">D</tt> <tt class="py-op">=</tt> <tt id="link-44" class="py-name"><a title="disambiguation.core.Disambiguator
+disambiguation.core.Disambiguator.Disambiguator" class="py-name" href="#" onclick="return doclink('link-44', 'Disambiguator', 'link-12');">Disambiguator</a></tt><tt class="py-op">.</tt><tt id="link-45" class="py-name"><a title="disambiguation.core.Disambiguator
+disambiguation.core.Disambiguator.Disambiguator" class="py-name" href="#" onclick="return doclink('link-45', 'Disambiguator', 'link-12');">Disambiguator</a></tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">dim</tt><tt class="py-op">,</tt> <tt class="py-name">matching_mode</tt><tt class="py-op">=</tt><tt class="py-string">"strict_address"</tt><tt class="py-op">,</tt> <tt class="py-name">num_procs</tt><tt class="py-op">=</tt><tt class="py-name">num_procs</tt><tt class="py-op">)</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt class="py-name">D</tt> <tt class="py-op">=</tt> <tt class="py-name">D</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">    <tt class="py-name">D</tt><tt class="py-op">.</tt><tt class="py-name">project</tt> <tt class="py-op">=</tt> <tt class="py-name">project</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">    <tt class="py-name">D</tt><tt class="py-op">.</tt><tt class="py-name">tokenizer</tt> <tt class="py-op">=</tt> <tt id="link-46" class="py-name"><a title="disambiguation.core.Tokenizer
+disambiguation.core.Tokenizer.Tokenizer" class="py-name" href="#" onclick="return doclink('link-46', 'Tokenizer', 'link-15');">Tokenizer</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line"> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line"> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">    <tt class="py-comment"># desired dimension (length) of hashes</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">    <tt class="py-name">hash_dim</tt> <tt class="py-op">=</tt> <tt class="py-number">60</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name"><a title="disambiguation.core.Project.Project.putData" class="py-name" href="#" onclick="return doclink('link-47', 'putData', 'link-38');">putData</a></tt><tt class="py-op">(</tt><tt class="py-string">'hash_dim'</tt> <tt class="py-op">,</tt> <tt id="link-48" class="py-name"><a title="str" class="py-name" href="#" onclick="return doclink('link-48', 'str', 'link-29');">str</a></tt><tt class="py-op">(</tt><tt class="py-name">hash_dim</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">    <tt class="py-comment"># In D, how many neighbors to examine?</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">    <tt class="py-name">B</tt> <tt class="py-op">=</tt> <tt class="py-number">40</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">'Generating the LSH hashes'</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line"> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">    <tt class="py-comment"># compute the hashes</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">    <tt class="py-name">D</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name" targets="Method disambiguation.core.Disambiguator.Disambiguator.compute_hashes()=disambiguation.core.Disambiguator.Disambiguator-class.html#compute_hashes"><a title="disambiguation.core.Disambiguator.Disambiguator.compute_hashes" class="py-name" href="#" onclick="return doclink('link-49', 'compute_hashes', 'link-49');">compute_hashes</a></tt><tt class="py-op">(</tt><tt class="py-name">hash_dim</tt><tt class="py-op">,</tt> <tt class="py-name">num_procs</tt><tt class="py-op">)</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"Done computing hashes."</tt> </tt>
+</div><a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line"> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"> </tt>
+<a name="INIT_combine_state_tokens_and_vectors"></a><div id="INIT_combine_state_tokens_and_vectors-def"><a name="L147"></a><tt class="py-lineno">147</tt> <a class="py-toggle" href="#" id="INIT_combine_state_tokens_and_vectors-toggle" onclick="return toggle('INIT_combine_state_tokens_and_vectors');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.init-module.html#INIT_combine_state_tokens_and_vectors">INIT_combine_state_tokens_and_vectors</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="INIT_combine_state_tokens_and_vectors-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="INIT_combine_state_tokens_and_vectors-expanded"><a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line"><tt class="py-docstring">    Read all Tokenizer tokendata objects for different states and combine them.</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line"><tt class="py-docstring">    Then read every state feature vector file and update it according</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line"><tt class="py-docstring">    to the compound tokendata. Then write all of them to a file.</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line"><tt class="py-docstring">    Here we need the data (tokendata, vectors, etc) generated using the coarse</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line"><tt class="py-docstring">    tokenizer class Tokenizer. This is different from the data used for fine-</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line"><tt class="py-docstring">    grained analysis withing each state. That data is based on the TokenizerNgram</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line"><tt class="py-docstring">    tokenizer class.</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">    <tt class="py-keyword">def</tt> <tt class="py-def-name">update_vectors</tt><tt class="py-op">(</tt><tt class="py-param">dict_vectors</tt><tt class="py-op">,</tt> <tt class="py-param">compoundtokendata</tt><tt class="py-op">,</tt> <tt class="py-param">old_tokendata</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line"><tt class="py-docstring">        for every r_id: r_vector pair in dict_vectors, update translate the vector</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line"><tt class="py-docstring">        from old_tokendata to compoundtokendata.</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">        <tt class="py-name">compound_dict_vectors</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">r_id</tt><tt class="py-op">,</tt> <tt class="py-name">old_vector</tt> <tt class="py-keyword">in</tt> <tt class="py-name">dict_vectors</tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">            <tt class="py-name">vector</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">            <tt class="py-comment"># translate self.vector</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">index_old</tt> <tt class="py-keyword">in</tt> <tt class="py-name">old_vector</tt><tt class="py-op">:</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">                <tt class="py-name">index_new</tt> <tt class="py-op">=</tt> <tt class="py-name">compoundtokendata</tt><tt class="py-op">.</tt><tt class="py-name">token_2_index</tt><tt class="py-op">[</tt><tt class="py-name">old_tokendata</tt><tt class="py-op">.</tt><tt class="py-name">index_2_token</tt><tt class="py-op">[</tt><tt class="py-name">index_old</tt><tt class="py-op">]</tt><tt class="py-op">]</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">                <tt class="py-name">vector</tt><tt class="py-op">[</tt><tt class="py-name">index_new</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">            <tt class="py-name">compound_dict_vectors</tt><tt class="py-op">[</tt><tt class="py-name">r_id</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">vector</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">compound_dict_vectors</tt> </tt>
+</div><a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line"> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">    <tt class="py-name">filelabel</tt> <tt class="py-op">=</tt> <tt class="py-string">"USA"</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line"> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">    <tt class="py-comment"># list of tokendata objects</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">    <tt class="py-name">list_tokendata</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">" combining tokendata objects..."</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">param_state</tt> <tt class="py-keyword">in</tt> <tt id="link-50" class="py-name" targets="Function disambiguation.core.states.get_states_sorted()=disambiguation.core.states-module.html#get_states_sorted"><a title="disambiguation.core.states.get_states_sorted" class="py-name" href="#" onclick="return doclink('link-50', 'get_states_sorted', 'link-50');">get_states_sorted</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"processing state: "</tt><tt class="py-op">,</tt> <tt class="py-name">param_state</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">        <tt class="py-name">file_tokens</tt> <tt class="py-op">=</tt> <tt id="link-51" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-51', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="disambiguation.config.tokendata_file_template" class="py-name" href="#" onclick="return doclink('link-52', 'tokendata_file_template', 'link-22');">tokendata_file_template</a></tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">param_state</tt><tt class="py-op">,</tt> <tt class="py-string">'Tokenizer'</tt><tt class="py-op">)</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">        <tt id="link-53" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-53', 'f', 'link-41');">f</a></tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">file_tokens</tt><tt class="py-op">)</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">        <tt class="py-name">list_tokendata</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">cPickle</tt><tt class="py-op">.</tt><tt class="py-name">load</tt><tt class="py-op">(</tt><tt id="link-54" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-54', 'f', 'link-41');">f</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">    <tt class="py-name">compoundtokendata</tt> <tt class="py-op">=</tt> <tt id="link-55" class="py-name"><a title="disambiguation.core.Tokenizer.TokenData" class="py-name" href="#" onclick="return doclink('link-55', 'TokenData', 'link-18');">TokenData</a></tt><tt class="py-op">.</tt><tt id="link-56" class="py-name" targets="Class Method disambiguation.core.Tokenizer.TokenData.getCompoundTokenData()=disambiguation.core.Tokenizer.TokenData-class.html#getCompoundTokenData"><a title="disambiguation.core.Tokenizer.TokenData.getCompoundTokenData" class="py-name" href="#" onclick="return doclink('link-56', 'getCompoundTokenData', 'link-56');">getCompoundTokenData</a></tt><tt class="py-op">(</tt><tt class="py-name">list_tokendata</tt><tt class="py-op">)</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">    <tt class="py-keyword">del</tt> <tt class="py-name">list_tokendata</tt><tt class="py-op">[</tt><tt class="py-op">:</tt><tt class="py-op">]</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"Done combining state tokendata objects."</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line"> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">    <tt class="py-comment"># Save compound tokendata to file</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">    <tt class="py-name">file_tokens</tt> <tt class="py-op">=</tt> <tt id="link-57" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-57', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="disambiguation.config.tokendata_file_template" class="py-name" href="#" onclick="return doclink('link-58', 'tokendata_file_template', 'link-22');">tokendata_file_template</a></tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">filelabel</tt><tt class="py-op">,</tt> <tt class="py-string">'Tokenizer'</tt><tt class="py-op">)</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line">    <tt id="link-59" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-59', 'f', 'link-41');">f</a></tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">file_tokens</tt><tt class="py-op">,</tt> <tt class="py-string">'w'</tt><tt class="py-op">)</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">    <tt class="py-name">cPickle</tt><tt class="py-op">.</tt><tt class="py-name">dump</tt><tt class="py-op">(</tt><tt class="py-name">compoundtokendata</tt><tt class="py-op">,</tt> <tt id="link-60" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-60', 'f', 'link-41');">f</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line">    <tt id="link-61" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-61', 'f', 'link-41');">f</a></tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">    <tt class="py-comment"># Load feature vector files for all states one at a time and</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">    <tt class="py-comment"># update the vectors.</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line">    <tt class="py-name">dict_vectors_all</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"Updating feature vectors..."</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">param_state</tt> <tt class="py-keyword">in</tt> <tt id="link-62" class="py-name"><a title="disambiguation.core.states.get_states_sorted" class="py-name" href="#" onclick="return doclink('link-62', 'get_states_sorted', 'link-50');">get_states_sorted</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"processing state: "</tt><tt class="py-op">,</tt> <tt class="py-name">param_state</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">        <tt class="py-name">file_vectors</tt> <tt class="py-op">=</tt> <tt id="link-63" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-63', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-64" class="py-name"><a title="disambiguation.config.vectors_file_template" class="py-name" href="#" onclick="return doclink('link-64', 'vectors_file_template', 'link-24');">vectors_file_template</a></tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">param_state</tt><tt class="py-op">,</tt> <tt class="py-string">'Tokenizer'</tt><tt class="py-op">)</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">        <tt id="link-65" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-65', 'f', 'link-41');">f</a></tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">file_vectors</tt><tt class="py-op">)</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">        <tt class="py-name">dict_vectors</tt> <tt class="py-op">=</tt> <tt class="py-name">cPickle</tt><tt class="py-op">.</tt><tt class="py-name">load</tt><tt class="py-op">(</tt><tt id="link-66" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-66', 'f', 'link-41');">f</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">        <tt id="link-67" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-67', 'f', 'link-41');">f</a></tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line"> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">        <tt class="py-name">file_tokens</tt> <tt class="py-op">=</tt> <tt id="link-68" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-68', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="disambiguation.config.tokendata_file_template" class="py-name" href="#" onclick="return doclink('link-69', 'tokendata_file_template', 'link-22');">tokendata_file_template</a></tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">param_state</tt><tt class="py-op">,</tt> <tt class="py-string">'Tokenizer'</tt><tt class="py-op">)</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">        <tt id="link-70" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-70', 'f', 'link-41');">f</a></tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">file_tokens</tt><tt class="py-op">)</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">        <tt class="py-name">old_tokendata</tt> <tt class="py-op">=</tt> <tt class="py-name">cPickle</tt><tt class="py-op">.</tt><tt class="py-name">load</tt><tt class="py-op">(</tt><tt id="link-71" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-71', 'f', 'link-41');">f</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">        <tt id="link-72" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-72', 'f', 'link-41');">f</a></tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line"> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">        <tt class="py-name">dict_vectors</tt> <tt class="py-op">=</tt> <tt class="py-name">update_vectors</tt><tt class="py-op">(</tt><tt class="py-name">dict_vectors</tt><tt class="py-op">,</tt> <tt class="py-name">compoundtokendata</tt><tt class="py-op">,</tt> <tt class="py-name">old_tokendata</tt><tt class="py-op">)</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">        <tt class="py-name">dict_vectors_all</tt><tt class="py-op">.</tt><tt class="py-name">update</tt><tt class="py-op">(</tt><tt class="py-name">dict_vectors</tt><tt class="py-op">)</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"Done updating feature vectors."</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line"> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">    <tt class="py-comment"># Export computed vectors to file</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">    <tt class="py-name">vectors_file</tt> <tt class="py-op">=</tt> <tt id="link-73" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-73', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="disambiguation.config.vectors_file_template" class="py-name" href="#" onclick="return doclink('link-74', 'vectors_file_template', 'link-24');">vectors_file_template</a></tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">filelabel</tt><tt class="py-op">,</tt> <tt class="py-string">'Tokenizer'</tt><tt class="py-op">)</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line"> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line">    <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">        <tt id="link-75" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-75', 'f', 'link-41');">f</a></tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">vectors_file</tt><tt class="py-op">,</tt> <tt class="py-string">'w'</tt><tt class="py-op">)</tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">        <tt class="py-name">cPickle</tt><tt class="py-op">.</tt><tt class="py-name">dump</tt><tt class="py-op">(</tt><tt class="py-name">dict_vectors_all</tt><tt class="py-op">,</tt> <tt id="link-76" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-76', 'f', 'link-41');">f</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line">        <tt id="link-77" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-77', 'f', 'link-41');">f</a></tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">    <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line">        <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">remove</tt><tt class="py-op">(</tt><tt class="py-name">vectors_file</tt><tt class="py-op">)</tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> </tt>
+</div><a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line"> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line"> </tt>
+<a name="INIT_combine_normalized_attributes"></a><div id="INIT_combine_normalized_attributes-def"><a name="L229"></a><tt class="py-lineno">229</tt> <a class="py-toggle" href="#" id="INIT_combine_normalized_attributes-toggle" onclick="return toggle('INIT_combine_normalized_attributes');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.init-module.html#INIT_combine_normalized_attributes">INIT_combine_normalized_attributes</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="INIT_combine_normalized_attributes-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="INIT_combine_normalized_attributes-expanded"><a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line"><tt class="py-docstring">    Read all state normalized attribute files and combine</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line"><tt class="py-docstring">    them into a national file.</tt> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line">    <tt class="py-name">dict_normalized_attrs</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">    <tt class="py-name">outfile</tt> <tt class="py-op">=</tt> <tt id="link-78" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-78', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-79" class="py-name" targets="Variable disambiguation.config.normalized_attributes_file_template=disambiguation.config-module.html#normalized_attributes_file_template"><a title="disambiguation.config.normalized_attributes_file_template" class="py-name" href="#" onclick="return doclink('link-79', 'normalized_attributes_file_template', 'link-79');">normalized_attributes_file_template</a></tt> <tt class="py-op">%</tt> <tt class="py-string">'USA'</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">param_state</tt> <tt class="py-keyword">in</tt> <tt id="link-80" class="py-name"><a title="disambiguation.core.states.get_states_sorted" class="py-name" href="#" onclick="return doclink('link-80', 'get_states_sorted', 'link-50');">get_states_sorted</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"processing state: "</tt><tt class="py-op">,</tt> <tt class="py-name">param_state</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">        <tt class="py-name">file_normalized_attrs</tt> <tt class="py-op">=</tt> <tt id="link-81" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-81', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-82" class="py-name"><a title="disambiguation.config.normalized_attributes_file_template" class="py-name" href="#" onclick="return doclink('link-82', 'normalized_attributes_file_template', 'link-79');">normalized_attributes_file_template</a></tt> <tt class="py-op">%</tt> <tt class="py-name">param_state</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line">        <tt id="link-83" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-83', 'f', 'link-41');">f</a></tt> <tt class="py-op">=</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">file_normalized_attrs</tt><tt class="py-op">)</tt> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">        <tt class="py-name">dict_normalized_attrs</tt><tt class="py-op">.</tt><tt class="py-name">update</tt><tt class="py-op">(</tt><tt class="py-name">cPickle</tt><tt class="py-op">.</tt><tt class="py-name">load</tt><tt class="py-op">(</tt><tt id="link-84" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-84', 'f', 'link-41');">f</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line">        <tt id="link-85" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-85', 'f', 'link-41');">f</a></tt><tt class="py-op">.</tt><tt class="py-name">close</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">    <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">outfile</tt><tt class="py-op">,</tt> <tt class="py-string">'w'</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt id="link-86" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-86', 'f', 'link-41');">f</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line">        <tt class="py-name">cPickle</tt><tt class="py-op">.</tt><tt class="py-name">dump</tt><tt class="py-op">(</tt><tt class="py-name">dict_normalized_attrs</tt><tt class="py-op">,</tt> <tt id="link-87" class="py-name"><a title="disambiguation.data.compileNames.f
+disambiguation.data.compile_name_variants.f
+disambiguation.data.disp.f
+disambiguation.graph_visualize.f
+disambiguation.graph_visualize_Modern_employers.f
+disambiguation.graph_visualize_newyork_occupations.f" class="py-name" href="#" onclick="return doclink('link-87', 'f', 'link-41');">f</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line"> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line"> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line"> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line"> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line"> </tt>
+<a name="INIT_process_single_state"></a><div id="INIT_process_single_state-def"><a name="L249"></a><tt class="py-lineno">249</tt> <a class="py-toggle" href="#" id="INIT_process_single_state-toggle" onclick="return toggle('INIT_process_single_state');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.init-module.html#INIT_process_single_state">INIT_process_single_state</a><tt class="py-op">(</tt><tt class="py-param">state</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">TokenizerClass</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">list_tokenized_fields</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-param">record_limit</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-number">50000000</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-param">whereclause</tt><tt class="py-op">=</tt><tt class="py-string">''</tt><tt class="py-op">,</tt> <tt class="py-param">num_procs</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-param">tokenize_kwargs</tt><tt class="py-op">=</tt><tt class="py-op">{</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="INIT_process_single_state-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="INIT_process_single_state-expanded"><a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line"><tt class="py-docstring">    Using the TokenizerClass specified, tokenize all records from the specified</tt> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line"><tt class="py-docstring">    state, save the tokendata as well as the feature vectors to files.</tt> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line"><tt class="py-docstring">    Then, compute the LSH hashes and save to file.</tt> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line"> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line">    <tt class="py-name">batch_id</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line">    <tt class="py-name">project</tt> <tt class="py-op">=</tt> <tt id="link-88" class="py-name"><a title="disambiguation.core.Project
+disambiguation.core.Project.Project" class="py-name" href="#" onclick="return doclink('link-88', 'Project', 'link-3');">Project</a></tt><tt class="py-op">.</tt><tt id="link-89" class="py-name"><a title="disambiguation.core.Project
+disambiguation.core.Project.Project" class="py-name" href="#" onclick="return doclink('link-89', 'Project', 'link-3');">Project</a></tt><tt class="py-op">(</tt><tt class="py-name">batch_id</tt><tt class="py-op">)</tt> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt id="link-90" class="py-name"><a title="disambiguation.core.Project.Project.putData" class="py-name" href="#" onclick="return doclink('link-90', 'putData', 'link-38');">putData</a></tt><tt class="py-op">(</tt><tt class="py-string">'batch_id'</tt> <tt class="py-op">,</tt> <tt class="py-name">batch_id</tt><tt class="py-op">)</tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line"> </tt>
+<a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line"> </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-91" class="py-name" targets="Variable disambiguation.core.address.Address.state=disambiguation.core.address.Address-class.html#state"><a title="disambiguation.core.address.Address.state" class="py-name" href="#" onclick="return doclink('link-91', 'state', 'link-91');">state</a></tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt class="py-name">Exception</tt><tt class="py-op">(</tt><tt class="py-string">"Error: you must specify the state to tokenize."</tt><tt class="py-op">)</tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line">    <tt class="py-name">param_state</tt> <tt class="py-op">=</tt> <tt id="link-92" class="py-name"><a title="disambiguation.core.address.Address.state" class="py-name" href="#" onclick="return doclink('link-92', 'state', 'link-91');">state</a></tt> </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line"> </tt>
+<a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"Tokenizing state %s using TokenizerClass: %s "</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-name">param_state</tt><tt class="py-op">,</tt> <tt class="py-name">TokenizerClass</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">)</tt> </tt>
+<a name="L267"></a><tt class="py-lineno">267</tt>  <tt class="py-line"> </tt>
+<a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line">    <tt class="py-name">table_name</tt> <tt class="py-op">=</tt> <tt id="link-93" class="py-name"><a title="disambiguation.config" class="py-name" href="#" onclick="return doclink('link-93', 'config', 'link-6');">config</a></tt><tt class="py-op">.</tt><tt id="link-94" class="py-name" targets="Variable disambiguation.config.MySQL_table_state_combined=disambiguation.config-module.html#MySQL_table_state_combined"><a title="disambiguation.config.MySQL_table_state_combined" class="py-name" href="#" onclick="return doclink('link-94', 'MySQL_table_state_combined', 'link-94');">MySQL_table_state_combined</a></tt> <tt class="py-op">%</tt> <tt class="py-name">param_state</tt> </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line"> </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt id="link-95" class="py-name"><a title="disambiguation.core.Project.Project.putData" class="py-name" href="#" onclick="return doclink('link-95', 'putData', 'link-38');">putData</a></tt><tt class="py-op">(</tt><tt class="py-string">'state'</tt> <tt class="py-op">,</tt> <tt class="py-name">param_state</tt><tt class="py-op">)</tt> </tt>
+<a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line"> </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line">    <tt class="py-name">record_start</tt> <tt class="py-op">=</tt> <tt class="py-name">record_limit</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line">    <tt class="py-name">record_no</tt> <tt class="py-op">=</tt> <tt class="py-name">record_limit</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L274"></a><tt class="py-lineno">274</tt>  <tt class="py-line"> </tt>
+<a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">list_tokenized_fields</tt><tt class="py-op">:</tt> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line">        <tt class="py-name">list_tokenized_fields</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">'NAME'</tt><tt class="py-op">,</tt> <tt class="py-string">'CONTRIBUTOR_ZIP'</tt><tt class="py-op">,</tt> <tt class="py-string">'ZIP_CODE'</tt><tt class="py-op">,</tt> <tt class="py-string">'CONTRIBUTOR_STREET_1'</tt><tt class="py-op">,</tt> <tt class="py-string">'CITY'</tt><tt class="py-op">,</tt> <tt class="py-string">'STATE'</tt><tt class="py-op">,</tt> <tt class="py-string">'EMPLOYER'</tt><tt class="py-op">,</tt> <tt class="py-string">'OCCUPATION'</tt><tt class="py-op">]</tt> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line"> </tt>
+<a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt id="link-96" class="py-name"><a title="disambiguation.core.Project.Project.putData" class="py-name" href="#" onclick="return doclink('link-96', 'putData', 'link-38');">putData</a></tt><tt class="py-op">(</tt><tt class="py-string">"list_tokenized_fields"</tt><tt class="py-op">,</tt> <tt class="py-name">list_tokenized_fields</tt><tt class="py-op">)</tt> </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line"> </tt>
+<a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line">    <tt class="py-name">list_auxiliary_fields</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">'TRANSACTION_DT'</tt><tt class="py-op">,</tt> <tt class="py-string">'TRANSACTION_AMT'</tt><tt class="py-op">,</tt> <tt class="py-string">'CMTE_ID'</tt><tt class="py-op">,</tt> <tt class="py-string">'ENTITY_TP'</tt><tt class="py-op">,</tt> <tt class="py-string">'id'</tt><tt class="py-op">]</tt> </tt>
+<a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt id="link-97" class="py-name"><a title="disambiguation.core.Project.Project.putData" class="py-name" href="#" onclick="return doclink('link-97', 'putData', 'link-38');">putData</a></tt><tt class="py-op">(</tt><tt class="py-string">"list_auxiliary_fields"</tt><tt class="py-op">,</tt> <tt class="py-name">list_auxiliary_fields</tt><tt class="py-op">)</tt> </tt>
+<a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line"> </tt>
+<a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line">    <tt class="py-name">all_fields</tt> <tt class="py-op">=</tt> <tt class="py-name">list_tokenized_fields</tt> <tt class="py-op">+</tt> <tt class="py-name">list_auxiliary_fields</tt> </tt>
+<a name="L284"></a><tt class="py-lineno">284</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt id="link-98" class="py-name"><a title="disambiguation.core.Project.Project.putData" class="py-name" href="#" onclick="return doclink('link-98', 'putData', 'link-38');">putData</a></tt><tt class="py-op">(</tt><tt class="py-string">'all_fields'</tt> <tt class="py-op">,</tt> <tt class="py-name">all_fields</tt><tt class="py-op">)</tt> </tt>
+<a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line"> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line">    <tt class="py-comment"># dictionaries indicating the index numbers associated with all fields</tt> </tt>
+<a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line"><tt class="py-comment">#     index_2_field = { all_fields.index(s):s for s in all_fields}</tt> </tt>
+<a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line"><tt class="py-comment">#     project.putData("index_2_field", index_2_field)</tt> </tt>
+<a name="L289"></a><tt class="py-lineno">289</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line"><tt class="py-comment">#     field_2_index = { s:all_fields.index(s) for s in all_fields}</tt> </tt>
+<a name="L291"></a><tt class="py-lineno">291</tt>  <tt class="py-line"><tt class="py-comment">#     project.putData("field_2_index", field_2_index)</tt> </tt>
+<a name="L292"></a><tt class="py-lineno">292</tt>  <tt class="py-line"> </tt>
+<a name="L293"></a><tt class="py-lineno">293</tt>  <tt class="py-line"> </tt>
+<a name="L294"></a><tt class="py-lineno">294</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">whereclause</tt> <tt class="py-op">==</tt> <tt class="py-string">""</tt><tt class="py-op">:</tt> </tt>
+<a name="L295"></a><tt class="py-lineno">295</tt>  <tt class="py-line">        <tt class="py-keyword">pass</tt> </tt>
+<a name="L296"></a><tt class="py-lineno">296</tt>  <tt class="py-line">        <tt class="py-comment">#whereclause = " WHERE ENTITY_TP='IND' "</tt> </tt>
+<a name="L297"></a><tt class="py-lineno">297</tt>  <tt class="py-line">    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L298"></a><tt class="py-lineno">298</tt>  <tt class="py-line">        <tt class="py-comment">#whereclause = whereclause + " AND ENTITY_TP='IND' "</tt> </tt>
+<a name="L299"></a><tt class="py-lineno">299</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-string">"whereclasue: "</tt><tt class="py-op">,</tt> <tt class="py-name">whereclause</tt> </tt>
+<a name="L300"></a><tt class="py-lineno">300</tt>  <tt class="py-line"> </tt>
+<a name="L301"></a><tt class="py-lineno">301</tt>  <tt class="py-line">    <tt class="py-name">retriever</tt> <tt class="py-op">=</tt> <tt id="link-99" class="py-name"><a title="disambiguation.core.Database.FecRetriever" class="py-name" href="#" onclick="return doclink('link-99', 'FecRetriever', 'link-10');">FecRetriever</a></tt><tt class="py-op">(</tt><tt class="py-name">table_name</tt><tt class="py-op">=</tt><tt class="py-name">table_name</tt><tt class="py-op">,</tt> </tt>
+<a name="L302"></a><tt class="py-lineno">302</tt>  <tt class="py-line">                      <tt class="py-name">query_fields</tt><tt class="py-op">=</tt><tt class="py-name">all_fields</tt><tt class="py-op">,</tt> </tt>
+<a name="L303"></a><tt class="py-lineno">303</tt>  <tt class="py-line">                      <tt class="py-name">limit</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-name">record_start</tt><tt class="py-op">,</tt> <tt class="py-name">record_no</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L304"></a><tt class="py-lineno">304</tt>  <tt class="py-line">                      <tt class="py-name">list_order_by</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-string">'NAME'</tt><tt class="py-op">,</tt> <tt class="py-string">"TRANSACTION_DT"</tt><tt class="py-op">,</tt> <tt class="py-string">"ZIP_CODE"</tt><tt class="py-op">,</tt> <tt class="py-string">"CMTE_ID"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L305"></a><tt class="py-lineno">305</tt>  <tt class="py-line">                      <tt class="py-name">where_clause</tt><tt class="py-op">=</tt><tt class="py-name">whereclause</tt><tt class="py-op">)</tt> </tt>
+<a name="L306"></a><tt class="py-lineno">306</tt>  <tt class="py-line">    <tt class="py-name">retriever</tt><tt class="py-op">.</tt><tt id="link-100" class="py-name" targets="Method disambiguation.core.Database.FecExporter.retrieve()=disambiguation.core.Database.FecExporter-class.html#retrieve,Method disambiguation.core.Database.FecRetriever.retrieve()=disambiguation.core.Database.FecRetriever-class.html#retrieve,Method disambiguation.core.Database.FecRetrieverByID.retrieve()=disambiguation.core.Database.FecRetrieverByID-class.html#retrieve"><a title="disambiguation.core.Database.FecExporter.retrieve
+disambiguation.core.Database.FecRetriever.retrieve
+disambiguation.core.Database.FecRetrieverByID.retrieve" class="py-name" href="#" onclick="return doclink('link-100', 'retrieve', 'link-100');">retrieve</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L307"></a><tt class="py-lineno">307</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt id="link-101" class="py-name"><a title="disambiguation.core.Project.Project.putData" class="py-name" href="#" onclick="return doclink('link-101', 'putData', 'link-38');">putData</a></tt><tt class="py-op">(</tt><tt class="py-string">"query"</tt><tt class="py-op">,</tt> <tt class="py-name">retriever</tt><tt class="py-op">.</tt><tt id="link-102" class="py-name" targets="Method disambiguation.core.Database.FecRetriever.getQuery()=disambiguation.core.Database.FecRetriever-class.html#getQuery"><a title="disambiguation.core.Database.FecRetriever.getQuery" class="py-name" href="#" onclick="return doclink('link-102', 'getQuery', 'link-102');">getQuery</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L308"></a><tt class="py-lineno">308</tt>  <tt class="py-line"> </tt>
+<a name="L309"></a><tt class="py-lineno">309</tt>  <tt class="py-line">    <tt class="py-name">list_of_records</tt> <tt class="py-op">=</tt> <tt class="py-name">retriever</tt><tt class="py-op">.</tt><tt id="link-103" class="py-name"><a title="disambiguation.core.Database.FecRetriever.getRecords
+disambiguation.core.Database.FecRetrieverByID.getRecords
+disambiguation.core.Tokenizer.Tokenizer.getRecords" class="py-name" href="#" onclick="return doclink('link-103', 'getRecords', 'link-28');">getRecords</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L310"></a><tt class="py-lineno">310</tt>  <tt class="py-line"> </tt>
+<a name="L311"></a><tt class="py-lineno">311</tt>  <tt class="py-line">    <tt class="py-comment"># Tokenize, and save tokendata and vectors to file.</tt> </tt>
+<a name="L312"></a><tt class="py-lineno">312</tt>  <tt class="py-line">    <tt class="py-name">tokenizer</tt><tt class="py-op">,</tt> <tt class="py-name">list_of_records</tt> <tt class="py-op">=</tt> <tt id="link-104" class="py-name" targets="Function disambiguation.init.tokenize_records()=disambiguation.init-module.html#tokenize_records"><a title="disambiguation.init.tokenize_records" class="py-name" href="#" onclick="return doclink('link-104', 'tokenize_records', 'link-104');">tokenize_records</a></tt><tt class="py-op">(</tt><tt class="py-name">list_of_records</tt><tt class="py-op">,</tt> <tt class="py-name">project</tt><tt class="py-op">,</tt> <tt class="py-name">TokenizerClass</tt><tt class="py-op">,</tt> <tt class="py-name">tokenize_kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L313"></a><tt class="py-lineno">313</tt>  <tt class="py-line">    <tt class="py-name">tokendata</tt> <tt class="py-op">=</tt> <tt class="py-name">tokenizer</tt><tt class="py-op">.</tt><tt id="link-105" class="py-name"><a title="DNC_matching.tokens" class="py-name" href="#" onclick="return doclink('link-105', 'tokens', 'link-33');">tokens</a></tt> </tt>
+<a name="L314"></a><tt class="py-lineno">314</tt>  <tt class="py-line"> </tt>
+<a name="L315"></a><tt class="py-lineno">315</tt>  <tt class="py-line"> </tt>
+<a name="L316"></a><tt class="py-lineno">316</tt>  <tt class="py-line">    <tt class="py-comment"># dimension of input vectors</tt> </tt>
+<a name="L317"></a><tt class="py-lineno">317</tt>  <tt class="py-line">    <tt class="py-name">dim</tt> <tt class="py-op">=</tt> <tt class="py-name">tokendata</tt><tt class="py-op">.</tt><tt class="py-name">no_of_tokens</tt> </tt>
+<a name="L318"></a><tt class="py-lineno">318</tt>  <tt class="py-line"> </tt>
+<a name="L319"></a><tt class="py-lineno">319</tt>  <tt class="py-line">    <tt class="py-name">D</tt> <tt class="py-op">=</tt> <tt id="link-106" class="py-name"><a title="disambiguation.core.Disambiguator
+disambiguation.core.Disambiguator.Disambiguator" class="py-name" href="#" onclick="return doclink('link-106', 'Disambiguator', 'link-12');">Disambiguator</a></tt><tt class="py-op">.</tt><tt id="link-107" class="py-name"><a title="disambiguation.core.Disambiguator
+disambiguation.core.Disambiguator.Disambiguator" class="py-name" href="#" onclick="return doclink('link-107', 'Disambiguator', 'link-12');">Disambiguator</a></tt><tt class="py-op">(</tt><tt class="py-name">list_of_records</tt><tt class="py-op">,</tt> <tt class="py-name">dim</tt><tt class="py-op">,</tt> <tt class="py-name">matching_mode</tt><tt class="py-op">=</tt><tt class="py-string">"strict_address"</tt><tt class="py-op">,</tt> <tt class="py-name">num_procs</tt><tt class="py-op">=</tt><tt class="py-name">num_procs</tt><tt class="py-op">)</tt> </tt>
+<a name="L320"></a><tt class="py-lineno">320</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt class="py-name">D</tt> <tt class="py-op">=</tt> <tt class="py-name">D</tt> </tt>
+<a name="L321"></a><tt class="py-lineno">321</tt>  <tt class="py-line">    <tt class="py-name">D</tt><tt class="py-op">.</tt><tt class="py-name">project</tt> <tt class="py-op">=</tt> <tt class="py-name">project</tt> </tt>
+<a name="L322"></a><tt class="py-lineno">322</tt>  <tt class="py-line">    <tt class="py-name">D</tt><tt class="py-op">.</tt><tt class="py-name">tokenizer</tt> <tt class="py-op">=</tt> <tt class="py-name">tokenizer</tt> </tt>
+<a name="L323"></a><tt class="py-lineno">323</tt>  <tt class="py-line"> </tt>
+<a name="L324"></a><tt class="py-lineno">324</tt>  <tt class="py-line">    <tt class="py-comment"># desired dimension (length) of hashes</tt> </tt>
+<a name="L325"></a><tt class="py-lineno">325</tt>  <tt class="py-line">    <tt class="py-name">hash_dim</tt> <tt class="py-op">=</tt> <tt class="py-number">60</tt> </tt>
+<a name="L326"></a><tt class="py-lineno">326</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt id="link-108" class="py-name"><a title="disambiguation.core.Project.Project.putData" class="py-name" href="#" onclick="return doclink('link-108', 'putData', 'link-38');">putData</a></tt><tt class="py-op">(</tt><tt class="py-string">'hash_dim'</tt> <tt class="py-op">,</tt> <tt id="link-109" class="py-name"><a title="str" class="py-name" href="#" onclick="return doclink('link-109', 'str', 'link-29');">str</a></tt><tt class="py-op">(</tt><tt class="py-name">hash_dim</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L327"></a><tt class="py-lineno">327</tt>  <tt class="py-line"> </tt>
+<a name="L328"></a><tt class="py-lineno">328</tt>  <tt class="py-line">    <tt class="py-comment"># In D, how many neighbors to examine?</tt> </tt>
+<a name="L329"></a><tt class="py-lineno">329</tt>  <tt class="py-line">    <tt class="py-name">B</tt> <tt class="py-op">=</tt> <tt class="py-number">40</tt> </tt>
+<a name="L330"></a><tt class="py-lineno">330</tt>  <tt class="py-line"> </tt>
+<a name="L331"></a><tt class="py-lineno">331</tt>  <tt class="py-line">    <tt class="py-comment"># Number of times the hashes are permutated and sorted</tt> </tt>
+<a name="L332"></a><tt class="py-lineno">332</tt>  <tt class="py-line">    <tt class="py-name">no_of_permutations</tt> <tt class="py-op">=</tt> <tt class="py-number">20</tt> </tt>
+<a name="L333"></a><tt class="py-lineno">333</tt>  <tt class="py-line">    <tt class="py-name">project</tt><tt class="py-op">.</tt><tt id="link-110" class="py-name"><a title="disambiguation.core.Project.Project.putData" class="py-name" href="#" onclick="return doclink('link-110', 'putData', 'link-38');">putData</a></tt><tt class="py-op">(</tt><tt class="py-string">'number_of_permutations'</tt> <tt class="py-op">,</tt> <tt id="link-111" class="py-name"><a title="str" class="py-name" href="#" onclick="return doclink('link-111', 'str', 'link-29');">str</a></tt><tt class="py-op">(</tt><tt class="py-name">no_of_permutations</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L334"></a><tt class="py-lineno">334</tt>  <tt class="py-line"> </tt>
+<a name="L335"></a><tt class="py-lineno">335</tt>  <tt class="py-line">    <tt class="py-comment"># compute the hashes</tt> </tt>
+<a name="L336"></a><tt class="py-lineno">336</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"Computing LSH hashes for state %s using TokenizerClass: %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">param_state</tt><tt class="py-op">,</tt> <tt class="py-name">TokenizerClass</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">)</tt> </tt>
+<a name="L337"></a><tt class="py-lineno">337</tt>  <tt class="py-line">    <tt class="py-name">D</tt><tt class="py-op">.</tt><tt id="link-112" class="py-name"><a title="disambiguation.core.Disambiguator.Disambiguator.compute_hashes" class="py-name" href="#" onclick="return doclink('link-112', 'compute_hashes', 'link-49');">compute_hashes</a></tt><tt class="py-op">(</tt><tt class="py-name">hash_dim</tt><tt class="py-op">,</tt> <tt class="py-name">num_procs</tt><tt class="py-op">)</tt> </tt>
+<a name="L338"></a><tt class="py-lineno">338</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"Done computing LSH hashes."</tt> </tt>
+</div><a name="L339"></a><tt class="py-lineno">339</tt>  <tt class="py-line"> </tt>
+<a name="L340"></a><tt class="py-lineno">340</tt>  <tt class="py-line"> </tt>
+<a name="L341"></a><tt class="py-lineno">341</tt>  <tt class="py-line"> </tt>
+<a name="worker_process_multiple_states"></a><div id="worker_process_multiple_states-def"><a name="L342"></a><tt class="py-lineno">342</tt> <a class="py-toggle" href="#" id="worker_process_multiple_states-toggle" onclick="return toggle('worker_process_multiple_states');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.init-module.html#worker_process_multiple_states">worker_process_multiple_states</a><tt class="py-op">(</tt><tt class="py-param">conn</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="worker_process_multiple_states-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="worker_process_multiple_states-expanded"><a name="L343"></a><tt class="py-lineno">343</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L344"></a><tt class="py-lineno">344</tt>  <tt class="py-line"><tt class="py-docstring">    Worker method run by each child process spawned by INIT_process_multiple_states.</tt> </tt>
+<a name="L345"></a><tt class="py-lineno">345</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L346"></a><tt class="py-lineno">346</tt>  <tt class="py-line">    <tt id="link-113" class="py-name" targets="Variable DNC_matching.data=DNC_matching-module.html#data,Package disambiguation.data=disambiguation.data-module.html,Variable disambiguation.data.disp.data=disambiguation.data.disp-module.html#data"><a title="DNC_matching.data
+disambiguation.data
+disambiguation.data.disp.data" class="py-name" href="#" onclick="return doclink('link-113', 'data', 'link-113');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-name">conn</tt><tt class="py-op">.</tt><tt class="py-name">recv</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L347"></a><tt class="py-lineno">347</tt>  <tt class="py-line">    <tt class="py-name">proc_name</tt> <tt class="py-op">=</tt> <tt class="py-name">multiprocessing</tt><tt class="py-op">.</tt><tt class="py-name">current_process</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">name</tt> </tt>
+<a name="L348"></a><tt class="py-lineno">348</tt>  <tt class="py-line"> </tt>
+<a name="L349"></a><tt class="py-lineno">349</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-name">proc_name</tt><tt class="py-op">,</tt> <tt id="link-114" class="py-name"><a title="DNC_matching.data
+disambiguation.data
+disambiguation.data.disp.data" class="py-name" href="#" onclick="return doclink('link-114', 'data', 'link-113');">data</a></tt><tt class="py-op">[</tt><tt class="py-string">'list_states'</tt><tt class="py-op">]</tt> </tt>
+<a name="L350"></a><tt class="py-lineno">350</tt>  <tt class="py-line">    <tt class="py-name">tokenize_kwargs</tt> <tt class="py-op">=</tt> <tt id="link-115" class="py-name"><a title="DNC_matching.data
+disambiguation.data
+disambiguation.data.disp.data" class="py-name" href="#" onclick="return doclink('link-115', 'data', 'link-113');">data</a></tt><tt class="py-op">[</tt><tt class="py-string">'tokenize_kwargs'</tt><tt class="py-op">]</tt> </tt>
+<a name="L351"></a><tt class="py-lineno">351</tt>  <tt class="py-line"> </tt>
+<a name="L352"></a><tt class="py-lineno">352</tt>  <tt class="py-line"> </tt>
+<a name="L353"></a><tt class="py-lineno">353</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt id="link-116" class="py-name"><a title="disambiguation.core.address.Address.state" class="py-name" href="#" onclick="return doclink('link-116', 'state', 'link-91');">state</a></tt> <tt class="py-keyword">in</tt> <tt id="link-117" class="py-name"><a title="DNC_matching.data
+disambiguation.data
+disambiguation.data.disp.data" class="py-name" href="#" onclick="return doclink('link-117', 'data', 'link-113');">data</a></tt><tt class="py-op">[</tt><tt class="py-string">'list_states'</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L354"></a><tt class="py-lineno">354</tt>  <tt class="py-line">        <tt id="link-118" class="py-name" targets="Function disambiguation.init.INIT_process_single_state()=disambiguation.init-module.html#INIT_process_single_state"><a title="disambiguation.init.INIT_process_single_state" class="py-name" href="#" onclick="return doclink('link-118', 'INIT_process_single_state', 'link-118');">INIT_process_single_state</a></tt><tt class="py-op">(</tt><tt id="link-119" class="py-name"><a title="disambiguation.core.address.Address.state" class="py-name" href="#" onclick="return doclink('link-119', 'state', 'link-91');">state</a></tt><tt class="py-op">,</tt> <tt id="link-120" class="py-name"><a title="DNC_matching.data
+disambiguation.data
+disambiguation.data.disp.data" class="py-name" href="#" onclick="return doclink('link-120', 'data', 'link-113');">data</a></tt><tt class="py-op">[</tt><tt class="py-string">'TokenizerClass'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L355"></a><tt class="py-lineno">355</tt>  <tt class="py-line">                                   <tt class="py-name">list_tokenized_fields</tt><tt class="py-op">=</tt><tt id="link-121" class="py-name"><a title="DNC_matching.data
+disambiguation.data
+disambiguation.data.disp.data" class="py-name" href="#" onclick="return doclink('link-121', 'data', 'link-113');">data</a></tt><tt class="py-op">[</tt><tt class="py-string">'list_tokenized_fields'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L356"></a><tt class="py-lineno">356</tt>  <tt class="py-line">                                   <tt class="py-name">num_procs</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-name">tokenize_kwargs</tt><tt class="py-op">=</tt><tt class="py-name">tokenize_kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L357"></a><tt class="py-lineno">357</tt>  <tt class="py-line">        <tt class="py-keyword">continue</tt> </tt>
+<a name="L358"></a><tt class="py-lineno">358</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L359"></a><tt class="py-lineno">359</tt>  <tt class="py-line">            <tt id="link-122" class="py-name"><a title="disambiguation.init.INIT_process_single_state" class="py-name" href="#" onclick="return doclink('link-122', 'INIT_process_single_state', 'link-118');">INIT_process_single_state</a></tt><tt class="py-op">(</tt><tt id="link-123" class="py-name"><a title="disambiguation.core.address.Address.state" class="py-name" href="#" onclick="return doclink('link-123', 'state', 'link-91');">state</a></tt><tt class="py-op">,</tt> <tt id="link-124" class="py-name"><a title="DNC_matching.data
+disambiguation.data
+disambiguation.data.disp.data" class="py-name" href="#" onclick="return doclink('link-124', 'data', 'link-113');">data</a></tt><tt class="py-op">[</tt><tt class="py-string">'TokenizerClass'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L360"></a><tt class="py-lineno">360</tt>  <tt class="py-line">                                       <tt class="py-name">list_tokenized_fields</tt><tt class="py-op">=</tt><tt id="link-125" class="py-name"><a title="DNC_matching.data
+disambiguation.data
+disambiguation.data.disp.data" class="py-name" href="#" onclick="return doclink('link-125', 'data', 'link-113');">data</a></tt><tt class="py-op">[</tt><tt class="py-string">'list_tokenized_fields'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L361"></a><tt class="py-lineno">361</tt>  <tt class="py-line">                                       <tt class="py-name">num_procs</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-name">tokenize_kwargs</tt><tt class="py-op">=</tt><tt class="py-name">tokenize_kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L362"></a><tt class="py-lineno">362</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">Exception</tt> <tt class="py-keyword">as</tt> <tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
+<a name="L363"></a><tt class="py-lineno">363</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"Failed to run INIT_process_single_state for state "</tt><tt class="py-op">,</tt> <tt id="link-126" class="py-name"><a title="disambiguation.core.address.Address.state" class="py-name" href="#" onclick="return doclink('link-126', 'state', 'link-91');">state</a></tt> </tt>
+<a name="L364"></a><tt class="py-lineno">364</tt>  <tt class="py-line">            <tt class="py-keyword">print</tt> <tt class="py-string">"Error "</tt><tt class="py-op">,</tt> <tt class="py-name">e</tt> </tt>
+</div><a name="L365"></a><tt class="py-lineno">365</tt>  <tt class="py-line"> </tt>
+<a name="L366"></a><tt class="py-lineno">366</tt>  <tt class="py-line"> </tt>
+<a name="L367"></a><tt class="py-lineno">367</tt>  <tt class="py-line"> </tt>
+<a name="L368"></a><tt class="py-lineno">368</tt>  <tt class="py-line"> </tt>
+<a name="INIT_process_multiple_states"></a><div id="INIT_process_multiple_states-def"><a name="L369"></a><tt class="py-lineno">369</tt> <a class="py-toggle" href="#" id="INIT_process_multiple_states-toggle" onclick="return toggle('INIT_process_multiple_states');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.init-module.html#INIT_process_multiple_states">INIT_process_multiple_states</a><tt class="py-op">(</tt><tt class="py-param">list_states</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-param">TokenizerClass</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">list_tokenized_fields</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-param">num_procs</tt><tt class="py-op">=</tt><tt class="py-number">12</tt><tt class="py-op">,</tt> <tt class="py-param">tokenize_kwargs</tt><tt class="py-op">=</tt><tt class="py-op">{</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="INIT_process_multiple_states-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="INIT_process_multiple_states-expanded"><a name="L370"></a><tt class="py-lineno">370</tt>  <tt class="py-line">    <tt class="py-docstring">'''</tt> </tt>
+<a name="L371"></a><tt class="py-lineno">371</tt>  <tt class="py-line"><tt class="py-docstring">    Using multiple processes, perform INIT_process_single_state for multiple</tt> </tt>
+<a name="L372"></a><tt class="py-lineno">372</tt>  <tt class="py-line"><tt class="py-docstring">    states at the same time.</tt> </tt>
+<a name="L373"></a><tt class="py-lineno">373</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L374"></a><tt class="py-lineno">374</tt>  <tt class="py-line"><tt class="py-docstring">    @param list_states: list of states. If empty, all states are processed.</tt> </tt>
+<a name="L375"></a><tt class="py-lineno">375</tt>  <tt class="py-line"><tt class="py-docstring">    @param TokenizerClass: the tokenizer class to be used. For fine-grained</tt> </tt>
+<a name="L376"></a><tt class="py-lineno">376</tt>  <tt class="py-line"><tt class="py-docstring">        intra state disambiguation, use TokenizerNgram. For coarse national</tt> </tt>
+<a name="L377"></a><tt class="py-lineno">377</tt>  <tt class="py-line"><tt class="py-docstring">        disambiguation use Tokenizer.</tt> </tt>
+<a name="L378"></a><tt class="py-lineno">378</tt>  <tt class="py-line"><tt class="py-docstring">    @param num_procs: total number of processes we can use in different stages.</tt> </tt>
+<a name="L379"></a><tt class="py-lineno">379</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L380"></a><tt class="py-lineno">380</tt>  <tt class="py-line"><tt class="py-docstring">    @param tokenize_kwargs: a dict that will be used as the kwargs for the</tt> </tt>
+<a name="L381"></a><tt class="py-lineno">381</tt>  <tt class="py-line"><tt class="py-docstring">    Tokenizer.tokenize() method. Here are the possible keywords:</tt> </tt>
+<a name="L382"></a><tt class="py-lineno">382</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword num_procs: number of processes to use.</tt> </tt>
+<a name="L383"></a><tt class="py-lineno">383</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword export_vectors: whether to export the feature vectors to file.</tt> </tt>
+<a name="L384"></a><tt class="py-lineno">384</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword export_normalized_attributes: whether to export normalized </tt> </tt>
+<a name="L385"></a><tt class="py-lineno">385</tt>  <tt class="py-line"><tt class="py-docstring">    attributes to file.</tt> </tt>
+<a name="L386"></a><tt class="py-lineno">386</tt>  <tt class="py-line"><tt class="py-docstring">    @keyword export_tokendata: whether to export tokendata to file.</tt> </tt>
+<a name="L387"></a><tt class="py-lineno">387</tt>  <tt class="py-line"><tt class="py-docstring">    '''</tt> </tt>
+<a name="L388"></a><tt class="py-lineno">388</tt>  <tt class="py-line"> </tt>
+<a name="L389"></a><tt class="py-lineno">389</tt>  <tt class="py-line"> </tt>
+<a name="L390"></a><tt class="py-lineno">390</tt>  <tt class="py-line">    <tt class="py-name">list_jobs</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L391"></a><tt class="py-lineno">391</tt>  <tt class="py-line"> </tt>
+<a name="L392"></a><tt class="py-lineno">392</tt>  <tt class="py-line">    <tt class="py-comment"># if not specified,  load all states</tt> </tt>
+<a name="L393"></a><tt class="py-lineno">393</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">list_states</tt><tt class="py-op">:</tt> </tt>
+<a name="L394"></a><tt class="py-lineno">394</tt>  <tt class="py-line">        <tt class="py-name">list_states</tt> <tt class="py-op">=</tt> <tt id="link-127" class="py-name"><a title="disambiguation.core.address.AddressParser.states
+disambiguation.core.states" class="py-name" href="#" onclick="return doclink('link-127', 'states', 'link-20');">states</a></tt><tt class="py-op">.</tt><tt id="link-128" class="py-name"><a title="disambiguation.core.states.get_states_sorted" class="py-name" href="#" onclick="return doclink('link-128', 'get_states_sorted', 'link-50');">get_states_sorted</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L395"></a><tt class="py-lineno">395</tt>  <tt class="py-line"> </tt>
+<a name="L396"></a><tt class="py-lineno">396</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-string">"Running INIT_process_multiple_states for the following states:"</tt> </tt>
+<a name="L397"></a><tt class="py-lineno">397</tt>  <tt class="py-line">    <tt class="py-keyword">print</tt> <tt class="py-name">list_states</tt> </tt>
+<a name="L398"></a><tt class="py-lineno">398</tt>  <tt class="py-line">     </tt>
+<a name="L399"></a><tt class="py-lineno">399</tt>  <tt class="py-line">    <tt class="py-name">list_states</tt><tt class="py-op">.</tt><tt class="py-name">reverse</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L400"></a><tt class="py-lineno">400</tt>  <tt class="py-line"> </tt>
+<a name="L401"></a><tt class="py-lineno">401</tt>  <tt class="py-line">    <tt class="py-comment"># Number of states to be processed.</tt> </tt>
+<a name="L402"></a><tt class="py-lineno">402</tt>  <tt class="py-line">    <tt id="link-129" class="py-name" targets="Variable disambiguation.graph_visualize.N=disambiguation.graph_visualize-module.html#N,Variable disambiguation.graph_visualize_Modern_employers.N=disambiguation.graph_visualize_Modern_employers-module.html#N,Variable disambiguation.graph_visualize_newyork_occupations.N=disambiguation.graph_visualize_newyork_occupations-module.html#N"><a title="disambiguation.graph_visualize.N
+disambiguation.graph_visualize_Modern_employers.N
+disambiguation.graph_visualize_newyork_occupations.N" class="py-name" href="#" onclick="return doclink('link-129', 'N', 'link-129');">N</a></tt> <tt class="py-op">=</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">list_states</tt><tt class="py-op">)</tt> </tt>
+<a name="L403"></a><tt class="py-lineno">403</tt>  <tt class="py-line"> </tt>
+<a name="L404"></a><tt class="py-lineno">404</tt>  <tt class="py-line">    <tt class="py-comment"># No more than num_procs processes</tt> </tt>
+<a name="L405"></a><tt class="py-lineno">405</tt>  <tt class="py-line">    <tt class="py-name">number_of_processes</tt> <tt class="py-op">=</tt> <tt class="py-name">min</tt><tt class="py-op">(</tt><tt id="link-130" class="py-name"><a title="disambiguation.graph_visualize.N
+disambiguation.graph_visualize_Modern_employers.N
+disambiguation.graph_visualize_newyork_occupations.N" class="py-name" href="#" onclick="return doclink('link-130', 'N', 'link-129');">N</a></tt><tt class="py-op">,</tt> <tt class="py-name">num_procs</tt><tt class="py-op">)</tt> </tt>
+<a name="L406"></a><tt class="py-lineno">406</tt>  <tt class="py-line"> </tt>
+<a name="L407"></a><tt class="py-lineno">407</tt>  <tt class="py-line">    <tt class="py-name">dict_states</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L408"></a><tt class="py-lineno">408</tt>  <tt class="py-line"> </tt>
+<a name="L409"></a><tt class="py-lineno">409</tt>  <tt class="py-line">    <tt class="py-comment"># dictionary of connections to child processes.</tt> </tt>
+<a name="L410"></a><tt class="py-lineno">410</tt>  <tt class="py-line">    <tt class="py-name">dict_conns</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L411"></a><tt class="py-lineno">411</tt>  <tt class="py-line"> </tt>
+<a name="L412"></a><tt class="py-lineno">412</tt>  <tt class="py-line"> </tt>
+<a name="L413"></a><tt class="py-lineno">413</tt>  <tt class="py-line">    <tt class="py-name">proc_id</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L414"></a><tt class="py-lineno">414</tt>  <tt class="py-line">    <tt class="py-keyword">while</tt> <tt class="py-name">list_states</tt><tt class="py-op">:</tt> </tt>
+<a name="L415"></a><tt class="py-lineno">415</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">proc_id</tt> <tt class="py-keyword">not</tt> <tt class="py-keyword">in</tt> <tt class="py-name">dict_states</tt><tt class="py-op">:</tt> <tt class="py-name">dict_states</tt><tt class="py-op">[</tt><tt class="py-name">proc_id</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L416"></a><tt class="py-lineno">416</tt>  <tt class="py-line">        <tt class="py-name">dict_states</tt><tt class="py-op">[</tt><tt class="py-name">proc_id</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">add</tt><tt class="py-op">(</tt><tt class="py-name">list_states</tt><tt class="py-op">.</tt><tt class="py-name">pop</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L417"></a><tt class="py-lineno">417</tt>  <tt class="py-line">        <tt class="py-name">proc_id</tt> <tt class="py-op">+=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L418"></a><tt class="py-lineno">418</tt>  <tt class="py-line">        <tt class="py-name">proc_id</tt> <tt class="py-op">=</tt> <tt class="py-name">proc_id</tt> <tt class="py-op">%</tt> <tt class="py-name">number_of_processes</tt> </tt>
+<a name="L419"></a><tt class="py-lineno">419</tt>  <tt class="py-line"> </tt>
+<a name="L420"></a><tt class="py-lineno">420</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">id</tt> <tt class="py-keyword">in</tt> <tt class="py-name">dict_states</tt><tt class="py-op">:</tt> </tt>
+<a name="L421"></a><tt class="py-lineno">421</tt>  <tt class="py-line">        <tt class="py-keyword">print</tt> <tt class="py-name">id</tt><tt class="py-op">,</tt> <tt class="py-name">dict_states</tt><tt class="py-op">[</tt><tt class="py-name">id</tt><tt class="py-op">]</tt> </tt>
+<a name="L422"></a><tt class="py-lineno">422</tt>  <tt class="py-line"> </tt>
+<a name="L423"></a><tt class="py-lineno">423</tt>  <tt class="py-line"> </tt>
+<a name="L424"></a><tt class="py-lineno">424</tt>  <tt class="py-line">    <tt class="py-comment"># Run fresh state-wide disambiguation batches.</tt> </tt>
+<a name="L425"></a><tt class="py-lineno">425</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">id</tt> <tt class="py-keyword">in</tt> <tt class="py-name">dict_states</tt><tt class="py-op">:</tt> </tt>
+<a name="L426"></a><tt class="py-lineno">426</tt>  <tt class="py-line">        <tt class="py-comment"># queue = multiprocessing.Queue()</tt> </tt>
+<a name="L427"></a><tt class="py-lineno">427</tt>  <tt class="py-line">        <tt class="py-name">conn_parent</tt><tt class="py-op">,</tt> <tt class="py-name">conn_child</tt> <tt class="py-op">=</tt> <tt class="py-name">multiprocessing</tt><tt class="py-op">.</tt><tt class="py-name">Pipe</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L428"></a><tt class="py-lineno">428</tt>  <tt class="py-line">        <tt class="py-name">dict_conns</tt><tt class="py-op">[</tt><tt class="py-name">id</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">conn_parent</tt><tt class="py-op">,</tt> <tt class="py-name">conn_child</tt><tt class="py-op">)</tt> </tt>
+<a name="L429"></a><tt class="py-lineno">429</tt>  <tt class="py-line"> </tt>
+<a name="L430"></a><tt class="py-lineno">430</tt>  <tt class="py-line">        <tt id="link-131" class="py-name" targets="Variable disambiguation.graph_visualize.p=disambiguation.graph_visualize-module.html#p,Variable disambiguation.graph_visualize_Modern_employers.p=disambiguation.graph_visualize_Modern_employers-module.html#p,Variable disambiguation.graph_visualize_newyork_occupations.p=disambiguation.graph_visualize_newyork_occupations-module.html#p"><a title="disambiguation.graph_visualize.p
+disambiguation.graph_visualize_Modern_employers.p
+disambiguation.graph_visualize_newyork_occupations.p" class="py-name" href="#" onclick="return doclink('link-131', 'p', 'link-131');">p</a></tt> <tt class="py-op">=</tt> <tt class="py-name">multiprocessing</tt><tt class="py-op">.</tt><tt class="py-name">Process</tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">=</tt><tt id="link-132" class="py-name" targets="Function disambiguation.init.worker_process_multiple_states()=disambiguation.init-module.html#worker_process_multiple_states"><a title="disambiguation.init.worker_process_multiple_states" class="py-name" href="#" onclick="return doclink('link-132', 'worker_process_multiple_states', 'link-132');">worker_process_multiple_states</a></tt><tt class="py-op">,</tt> <tt class="py-name">name</tt><tt class="py-op">=</tt><tt id="link-133" class="py-name"><a title="str" class="py-name" href="#" onclick="return doclink('link-133', 'str', 'link-29');">str</a></tt><tt class="py-op">(</tt><tt class="py-name">id</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">args</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-name">conn_child</tt><tt class="py-op">,</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L431"></a><tt class="py-lineno">431</tt>  <tt class="py-line"> </tt>
+<a name="L432"></a><tt class="py-lineno">432</tt>  <tt class="py-line">        <tt class="py-name">list_jobs</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt id="link-134" class="py-name"><a title="disambiguation.graph_visualize.p
+disambiguation.graph_visualize_Modern_employers.p
+disambiguation.graph_visualize_newyork_occupations.p" class="py-name" href="#" onclick="return doclink('link-134', 'p', 'link-131');">p</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L433"></a><tt class="py-lineno">433</tt>  <tt class="py-line">        <tt class="py-name">time</tt><tt class="py-op">.</tt><tt class="py-name">sleep</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L434"></a><tt class="py-lineno">434</tt>  <tt class="py-line">        <tt id="link-135" class="py-name"><a title="disambiguation.graph_visualize.p
+disambiguation.graph_visualize_Modern_employers.p
+disambiguation.graph_visualize_newyork_occupations.p" class="py-name" href="#" onclick="return doclink('link-135', 'p', 'link-131');">p</a></tt><tt class="py-op">.</tt><tt class="py-name">start</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L435"></a><tt class="py-lineno">435</tt>  <tt class="py-line">        <tt id="link-136" class="py-name"><a title="DNC_matching.data
+disambiguation.data
+disambiguation.data.disp.data" class="py-name" href="#" onclick="return doclink('link-136', 'data', 'link-113');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-string">'list_states'</tt><tt class="py-op">:</tt> <tt class="py-name">dict_states</tt><tt class="py-op">[</tt><tt class="py-name">id</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L436"></a><tt class="py-lineno">436</tt>  <tt class="py-line">                <tt class="py-string">'TokenizerClass'</tt><tt class="py-op">:</tt> <tt class="py-name">TokenizerClass</tt><tt class="py-op">,</tt> </tt>
+<a name="L437"></a><tt class="py-lineno">437</tt>  <tt class="py-line">                <tt class="py-string">'list_tokenized_fields'</tt><tt class="py-op">:</tt> <tt class="py-name">list_tokenized_fields</tt><tt class="py-op">,</tt> </tt>
+<a name="L438"></a><tt class="py-lineno">438</tt>  <tt class="py-line">                <tt class="py-string">'tokenize_kwargs'</tt><tt class="py-op">:</tt> <tt class="py-name">tokenize_kwargs</tt> <tt class="py-op">}</tt> </tt>
+<a name="L439"></a><tt class="py-lineno">439</tt>  <tt class="py-line">        <tt class="py-name">conn_parent</tt><tt class="py-op">.</tt><tt class="py-name">send</tt><tt class="py-op">(</tt><tt id="link-137" class="py-name"><a title="DNC_matching.data
+disambiguation.data
+disambiguation.data.disp.data" class="py-name" href="#" onclick="return doclink('link-137', 'data', 'link-113');">data</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L440"></a><tt class="py-lineno">440</tt>  <tt class="py-line"> </tt>
+<a name="L441"></a><tt class="py-lineno">441</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt id="link-138" class="py-name"><a title="disambiguation.graph_visualize.p
+disambiguation.graph_visualize_Modern_employers.p
+disambiguation.graph_visualize_newyork_occupations.p" class="py-name" href="#" onclick="return doclink('link-138', 'p', 'link-131');">p</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">list_jobs</tt><tt class="py-op">:</tt> </tt>
+<a name="L442"></a><tt class="py-lineno">442</tt>  <tt class="py-line">        <tt id="link-139" class="py-name"><a title="disambiguation.graph_visualize.p
+disambiguation.graph_visualize_Modern_employers.p
+disambiguation.graph_visualize_newyork_occupations.p" class="py-name" href="#" onclick="return doclink('link-139', 'p', 'link-131');">p</a></tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L443"></a><tt class="py-lineno">443</tt>  <tt class="py-line"> </tt>
+<a name="L444"></a><tt class="py-lineno">444</tt>  <tt class="py-line"> </tt>
+<a name="L445"></a><tt class="py-lineno">445</tt>  <tt class="py-line"> </tt>
+<a name="L446"></a><tt class="py-lineno">446</tt>  <tt class="py-line"> </tt>
+<a name="L447"></a><tt class="py-lineno">447</tt>  <tt class="py-line"> </tt>
+<a name="L448"></a><tt class="py-lineno">448</tt>  <tt class="py-line"><tt class="py-keyword">if</tt> <tt class="py-name">__name__</tt> <tt class="py-op">==</tt> <tt class="py-string">"__main__"</tt><tt class="py-op">:</tt> </tt>
+<a name="L449"></a><tt class="py-lineno">449</tt>  <tt class="py-line"> </tt>
+<a name="L450"></a><tt class="py-lineno">450</tt>  <tt class="py-line"> </tt>
+<a name="L451"></a><tt class="py-lineno">451</tt>  <tt class="py-line">    <tt class="py-string">'''State level data preparation (for fine-grained intra state disambiguation)'''</tt> </tt>
+<a name="L452"></a><tt class="py-lineno">452</tt>  <tt class="py-line">    <tt class="py-comment"># Tokenize, vectorize and hashify all states using TokenizerNgram</tt> </tt>
+<a name="L453"></a><tt class="py-lineno">453</tt>  <tt class="py-line">    <tt class="py-comment"># INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 12)</tt> </tt>
+<a name="L454"></a><tt class="py-lineno">454</tt>  <tt class="py-line"> </tt>
+<a name="L455"></a><tt class="py-lineno">455</tt>  <tt class="py-line">    <tt class="py-string">''' National level data preparation: '''</tt> </tt>
+<a name="L456"></a><tt class="py-lineno">456</tt>  <tt class="py-line">    <tt class="py-comment"># Tokenize, vectorize and hashify all states using Tokenizer</tt> </tt>
+<a name="L457"></a><tt class="py-lineno">457</tt>  <tt class="py-line">    <tt class="py-comment"># INIT_process_multiple_states(TokenizerClass = Tokenizer, num_procs = 12)</tt> </tt>
+<a name="L458"></a><tt class="py-lineno">458</tt>  <tt class="py-line"> </tt>
+<a name="L459"></a><tt class="py-lineno">459</tt>  <tt class="py-line"> </tt>
+<a name="L460"></a><tt class="py-lineno">460</tt>  <tt class="py-line">    <tt class="py-comment"># combine the vectors and tokens from all states into the national data files.</tt> </tt>
+<a name="L461"></a><tt class="py-lineno">461</tt>  <tt class="py-line">    <tt class="py-comment"># INIT_combine_state_tokens_and_vectors()</tt> </tt>
+<a name="L462"></a><tt class="py-lineno">462</tt>  <tt class="py-line"> </tt>
+<a name="L463"></a><tt class="py-lineno">463</tt>  <tt class="py-line">    <tt class="py-comment"># Using the national vectors and tokens, compute uniform national hashes</tt> </tt>
+<a name="L464"></a><tt class="py-lineno">464</tt>  <tt class="py-line">    <tt id="link-140" class="py-name" targets="Function disambiguation.init.INIT_compute_national_hashes()=disambiguation.init-module.html#INIT_compute_national_hashes"><a title="disambiguation.init.INIT_compute_national_hashes" class="py-name" href="#" onclick="return doclink('link-140', 'INIT_compute_national_hashes', 'link-140');">INIT_compute_national_hashes</a></tt><tt class="py-op">(</tt><tt class="py-name">num_procs</tt><tt class="py-op">=</tt><tt class="py-number">10</tt><tt class="py-op">)</tt> </tt>
+<a name="L465"></a><tt class="py-lineno">465</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:25 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

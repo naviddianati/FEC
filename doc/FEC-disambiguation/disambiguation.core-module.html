@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        Package&nbsp;core
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PACKAGE DESCRIPTION ==================== -->
+<h1 class="epydoc">Package core</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core-pysrc.html">source&nbsp;code</a></span></p>
+<p>This subpackage contains almost all of the important modules used for 
+  disambiguation.</p>
+  <p>A number of modules define classes: <a 
+  href="disambiguation.core.Record-module.html" class="link">Record</a>, <a
+  href="disambiguation.core.Person-module.html" class="link">Person</a>, <a
+  href="disambiguation.core.Disambiguator-module.html" 
+  class="link">Disambiguator</a>, <a 
+  href="disambiguation.core.Project-module.html" class="link">Project</a>, 
+  <a href="disambiguation.core.Tokenizer-module.html" 
+  class="link">Tokenizer</a>, etc.</p>
+  <p>Other modules contain methods defining various functionalities: <a 
+  href="disambiguation.core.hashes-module.html" class="link">hashes</a>, <a
+  href="disambiguation.core.filters-module.html" class="link">filters</a>, 
+  etc.</p>
+
+<!-- ==================== SUBMODULES ==================== -->
+<a name="section-Submodules"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Submodules</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Submodules"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr><td class="summary">
+  <ul class="nomargin">
+    <li> <strong class="uidlink"><a href="disambiguation.core.Affiliations-module.html">disambiguation.core.Affiliations</a></strong>: <em class="summary">This module implements classes used to generate the affiliation 
+        (employer/occupation) similarity graphs.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.Database-module.html">disambiguation.core.Database</a></strong>: <em class="summary">This module defines the <a 
+        href="disambiguation.core.Database.DatabaseManager-class.html" 
+        class="link">DatabaseManager</a> class and its subclasses, used for
+        interacting with the MySQL server for retrieving records from the 
+        state and national tables, writing to the identities table, 
+        retrieving the computed identities from the <code>identities</code>
+        table, etc.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.Disambiguator-module.html">disambiguation.core.Disambiguator</a></strong>: <em class="summary">This module defines the <a 
+        href="disambiguation.core.Disambiguator.Disambiguator-class.html" 
+        class="link">Disambiguator</a> class which is the working engine of
+        the disambiguation process.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.Partitioner-module.html">disambiguation.core.Partitioner</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.Person-module.html">disambiguation.core.Person</a></strong>: <em class="summary">This module defines the <a 
+        href="disambiguation.core.Person.Person-class.html" 
+        class="link">Person</a> class which groups records together, 
+        representing an identity.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.Project-module.html">disambiguation.core.Project</a></strong>: <em class="summary">This mofule defines the <a 
+        href="disambiguation.core.Project.Project-class.html" 
+        class="link">Project</a> class which can be used to encapsulate 
+        various administrative functions such as logging, exporting textual
+        results, etc.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.Record-module.html">disambiguation.core.Record</a></strong>: <em class="summary">The module defines the <a 
+        href="disambiguation.core.Record.Record-class.html" 
+        class="link">Record</a> class which represents a record from the 
+        database and implements various methods, most importantly for 
+        record comparison.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.Tokenizer-module.html">disambiguation.core.Tokenizer</a></strong>: <em class="summary">This module defines a number of classes used to parse and tokenize 
+        the data within records.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.Town-module.html">disambiguation.core.Town</a></strong>: <em class="summary">This module defines the <a 
+        href="disambiguation.core.Town.Town-class.html" 
+        class="link">Town</a> class which is a convenience container of <a 
+        href="disambiguation.core.Person-module.html" 
+        class="link">Person</a> objects.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.address-module.html">disambiguation.core.address</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.filters-module.html">disambiguation.core.filters</a></strong>: <em class="summary">This module implements functions for computing the statistical 
+        significance of the weighted edges of the affiliation 
+        (employer/occupation) graphs using the <a 
+        href="http://arxiv.org/abs/1503.04085" target="_top">Marginal 
+        Likelihood Filter</a> of Dianati.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.hashes-module.html">disambiguation.core.hashes</a></strong>: <em class="summary">This module contains the worker function that computes the LSH 
+        hashes for the records.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.memory_spike-module.html">disambiguation.core.memory_spike</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.mypalettes-module.html">disambiguation.core.mypalettes</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.search-module.html">disambiguation.core.search</a></strong>: <em class="summary">This module provides methods for searching the FEC database using 
+        various types of queries.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.states-module.html">disambiguation.core.states</a></strong>: <em class="summary">This module contains data on US states, and methods that retrieve 
+        data on US states.</em>    </li>
+    <li> <strong class="uidlink"><a href="disambiguation.core.utils-module.html">disambiguation.core.utils</a></strong>: <em class="summary">This module loads commonly used packages and modules.</em>    </li>
+  </ul></td></tr>
+</table>
+
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:24 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

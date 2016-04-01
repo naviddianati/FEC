@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Deprecation List</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Indices&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">&nbsp;</td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<center><b>[
+ <a href="identifier-index.html">Identifiers</a>
+| <a href="todo-index.html">To Do</a>
+| <a href="deprecated-index.html">Deprecations</a>
+]</b></center><br />
+<h1 class="epydoc"><a name="deprecated">Deprecation List</a></h1>
+<br />
+<div>
+<table width="100%" class="metadata-index" bgcolor="#e0e0e0"><tr><td class="metadata-index"><b>Deprecations in <a href="disambiguation.core.Disambiguator.Disambiguator-class.html#compare_list_of_pairs">disambiguation.core.Disambiguator.Disambiguator.compare_list_of_pairs</a></b>    <ul class="nomargin">
+      <li>used in v1 where pairs of records were compared in stage II 
+    disambiguation. For the method used instead in v2, see <a 
+    href="disambiguation.core.Disambiguator.Disambiguator-class.html#compare_list_of_identity_pairs"
+    class="link">compare_list_of_identity_pairs</a>. Disambiguate by 
+    performing comparisons between a given list of record pairs. Can be 
+    used instead of <code>compute_similarity</code>, when we know which 
+    pairs of records we should compare already, for example because we've 
+    already processed the hashes and found the nearest neighbors. The same 
+    instance variables are set by this function as with 
+    <code>update_nearest_neighbors</code>.
+    <p>This is a &quot;generator&quot;. It yields a tuple of 4 values: 
+    <code>(verdict, result, rid1, rid2)</code></p></li>
+    </ul>
+</table></div>
+<div class="private">
+<table width="100%" class="metadata-index" bgcolor="#e0e0e0"><tr><td class="metadata-index"><b>Deprecations in <a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_NAME_old" onclick="show_private();">disambiguation.core.Tokenizer.Tokenizer._normalize_NAME_old</a></b>    <ul class="nomargin">
+      <li>for ancient versions. This normalizer is applied to the whole name, 
+    that is, when first/middle/last name and titles are all mixed into one 
+    string. Void. updates the record. This one doesn't use nameparser. My 
+    own version</li>
+    </ul>
+</table></div>
+<div class="private">
+<table width="100%" class="metadata-index" bgcolor="#e0e0e0"><tr><td class="metadata-index"><b>Deprecations in <a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_NAME_v12" onclick="show_private();">disambiguation.core.Tokenizer.Tokenizer._normalize_NAME_v12</a></b>    <ul class="nomargin">
+      <li>used in v1 and v2. this normalizer is applied to the whole name, that 
+    is, when first/middle/last name and titles are all mixed into one 
+    string. Uses nameparser.</li>
+    </ul>
+</table></div>
+<div class="private">
+<table width="100%" class="metadata-index" bgcolor="#e0e0e0"><tr><td class="metadata-index"><b>Deprecations in <a href="stage2-module.html#__get_customized_verdict" onclick="show_private();">stage2.__get_customized_verdict</a></b>    <ul class="nomargin">
+      <li>the final verdict is now managed by <a 
+    href="stage2.VerdictAuthority-class.html" 
+    class="link">VerdictAuthority</a>
+    <p>Function that makes the final judgment on the relationship between 
+    two identities. It receives the output of the <code 
+    class="link">Person.compare</code> method consisting of the detailed 
+    comparison results which give the best match scores for between all 
+    record pairs of the two identities for the different fields. Implement 
+    this method to define how these preliminary comparison results are to 
+    be interpreted ultimately. The output of this function will be used to 
+    determine the relationship between a pair of stage1 identities when all
+    pairs of records one from each are compared. The output of this 
+    function will determine if the two identities are to be merged, to be 
+    kept as irreconcilably separate, or as inconclusively similar.</p>
+    <p>As an exmple, the fullname frequencies can be used.</p></li>
+    </ul>
+</table></div>
+<div class="private">
+<table width="100%" class="metadata-index" bgcolor="#e0e0e0"><tr><td class="metadata-index"><b>Deprecations in <a href="stage2-module.html#__get_customized_verdict_OLD" onclick="show_private();">stage2.__get_customized_verdict_OLD</a></b>    <ul class="nomargin">
+      <li>used for v1 and v2. Function that makes the final judgment on the 
+    relationship between two records. It receives the output of the <code 
+    class="link">Record.compare</code> method consisting of a (preliminary)
+    verdict and the detailed comparison results which provide information 
+    about the comparison results for the various fields of the records. 
+    Implement this method to define how these preliminary comparison 
+    results are to be interpreted ultimately. The output of this function 
+    will be used to determine the relationship between a pair of stage1 
+    identities when a pair of records one from each are compared. The 
+    output of this function will determine if the two identities are to be 
+    merged, to be kept as irreconcilably separate, or as inconclusively 
+    similar.
+    <p>As an exmple, the fullname frequencies can be used to compute a 
+    positive score if <code>verdict == True</code>.</p></li>
+    </ul>
+</table></div>
+<div class="private">
+<table width="100%" class="metadata-index" bgcolor="#e0e0e0"><tr><td class="metadata-index"><b>Deprecations in <a href="stage2-module.html#__get_list_identity_pairs" onclick="show_private();">stage2.__get_list_identity_pairs</a></b>    <ul class="nomargin">
+      <li>Now we directly find candidate identity pairs using the hashes, so we 
+    don't need to compute identity pairs from record pairs. Determine which
+    identity pairs should be compared. Given a list of record id pairs, 
+    find all S1 identity pairs such that one of the record pairs has one 
+    record in one identity and another in the other. Each pair</li>
+    </ul>
+</table></div>
+<br /><!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th bgcolor="#70b0f0" class="navbar-select"
+          >&nbsp;&nbsp;&nbsp;Indices&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:24 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

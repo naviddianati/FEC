@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.mypalettes</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        Module&nbsp;mypalettes
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="disambiguation.core.mypalettes-module.html">Module disambiguation.core.mypalettes</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">igraph</tt> <tt class="py-keyword">as</tt> <tt class="py-name">ig</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">numpy</tt> <tt class="py-keyword">import</tt> <tt class="py-name">sin</tt><tt class="py-op">,</tt><tt class="py-name">cos</tt><tt class="py-op">,</tt><tt class="py-name">abs</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">matplotlib</tt> <tt class="py-keyword">import</tt> <tt class="py-name">cm</tt>  </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"> </tt>
+<a name="mplPalette"></a><div id="mplPalette-def"><a name="L6"></a><tt class="py-lineno"> 6</tt> <a class="py-toggle" href="#" id="mplPalette-toggle" onclick="return toggle('mplPalette');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="disambiguation.core.mypalettes.mplPalette-class.html">mplPalette</a><tt class="py-op">(</tt><tt class="py-base-class">ig</tt><tt class="py-op">.</tt><tt class="py-base-class">Palette</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="mplPalette-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="mplPalette-expanded"><a name="mplPalette.__init__"></a><div id="mplPalette.__init__-def"><a name="L7"></a><tt class="py-lineno"> 7</tt> <a class="py-toggle" href="#" id="mplPalette.__init__-toggle" onclick="return toggle('mplPalette.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.mypalettes.mplPalette-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">n</tt><tt class="py-op">,</tt><tt class="py-param">name</tt><tt class="py-op">=</tt><tt class="py-string">'Set1'</tt><tt class="py-op">,</tt> <tt class="py-param">reverse</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="mplPalette.__init__-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="mplPalette.__init__-expanded"><a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line">        <tt class="py-name">ig</tt><tt class="py-op">.</tt><tt class="py-name">Palette</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Method DNC_matching.MatchFinder.__init__()=DNC_matching.MatchFinder-class.html#__init__,Method disambiguation.core.Affiliations.AffiliationAnalyzer.__init__()=disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#__init__,Method disambiguation.core.Database.DatabaseManager.__init__()=disambiguation.core.Database.DatabaseManager-class.html#__init__,Method disambiguation.core.Database.FecExporter.__init__()=disambiguation.core.Database.FecExporter-class.html#__init__,Method disambiguation.core.Database.FecRetriever.__init__()=disambiguation.core.Database.FecRetriever-class.html#__init__,Method disambiguation.core.Database.FecRetrieverByID.__init__()=disambiguation.core.Database.FecRetrieverByID-class.html#__init__,Method disambiguation.core.Database.IdentityManager.__init__()=disambiguation.core.Database.IdentityManager-class.html#__init__,Method disambiguation.core.Disambiguator.Disambiguator.__init__()=disambiguation.core.Disambiguator.Disambiguator-class.html#__init__,Method disambiguation.core.Partitioner.Partitioner.__init__()=disambiguation.core.Partitioner.Partitioner-class.html#__init__,Method disambiguation.core.Person.Person.__init__()=disambiguation.core.Person.Person-class.html#__init__,Method disambiguation.core.Project.Project.__init__()=disambiguation.core.Project.Project-class.html#__init__,Method disambiguation.core.Record.Record.__init__()=disambiguation.core.Record.Record-class.html#__init__,Method disambiguation.core.Tokenizer.TokenData.__init__()=disambiguation.core.Tokenizer.TokenData-class.html#__init__,Method disambiguation.core.Tokenizer.Tokenizer.__init__()=disambiguation.core.Tokenizer.Tokenizer-class.html#__init__,Method disambiguation.core.Tokenizer.TokenizerName.__init__()=disambiguation.core.Tokenizer.TokenizerName-class.html#__init__,Method disambiguation.core.Tokenizer.TokenizerNgram.__init__()=disambiguation.core.Tokenizer.TokenizerNgram-class.html#__init__,Method disambiguation.core.Town.Town.__init__()=disambiguation.core.Town.Town-class.html#__init__,Method disambiguation.core.address.Address.__init__()=disambiguation.core.address.Address-class.html#__init__,Method disambiguation.core.address.AddressParser.__init__()=disambiguation.core.address.AddressParser-class.html#__init__,Method disambiguation.core.mypalettes.gnuplotPalette1.__init__()=disambiguation.core.mypalettes.gnuplotPalette1-class.html#__init__,Method disambiguation.core.mypalettes.mplPalette.__init__()=disambiguation.core.mypalettes.mplPalette-class.html#__init__,Method disambiguation.core.search.SearchEngine.__init__()=disambiguation.core.search.SearchEngine-class.html#__init__,Method disambiguation.graph_visualize.Settings.__init__()=disambiguation.graph_visualize.Settings-class.html#__init__,Method disambiguation.graph_visualize_Modern_employers.Settings.__init__()=disambiguation.graph_visualize_Modern_employers.Settings-class.html#__init__,Method disambiguation.graph_visualize_newyork_occupations.Settings.__init__()=disambiguation.graph_visualize_newyork_occupations.Settings-class.html#__init__,Method disambiguation.nameparser.parser.HumanName.__init__()=disambiguation.nameparser.parser.HumanName-class.html#__init__,Method script-validate_national_py.html_table.__init__()=script-validate_national_py.html_table-class.html#__init__,Method stage2.VerdictAuthority.__init__()=stage2.VerdictAuthority-class.html#__init__,Method stage2.VerdictAuthorityBase.__init__()=stage2.VerdictAuthorityBase-class.html#__init__"><a title="DNC_matching.MatchFinder.__init__
+disambiguation.core.Affiliations.AffiliationAnalyzer.__init__
+disambiguation.core.Database.DatabaseManager.__init__
+disambiguation.core.Database.FecExporter.__init__
+disambiguation.core.Database.FecRetriever.__init__
+disambiguation.core.Database.FecRetrieverByID.__init__
+disambiguation.core.Database.IdentityManager.__init__
+disambiguation.core.Disambiguator.Disambiguator.__init__
+disambiguation.core.Partitioner.Partitioner.__init__
+disambiguation.core.Person.Person.__init__
+disambiguation.core.Project.Project.__init__
+disambiguation.core.Record.Record.__init__
+disambiguation.core.Tokenizer.TokenData.__init__
+disambiguation.core.Tokenizer.Tokenizer.__init__
+disambiguation.core.Tokenizer.TokenizerName.__init__
+disambiguation.core.Tokenizer.TokenizerNgram.__init__
+disambiguation.core.Town.Town.__init__
+disambiguation.core.address.Address.__init__
+disambiguation.core.address.AddressParser.__init__
+disambiguation.core.mypalettes.gnuplotPalette1.__init__
+disambiguation.core.mypalettes.mplPalette.__init__
+disambiguation.core.search.SearchEngine.__init__
+disambiguation.graph_visualize.Settings.__init__
+disambiguation.graph_visualize_Modern_employers.Settings.__init__
+disambiguation.graph_visualize_newyork_occupations.Settings.__init__
+disambiguation.nameparser.parser.HumanName.__init__
+script-validate_national_py.html_table.__init__
+stage2.VerdictAuthority.__init__
+stage2.VerdictAuthorityBase.__init__" class="py-name" href="#" onclick="return doclink('link-0', '__init__', 'link-0');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt><tt class="py-name">n</tt><tt class="py-op">)</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n</tt> <tt class="py-op">=</tt> <tt class="py-name">n</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">matplotlib_palette</tt> <tt class="py-op">=</tt> <tt class="py-name">cm</tt><tt class="py-op">.</tt><tt class="py-name">get_cmap</tt><tt class="py-op">(</tt><tt class="py-name">name</tt><tt class="py-op">)</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">reverse</tt> <tt class="py-op">=</tt> <tt class="py-name">reverse</tt> </tt>
+</div><a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line">    <tt class="py-comment"># Accepts parameter vin [0,colornum]</tt> </tt>
+<a name="mplPalette._get"></a><div id="mplPalette._get-def"><a name="L13"></a><tt class="py-lineno">13</tt> <a class="py-toggle" href="#" id="mplPalette._get-toggle" onclick="return toggle('mplPalette._get');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.mypalettes.mplPalette-class.html#_get">_get</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">v</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="mplPalette._get-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="mplPalette._get-expanded"><a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">reverse</tt><tt class="py-op">:</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line">            <tt class="py-name">x</tt><tt class="py-op">=</tt><tt class="py-number">1.</tt><tt class="py-op">-</tt><tt class="py-number">1.0</tt><tt class="py-op">*</tt><tt id="link-1" class="py-name" targets="Variable disambiguation.graph_visualize.v=disambiguation.graph_visualize-module.html#v,Variable disambiguation.graph_visualize_newyork_occupations.v=disambiguation.graph_visualize_newyork_occupations-module.html#v"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-1', 'v', 'link-1');">v</a></tt><tt class="py-op">/</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line">            <tt class="py-name">x</tt><tt class="py-op">=</tt><tt class="py-number">1.0</tt><tt class="py-op">*</tt><tt id="link-2" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-2', 'v', 'link-1');">v</a></tt><tt class="py-op">/</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line">        <tt class="py-name">color_tmp</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">matplotlib_palette</tt><tt class="py-op">(</tt><tt class="py-name">x</tt><tt class="py-op">)</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line">        <tt class="py-name">color</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">color_tmp</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-name">color_tmp</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt><tt class="py-name">color_tmp</tt><tt class="py-op">[</tt><tt class="py-number">2</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line">     </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">color</tt> </tt>
+</div></div><a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"> </tt>
+<a name="gnuplotPalette1"></a><div id="gnuplotPalette1-def"><a name="L25"></a><tt class="py-lineno">25</tt> <a class="py-toggle" href="#" id="gnuplotPalette1-toggle" onclick="return toggle('gnuplotPalette1');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="disambiguation.core.mypalettes.gnuplotPalette1-class.html">gnuplotPalette1</a><tt class="py-op">(</tt><tt class="py-base-class">ig</tt><tt class="py-op">.</tt><tt class="py-base-class">Palette</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="gnuplotPalette1-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="gnuplotPalette1-expanded"><a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"> </tt>
+<a name="gnuplotPalette1.__init__"></a><div id="gnuplotPalette1.__init__-def"><a name="L27"></a><tt class="py-lineno">27</tt> <a class="py-toggle" href="#" id="gnuplotPalette1.__init__-toggle" onclick="return toggle('gnuplotPalette1.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.mypalettes.gnuplotPalette1-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">n</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="gnuplotPalette1.__init__-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="gnuplotPalette1.__init__-expanded"><a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line">        <tt class="py-name">ig</tt><tt class="py-op">.</tt><tt class="py-name">Palette</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name"><a title="DNC_matching.MatchFinder.__init__
+disambiguation.core.Affiliations.AffiliationAnalyzer.__init__
+disambiguation.core.Database.DatabaseManager.__init__
+disambiguation.core.Database.FecExporter.__init__
+disambiguation.core.Database.FecRetriever.__init__
+disambiguation.core.Database.FecRetrieverByID.__init__
+disambiguation.core.Database.IdentityManager.__init__
+disambiguation.core.Disambiguator.Disambiguator.__init__
+disambiguation.core.Partitioner.Partitioner.__init__
+disambiguation.core.Person.Person.__init__
+disambiguation.core.Project.Project.__init__
+disambiguation.core.Record.Record.__init__
+disambiguation.core.Tokenizer.TokenData.__init__
+disambiguation.core.Tokenizer.Tokenizer.__init__
+disambiguation.core.Tokenizer.TokenizerName.__init__
+disambiguation.core.Tokenizer.TokenizerNgram.__init__
+disambiguation.core.Town.Town.__init__
+disambiguation.core.address.Address.__init__
+disambiguation.core.address.AddressParser.__init__
+disambiguation.core.mypalettes.gnuplotPalette1.__init__
+disambiguation.core.mypalettes.mplPalette.__init__
+disambiguation.core.search.SearchEngine.__init__
+disambiguation.graph_visualize.Settings.__init__
+disambiguation.graph_visualize_Modern_employers.Settings.__init__
+disambiguation.graph_visualize_newyork_occupations.Settings.__init__
+disambiguation.nameparser.parser.HumanName.__init__
+script-validate_national_py.html_table.__init__
+stage2.VerdictAuthority.__init__
+stage2.VerdictAuthorityBase.__init__" class="py-name" href="#" onclick="return doclink('link-3', '__init__', 'link-0');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt><tt class="py-name">n</tt><tt class="py-op">)</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n</tt> <tt class="py-op">=</tt> <tt class="py-name">n</tt> </tt>
+</div><a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line"> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line">    <tt class="py-comment"># Accepts parameter vin [0,colornum]</tt> </tt>
+<a name="gnuplotPalette1._get"></a><div id="gnuplotPalette1._get-def"><a name="L32"></a><tt class="py-lineno">32</tt> <a class="py-toggle" href="#" id="gnuplotPalette1._get-toggle" onclick="return toggle('gnuplotPalette1._get');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.mypalettes.gnuplotPalette1-class.html#_get">_get</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">v</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="gnuplotPalette1._get-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="gnuplotPalette1._get-expanded"><a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">        <tt class="py-name">x</tt><tt class="py-op">=</tt><tt class="py-number">1.0</tt><tt class="py-op">*</tt><tt id="link-4" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-4', 'v', 'link-1');">v</a></tt><tt class="py-op">/</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt><tt class="py-op">(</tt><tt class="py-name">abs</tt><tt class="py-op">(</tt><tt class="py-number">2</tt><tt class="py-op">*</tt><tt class="py-name">x</tt> <tt class="py-op">-</tt> <tt class="py-number">0.5</tt><tt class="py-op">)</tt><tt class="py-op">,</tt><tt class="py-name">sin</tt><tt class="py-op">(</tt><tt class="py-number">3.1415</tt><tt class="py-op">*</tt><tt class="py-name">x</tt><tt class="py-op">)</tt><tt class="py-op">,</tt><tt class="py-name">cos</tt><tt class="py-op">(</tt><tt class="py-number">3.1415</tt><tt class="py-op">/</tt><tt class="py-number">2</tt><tt class="py-op">*</tt><tt class="py-name">x</tt><tt class="py-op">)</tt><tt class="py-op">,</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">     </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line"> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">    <tt class="py-comment"># Accecpts parameter v in [0,1]</tt> </tt>
+<a name="gnuplotPalette1._getRGB255"></a><div id="gnuplotPalette1._getRGB255-def"><a name="L38"></a><tt class="py-lineno">38</tt> <a class="py-toggle" href="#" id="gnuplotPalette1._getRGB255-toggle" onclick="return toggle('gnuplotPalette1._getRGB255');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="disambiguation.core.mypalettes.gnuplotPalette1-class.html#_getRGB255">_getRGB255</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">v</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="gnuplotPalette1._getRGB255-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="gnuplotPalette1._getRGB255-expanded"><a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">        <tt class="py-name">x</tt><tt class="py-op">=</tt><tt id="link-5" class="py-name"><a title="disambiguation.graph_visualize.v
+disambiguation.graph_visualize_newyork_occupations.v" class="py-name" href="#" onclick="return doclink('link-5', 'v', 'link-1');">v</a></tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt><tt class="py-op">(</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line">            <tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-name">abs</tt><tt class="py-op">(</tt><tt class="py-number">2</tt><tt class="py-op">*</tt><tt class="py-name">x</tt> <tt class="py-op">-</tt> <tt class="py-number">0.5</tt><tt class="py-op">)</tt><tt class="py-op">*</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line">            <tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-name">sin</tt><tt class="py-op">(</tt><tt class="py-number">3.1415</tt><tt class="py-op">*</tt><tt class="py-name">x</tt><tt class="py-op">)</tt><tt class="py-op">*</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line">            <tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-name">cos</tt><tt class="py-op">(</tt><tt class="py-number">3.1415</tt><tt class="py-op">/</tt><tt class="py-number">2</tt><tt class="py-op">*</tt><tt class="py-name">x</tt><tt class="py-op">)</tt><tt class="py-op">*</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n</tt><tt class="py-op">)</tt> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line">        <tt class="py-op">)</tt> </tt>
+</div></div><a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:26 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

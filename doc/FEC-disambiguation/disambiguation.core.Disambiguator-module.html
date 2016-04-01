@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.Disambiguator</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        Module&nbsp;Disambiguator
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module Disambiguator</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html">source&nbsp;code</a></span></p>
+<p>This module defines the <a 
+  href="disambiguation.core.Disambiguator.Disambiguator-class.html" 
+  class="link">Disambiguator</a> class which is the working engine of the 
+  disambiguation process. This class receives a list of records, and using 
+  the feature vectors and LSH hashes, finds pairs of records that must be 
+  compared, then performs the comparison and builds an adjacency matrix 
+  between the records. From this adjacency matrix, identities are 
+  identified.</p>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Classes</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="disambiguation.core.Disambiguator.Disambiguator-class.html" class="summary-name">Disambiguator</a><br />
+      This class receives a list of records and computes a similarity 
+        matrix between the nodes.
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Disambiguator-module.html#find_nearest_neighbors" class="summary-sig-name">find_nearest_neighbors</a>(<span class="summary-sig-arg">data</span>)</span><br />
+      The worker function run in each process spawed by 
+      Disambiguator.update_nearest_neighbors().</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#find_nearest_neighbors">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="find_nearest_neighbors"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_nearest_neighbors</span>(<span class="sig-arg">data</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Disambiguator-pysrc.html#find_nearest_neighbors">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>The worker function run in each process spawed by 
+  Disambiguator.update_nearest_neighbors(). This function finds the nearest
+  neighbors for all records in a list of records it receives.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>data</code></strong> - a dict with the following keys:
+          <ul>
+            <li>
+              data: a dict of all the data needed by this worker function.
+            </li>
+            <li>
+              data['pid']: process id
+            </li>
+            <li>
+              data['queue']: queue for communication with parent process
+            </li>
+            <li>
+              data['matching_mode']: same as 
+              <code>self.matching_mode</code>
+            </li>
+            <li>
+              data['do_stats']: whether to log stats. same as 
+              <code>self.do_stats</code>
+            </li>
+            <li>
+              data['index_adjacency']: a sub-dictionary of the full 
+              index_adjacency with entries for records relevant to this 
+              process.
+            </li>
+            <li>
+              data['dict_of_records']: a dictionary that maps an index to a
+              record. The indices form a contiguous set of integers, and 
+              reflect the current ordering of self.list_of_records 
+              according the list of hashes. Therefore, here, we can simply 
+              compare index i with index i+1 throughout the 
+              dict_of_records. That is, adjacency of the indices in 
+              dict_of_records implies adjacency of the corresponding 
+              records in list of hashes.
+            </li>
+            <li>
+              data['sort_indices']
+            </li>
+            <li>
+              data['B']
+            </li>
+            <li>
+              data['allow_repeats']
+            </li>
+            <li>
+              data['list_indices']: list of the indices (in the sorted 
+              hashes list) to be processed by this child
+            </li>
+          </ul></li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a dict of all output variables:
+          <ul>
+            <li>
+              result['match_count']: number of matches found by this 
+              process
+            </li>
+            <li>
+              result['new_match_buffer']: Set of matched record id pairs
+            </li>
+            <li>
+              result['index_adjacency']: updated index_adjacency. Will be 
+              merged into self.index_adjacency in the calling process.
+            </li>
+          </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:24 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

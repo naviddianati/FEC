@@ -1,0 +1,727 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.Tokenizer.Tokenizer</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        <a href="disambiguation.core.Tokenizer-module.html">Module&nbsp;Tokenizer</a> ::
+        Class&nbsp;Tokenizer
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Tokenizer</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer">source&nbsp;code</a></span></p>
+<p>This class receives a list of records (perhaps retrieved from a MySQL 
+  query). The fields are divided between &quot;identifier&quot; fieldsz and
+  &quot;auxiliary&quot; fields. The class tokenizes all the identifier 
+  fields of all records, and for each record computes a vector that 
+  encapsulates this information. The set of these vectors is then sent to a
+  Disambiguator instance which computes a similarity graph between the 
+  nodes(records) based on their vectors.</p>
+  <p>QUESTION: How do we use the auxiliary fields as well?</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__init__"></a><span class="summary-sig-name">__init__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_NAME" class="summary-sig-name" onclick="show_private();">_normalize_NAME</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span><br />
+      this normalizer is applied to the whole name, that is, when 
+      first/middle/last name and titles are all mixed into one string.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_NAME">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_NAME_v12" class="summary-sig-name" onclick="show_private();">_normalize_NAME_v12</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_NAME_v12">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#_normalize_NAME_old" class="summary-sig-name" onclick="show_private();">_normalize_NAME_old</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_NAME_old">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_normalize_LAST_NAME"></a><span class="summary-sig-name">_normalize_LAST_NAME</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span><br />
+      Not implemented since we mostly use the NAME fields of the FEC 
+      database instead.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_LAST_NAME">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_normalize_FIRST_NAME"></a><span class="summary-sig-name">_normalize_FIRST_NAME</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span><br />
+      Not implemented since we mostly use the NAME fields of the FEC 
+      database instead.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_FIRST_NAME">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_normalize_ZIP"></a><span class="summary-sig-name">_normalize_ZIP</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_ZIP">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_normalize_STREET"></a><span class="summary-sig-name">_normalize_STREET</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_STREET">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_normalize_OCCUPATION"></a><span class="summary-sig-name">_normalize_OCCUPATION</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_OCCUPATION">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_normalize_EMPLOYER"></a><span class="summary-sig-name">_normalize_EMPLOYER</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_EMPLOYER">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_get_tokens"></a><span class="summary-sig-name">_get_tokens</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>,
+        <span class="summary-sig-arg">list_fields</span>)</span><br />
+      This function tokenizes a list of selected fields for the given 
+      record.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._get_tokens">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_get_tokens_FIRST_NAME"></a><span class="summary-sig-name">_get_tokens_FIRST_NAME</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._get_tokens_FIRST_NAME">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_get_tokens_LAST_NAME"></a><span class="summary-sig-name">_get_tokens_LAST_NAME</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._get_tokens_LAST_NAME">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_get_tokens_ZIP"></a><span class="summary-sig-name">_get_tokens_ZIP</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._get_tokens_ZIP">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_get_tokens_STREET"></a><span class="summary-sig-name">_get_tokens_STREET</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._get_tokens_STREET">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_get_tokens_NAME"></a><span class="summary-sig-name">_get_tokens_NAME</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._get_tokens_NAME">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_get_tokens_OCCUPATION"></a><span class="summary-sig-name">_get_tokens_OCCUPATION</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._get_tokens_OCCUPATION">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_get_tokens_EMPLOYER"></a><span class="summary-sig-name">_get_tokens_EMPLOYER</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._get_tokens_EMPLOYER">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="update_normalized_token_counts"></a><span class="summary-sig-name">update_normalized_token_counts</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span><br />
+      Update self.tokens.normalized_token_counts by tracking/updating the 
+      frequency of the normalized tokens belonging to the given record.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.update_normalized_token_counts">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="load_from_file"></a><span class="summary-sig-name">load_from_file</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Load the TokenData object and the normalized record attributes from 
+      file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.load_from_file">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#tokenize" class="summary-sig-name">tokenize</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Tokenize the records using either one process or multiple processes.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.tokenize">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Tokenizer.Tokenizer-class.html#__tokenize_multi_proc" class="summary-sig-name" onclick="show_private();">__tokenize_multi_proc</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Divide the list_of_records into equal chunks.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.__tokenize_multi_proc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__tokenize_single_proc"></a><span class="summary-sig-name">__tokenize_single_proc</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.__tokenize_single_proc">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setTokenizedFields"></a><span class="summary-sig-name">setTokenizedFields</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_tokenized_fields</span>)</span><br />
+      List of MySQL table &quot;identifier&quot; fields retrieved using the
+      original MySQL query</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.setTokenizedFields">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setRecords"></a><span class="summary-sig-name">setRecords</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_of_records</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.setRecords">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getRecords"></a><span class="summary-sig-name">getRecords</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.getRecords">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="_normalize_NAME"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_normalize_NAME</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">record</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_NAME">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>this normalizer is applied to the whole name, that is, when 
+  first/middle/last name and titles are all mixed into one string. Uses a 
+  custom name parser I wrote.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="_normalize_NAME_v12"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_normalize_NAME_v12</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">record</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_NAME_v12">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Deprecated:</strong>
+        used in v1 and v2. this normalizer is applied to the whole name, that 
+    is, when first/middle/last name and titles are all mixed into one 
+    string. Uses nameparser.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="_normalize_NAME_old"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">_normalize_NAME_old</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">record</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer._normalize_NAME_old">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Deprecated:</strong>
+        for ancient versions. This normalizer is applied to the whole name, 
+    that is, when first/middle/last name and titles are all mixed into one 
+    string. Void. updates the record. This one doesn't use nameparser. My 
+    own version
+      </p>
+</div></td></tr></table>
+</div>
+<a name="tokenize"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">tokenize</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.tokenize">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Tokenize the records using either one process or multiple 
+  processes.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>num_procs</code></strong> - number of processes to use.</li>
+        <li><strong class="pname"><code>export_vectors</code></strong> - whether to export the feature vectors to file.</li>
+        <li><strong class="pname"><code>num_procs</code></strong> - number of processes to use.</li>
+        <li><strong class="pname"><code>export_vectors</code></strong> - whether to export the feature vectors to file.</li>
+        <li><strong class="pname"><code>export_normalized_attributes</code></strong> - whether to export normalized attributes to file.</li>
+        <li><strong class="pname"><code>export_tokendata</code></strong> - whether to export tokendata to file.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__tokenize_multi_proc"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__tokenize_multi_proc</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Tokenizer-pysrc.html#Tokenizer.__tokenize_multi_proc">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Divide the list_of_records into equal chunks. Send the chunks to a 
+  standalone method. In that method, multiple tokenizer instances will be 
+  created, and each data chunk assigned to one of them. Each tokenizer will
+  then tokenize in a separate process and the results are comgined. This 
+  includes updating the record vectors held by each tokenizer. The combined
+  results will then be returned to this method for saving and post 
+  processing.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:25 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

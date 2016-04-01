@@ -1,0 +1,1465 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.Database.IdentityManager</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        <a href="disambiguation.core.Database-module.html">Module&nbsp;Database</a> ::
+        Class&nbsp;IdentityManager
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class IdentityManager</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+<a href="disambiguation.core.Database.DatabaseManager-class.html">DatabaseManager</a> --+
+                  |
+                 <strong class="uidshort">IdentityManager</strong>
+</pre>
+
+<hr />
+<p>DatabaseManager subclass that interacts with the 'identities' and 
+  'identities_adjacency' MySQL tables and retrieves cluster membership 
+  data.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">state</span>,
+        <span class="summary-sig-arg">list_order_by</span>=<span class="summary-sig-default">&quot;&quot;</span>,
+        <span class="summary-sig-arg">where_clause</span>=<span class="summary-sig-default">''</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#init_tables" class="summary-sig-name">init_tables</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">overwrite</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Initialize the identities and identities_adjacency tables.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.init_tables">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_compound_identity"></a><span class="summary-sig-name">get_compound_identity</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">rid</span>)</span><br />
+      Return the compound identity of rid by concatenating the identities 
+      of all linked identities.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_compound_identity">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#get_related_identities" class="summary-sig-name">get_related_identities</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">identity</span>)</span><br />
+      Return a list of all identities related to the given identy.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_related_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#get_reachable_identities" class="summary-sig-name">get_reachable_identities</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">identity</span>,
+        <span class="summary-sig-arg">fcn_linked</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Return all identities that are reachable from <code>identity</code> 
+      via a path of edge scores 1 on the graph of related identities.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_reachable_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fetch_dict_identity_adjacency"></a><span class="summary-sig-name">fetch_dict_identity_adjacency</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Load the <a 
+      href="disambiguation.core.Database.IdentityManager-class.html#table_name_identity_adjacency"
+      class="link">table_name_identity_adjacency</a> table into <a 
+      href="disambiguation.core.Database.IdentityManager-class.html#dict_identity_adjacency"
+      class="link">self.dict_identity_adjacency</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.fetch_dict_identity_adjacency">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_ids"></a><span class="summary-sig-name">get_ids</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">identity</span>)</span><br />
+      For the specified identity, return a list of all record ids contained
+      in that identity, from <code 
+      class="link">self.dict_identity_2_ids</code></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_ids">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_identity"></a><span class="summary-sig-name">get_identity</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">rid</span>)</span><br />
+      For the specified record id, retrieve the identity from <a 
+      href="disambiguation.core.Database.IdentityManager-class.html#dict_id_2_identity"
+      class="link">self.dict_id_2_identity</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_identity">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="load_dict_identity_2_identities"></a><span class="summary-sig-name">load_dict_identity_2_identities</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Using <a 
+      href="disambiguation.core.Database.IdentityManager-class.html#dict_identity_adjacency"
+      class="link">self.dict_identity_adjacency</a>, populate <a 
+      href="disambiguation.core.Database.IdentityManager-class.html#dict_identity_2_identities"
+      class="link">self.dict_identity_2_identities</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.load_dict_identity_2_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#getPersons" class="summary-sig-name">getPersons</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_identities</span>)</span><br />
+      For all identities in <code>list_identities</code>, retrieve all 
+      associated records, add normalized attributes to each record, and for
+      each subset with the same identity, instantiate a new <a 
+      href="disambiguation.core.Person-module.html" class="link">Person</a>
+      object.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.getPersons">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#generate_dict_identity_adjacency" class="summary-sig-name">generate_dict_identity_adjacency</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_identity_pairs</span>,
+        <span class="summary-sig-arg">overwrite</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">export_file</span>=<span class="summary-sig-default">''</span>,
+        <span class="summary-sig-arg">verdict_authority</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Compute <a 
+      href="disambiguation.core.Database.IdentityManager-class.html#dict_identity_adjacency"
+      class="link">self.dict_identity_adjacency</a> from a list containing 
+      results of pairwise S1 identity comparisons.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.generate_dict_identity_adjacency">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#deduce_linked_identities" class="summary-sig-name">deduce_linked_identities</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Generate a set of super-identities, i.e.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.deduce_linked_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#__get_dict_super_identities" class="summary-sig-name" onclick="show_private();">__get_dict_super_identities</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">verbose</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Compute all the super identities and for each one determine if it has
+      internal middle name conflict.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__get_dict_super_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#__get_set_super_identities" class="summary-sig-name" onclick="show_private();">__get_set_super_identities</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dict_super_identities</span>)</span><br />
+      return a set containing all new super identities.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__get_set_super_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#get_reachable_identities_graph" class="summary-sig-name">get_reachable_identities_graph</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">identity</span>)</span><br />
+      Return a graph of all identities that are reachable from the given 
+      identity on the graph of related identities.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_reachable_identities_graph">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#get_linked_identities" class="summary-sig-name">get_linked_identities</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">identity</span>)</span><br />
+      Using the table <code>linked_identities</code>, return a list of all 
+      other identities linked to <code>identity</code>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_linked_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#export_related_identities_csv" class="summary-sig-name">export_related_identities_csv</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Export related identities to a csv file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.export_related_identities_csv">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#export_linked_identities_csv" class="summary-sig-name">export_linked_identities_csv</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Export linked identities to a csv file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.export_linked_identities_csv">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="export_identities_adjacency"></a><span class="summary-sig-name">export_identities_adjacency</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Export the contents of <a 
+      href="disambiguation.core.Database.IdentityManager-class.html#dict_identity_adjacency"
+      class="link">self.dict_identity_adjacency</a> to the table defined by
+      <a 
+      href="disambiguation.core.Database.IdentityManager-class.html#table_name_identity_adjacency"
+      class="link">IdentityManager.table_name_identity_adjacency</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.export_identities_adjacency">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="export_linked_identities"></a><span class="summary-sig-name">export_linked_identities</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Using the contents of <code 
+      class="link">self.set_super_identities</code>, populate the table 
+      defined by <a 
+      href="disambiguation.core.Database.IdentityManager-class.html#table_name_identity_adjacency"
+      class="link">IdentityManager.table_name_identity_adjacency</a>.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.export_linked_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="drop_table_identities"></a><span class="summary-sig-name">drop_table_identities</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Drop the table &quot;identities&quot; if exists</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.drop_table_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="drop_table_identities_adjacency"></a><span class="summary-sig-name">drop_table_identities_adjacency</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Drop the table &quot;identities_adjacency&quot; if exists</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.drop_table_identities_adjacency">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="drop_table_linked_identities"></a><span class="summary-sig-name">drop_table_linked_identities</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Drop the table &quot;linked_identities&quot; if exists</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.drop_table_linked_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#__init_table_identities" class="summary-sig-name" onclick="show_private();">__init_table_identities</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">overwrite</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Check whether the &quot;identities&quot; table exists and create it 
+      if not.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__init_table_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#__init_table_identities_adjacency" class="summary-sig-name" onclick="show_private();">__init_table_identities_adjacency</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">overwrite</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Check whether the &quot;identities_adjacency&quot; table exists and 
+      create it if not.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__init_table_identities_adjacency">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#__init_table_linked_identities" class="summary-sig-name" onclick="show_private();">__init_table_linked_identities</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">overwrite</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Check whether the &quot;linked_identities&quot; table exists and 
+      create it if not.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__init_table_linked_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#__truncate_table_identities_adjacency" class="summary-sig-name" onclick="show_private();">__truncate_table_identities_adjacency</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Empty the identities_adjacency table.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__truncate_table_identities_adjacency">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#__truncate_table_linked_identities" class="summary-sig-name" onclick="show_private();">__truncate_table_linked_identities</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Empty the linked_identities table.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__truncate_table_linked_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.IdentityManager-class.html#fetch_dict_linked_identities" class="summary-sig-name">fetch_dict_linked_identities</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Fetch <code class="link">self.dict_linked_identities</code> from the 
+      <code>linked_identities</code> table.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.fetch_dict_linked_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fetch_dict_id_2_identity"></a><span class="summary-sig-name">fetch_dict_id_2_identity</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Fetch from the &quot;identities&quot; table the requested set of 
+      identities and record ids, and populate the dict 
+      self.dict_id_2_identity which maps every record id to its 
+      corresponding identity.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.fetch_dict_id_2_identity">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="fetch_dict_identity_2_id"></a><span class="summary-sig-name">fetch_dict_identity_2_id</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Fetch from the &quot;identities&quot; table the requested set of 
+      identities and record ids, and populate the dict 
+      self.dict_identity_2_list_ids which maps every identity to a list of 
+      record ids associated with it.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.fetch_dict_identity_2_id">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="disambiguation.core.Database.DatabaseManager-class.html">DatabaseManager</a></code></b>:
+      <code><a href="disambiguation.core.Database.DatabaseManager-class.html#db_connect">db_connect</a></code>,
+      <code><a href="disambiguation.core.Database.DatabaseManager-class.html#runQuery">runQuery</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="table_name_identities"></a><span class="summary-name">table_name_identities</span> = <code title="utils.config.MySQL_table_identities">utils.config.MySQL_table_identities</code><br />
+      name of the MySQL table containing the identities, that is, a unique 
+      record id &quot;id&quot; column and an &quot;identity&quot; column.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="disambiguation.core.Database.IdentityManager-class.html#table_name_identity_adjacency" class="summary-name">table_name_identity_adjacency</a> = <code title="utils.config.MySQL_table_identities_adjacency">utils.config.MySQL_table_ident<code class="variable-ellipsis">...</code></code><br />
+      name of the MySQL table containing the inferred relationships between
+      identities.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="disambiguation.core.Database.IdentityManager-class.html#table_name_linked_identities" class="summary-name">table_name_linked_identities</a> = <code title="utils.config.MySQL_table_linked_identities">utils.config.MySQL_table_linked<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE VARIABLES ==================== -->
+<a name="section-InstanceVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dict_id_2_identity"></a><span class="summary-name">dict_id_2_identity</span><br />
+      dictionary mapping each record id to its corresponding identity.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="disambiguation.core.Database.IdentityManager-class.html#dict_identity_2_identities" class="summary-name">dict_identity_2_identities</a><br />
+      dict mapping a each identity to others it's related to.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dict_identity_2_list_ids"></a><span class="summary-name">dict_identity_2_list_ids</span><br />
+      dictionary mapping each identity to the list of its corresponding 
+      record ids.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="disambiguation.core.Database.IdentityManager-class.html#dict_identity_adjacency" class="summary-name">dict_identity_adjacency</a><br />
+      dictionary mapping a (sorted) tuple of identity identifiers to a 
+      tuple of numerical scores indicating their relationship.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dict_persons"></a><span class="summary-name">dict_persons</span><br />
+      dict mapping an <code>identity</code> to a <a 
+      href="disambiguation.core.Person-module.html" class="link">Person</a>
+      instance.
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">state</span>,
+        <span class="sig-arg">list_order_by</span>=<span class="sig-default">&quot;&quot;</span>,
+        <span class="sig-arg">where_clause</span>=<span class="sig-default">''</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Database.DatabaseManager-class.html#__init__">DatabaseManager.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="init_tables"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">init_tables</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">overwrite</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.init_tables">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Initialize the identities and identities_adjacency tables.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>overwrite</code></strong> - whether to overwrite the tables if they exist already.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_related_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_related_identities</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">identity</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_related_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return a list of all identities related to the given identy. These 
+  include any identity some of whose records were compared to the records 
+  of the given identity regardless of the (no, maybe, yes) values. The 
+  decision of which identities should be considered linked to the given 
+  identity must be made by another function using the output of this 
+  function.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>identity</code></strong> - a string. The stage1 identity of a cluster.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a dict of <code>other_identity: relation</code> key-value pairs.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_reachable_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_reachable_identities</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">identity</span>,
+        <span class="sig-arg">fcn_linked</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_reachable_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return all identities that are reachable from <code>identity</code> 
+  via a path of edge scores 1 on the graph of related identities. This will
+  be done using the function <a 
+  href="disambiguation.core.Database.IdentityManager-class.html#get_related_identities"
+  class="link">self.get_related_identities</a>, but not all 
+  &quot;related&quot; identities will necessarily make it to the list of 
+  linked identities.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>identity</code></strong> - the identity in question.</li>
+        <li><strong class="pname"><code>fcn_linked</code></strong> - a function that decides if two identities that are linked by an 
+          edge in self.dict_identity_2_identities are close enough that 
+          they should be considered linked. This function will be used to 
+          find all identities that are connected to &quot;identity&quot; 
+          through a path of such edges. If this function is not provided, a
+          default will be used.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a list of all identities that we judge to be linked to the given 
+          identity.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="getPersons"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getPersons</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">list_identities</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.getPersons">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>For all identities in <code>list_identities</code>, retrieve all 
+  associated records, add normalized attributes to each record, and for 
+  each subset with the same identity, instantiate a new <a 
+  href="disambiguation.core.Person-module.html" class="link">Person</a> 
+  object. Add that object to <a 
+  href="disambiguation.core.Database.IdentityManager-class.html#dict_persons"
+  class="link">self.dict_persons</a>.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="generate_dict_identity_adjacency"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">generate_dict_identity_adjacency</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">list_identity_pairs</span>,
+        <span class="sig-arg">overwrite</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">export_file</span>=<span class="sig-default">''</span>,
+        <span class="sig-arg">verdict_authority</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.generate_dict_identity_adjacency">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Compute <a 
+  href="disambiguation.core.Database.IdentityManager-class.html#dict_identity_adjacency"
+  class="link">self.dict_identity_adjacency</a> from a list containing 
+  results of pairwise S1 identity comparisons. This is a stage2 
+  operation.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>list_identity_pairs</code></strong> - a list where each item is of the form 
+          <code>((identity1,identity2), result)</code>. Each item is then 
+          the result of a record pair comparison. The tuple 
+          <code>(identity1, identity2)</code> is sorted. This is a much 
+          simpler operation than the v1 method, since now <code 
+          class="link">list_identity_pairs</code> already contains the 
+          final comparison results for the S1 identity pairs and no further
+          calculations are required.</li>
+        <li><strong class="pname"><code>verdict_authority</code></strong> - an instance of <a href="stage2.VerdictAuthority-class.html" 
+          class="link">VerdictAuthority</a> that issues a final verdict on 
+          an element of list_identity_pairs. This object must be supplied 
+          whether this is a bootstrapping or a disambiguation run. The 
+          bootstrapping object can be a dummy object with an lambda x:1 as 
+          the verdict function.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="deduce_linked_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">deduce_linked_identities</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.deduce_linked_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Generate a set of super-identities, i.e. a sorted tuples of S1 
+  identities that are linked and have no middle name conflicts. Result is 
+  <code class="link">self.set_super_identities</code></p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__get_dict_super_identities"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_dict_super_identities</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">verbose</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__get_dict_super_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Compute all the super identities and for each one determine if it has 
+  internal middle name conflict. The key is a sorted tuple of all 
+  identities reachable from one another. The value is an integer counting 
+  the number of middle name conflicts within the set given the edges for 
+  which we have comparison results.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__get_set_super_identities"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_set_super_identities</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">dict_super_identities</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__get_set_super_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>return a set containing all new super identities. This includes all 
+  the old ones that didn't require partitioning due to middle name 
+  conflicts as well as new ones resulting from the partitioning of old ones
+  with conflicts.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>dict_super_identities</code></strong> - a dict where the key is a sorted tuple of identities (a super 
+          identity) and the value is the number of middle name conflicts 
+          detected within the super identity.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>set where each item is a sorted tuple of self.identities.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_reachable_identities_graph"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_reachable_identities_graph</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">identity</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_reachable_identities_graph">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return a graph of all identities that are reachable from the given 
+  identity on the graph of related identities. Edge 'weight' can be -1, 0, 
+  1.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_linked_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_linked_identities</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">identity</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.get_linked_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Using the table <code>linked_identities</code>, return a list of all 
+  other identities linked to <code>identity</code>. In previous versions, 
+  we did this just by using <code 
+  class="link">self.dict_identities_adjacency</code> but now, that is not 
+  enough. We must use the contents of <code>linked_identities</code> which 
+  are the result of further processing of the said dict, after resolving 
+  middle name conflicts and splitting some of the super identities.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="export_related_identities_csv"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">export_related_identities_csv</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.export_related_identities_csv">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Export related identities to a csv file. Each line will start with a 
+  target identity, and all following fields are identities related to the 
+  target identity.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="export_linked_identities_csv"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">export_linked_identities_csv</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.export_linked_identities_csv">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Export linked identities to a csv file. Each line will start with a 
+  target identity, and all following fields are identities linked to the 
+  target identity.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__init_table_identities"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init_table_identities</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">overwrite</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__init_table_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Check whether the &quot;identities&quot; table exists and create it if
+  not.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>overwrite</code></strong> - whether or not to overwrite table if it already exists.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__init_table_identities_adjacency"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init_table_identities_adjacency</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">overwrite</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__init_table_identities_adjacency">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Check whether the &quot;identities_adjacency&quot; table exists and 
+  create it if not.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>overwrite</code></strong> - whether to overwrite the table if it already exists.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__init_table_linked_identities"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init_table_linked_identities</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">overwrite</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__init_table_linked_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Check whether the &quot;linked_identities&quot; table exists and 
+  create it if not.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>overwrite</code></strong> - whether to overwrite the table if it already exists.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__truncate_table_identities_adjacency"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__truncate_table_identities_adjacency</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__truncate_table_identities_adjacency">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Empty the identities_adjacency table.
+@note: Due to a known L{MySQL bug &lt;http://bugs.mysql.com/bug.php?id=68184&gt;},
+the TRUNCATE statement may cause the code to freeze. Instead, we
+drop and re-init the table.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__truncate_table_linked_identities"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__truncate_table_linked_identities</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.__truncate_table_linked_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Empty the linked_identities table.
+@note: Due to a known L{MySQL bug &lt;http://bugs.mysql.com/bug.php?id=68184&gt;},
+the TRUNCATE statement may cause the code to freeze. Instead, we
+drop and re-init the table.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="fetch_dict_linked_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">fetch_dict_linked_identities</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#IdentityManager.fetch_dict_linked_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Fetch <code class="link">self.dict_linked_identities</code> from the 
+  <code>linked_identities</code> table. This dict contains the final data 
+  on identities that are linked by our algorithm.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="table_name_identity_adjacency"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">table_name_identity_adjacency</h3>
+  name of the MySQL table containing the inferred relationships between 
+  identities. This table is defined by the columns: <code>(identity1 
+  VARCHAR(24), identity2 VARCHAR(24), no INT, maybe INT, yes INT, PRIMARY 
+  KEY (&quot;identity1&quot;,&quot;identity2&quot;))</code>.
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+utils.config.MySQL_table_identities_adjacency
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="table_name_linked_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">table_name_linked_identities</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+utils.config.MySQL_table_linked_identities
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== INSTANCE VARIABLE DETAILS ==================== -->
+<a name="section-InstanceVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="dict_identity_2_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">dict_identity_2_identities</h3>
+  dict mapping a each identity to others it's related to. Each value is a 
+  dict of <code>other_identity: relationship</code> key-value pairs. More 
+  convenient to use in place of <a 
+  href="disambiguation.core.Database.IdentityManager-class.html#dict_identity_adjacency"
+  class="link">self.dict_identity_adjacency</a> when we  have a single 
+  identity and need to find all related identities.
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="dict_identity_adjacency"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">dict_identity_adjacency</h3>
+  dictionary mapping a (sorted) tuple of identity identifiers to a tuple of
+  numerical scores indicating their relationship. The value is a tuple of 3
+  integers: <code>(inconsistent, mayberelated, related)</code>. Each 
+  element in this tuple is a weighted count of inter-identity record-pair 
+  comparison results. <code>inconsistent</code> counts the number of record
+  pairs between the two identities with a strong inconsistency. 
+  <code>mayberelated</code> counts the number of results that aren't 
+  conclusive either way but suggest some similarity. <code>related</code> 
+  counts the number of results that indicate a clear/strong link.
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:25 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

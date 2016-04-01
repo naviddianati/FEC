@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.init</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        Module&nbsp;init
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module init</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.init-pysrc.html">source&nbsp;code</a></span></p>
+<p>This module contains methods that prepare data and export intermediate
+  computation results to files. If all methods in this module are run once 
+  successfully, the following data files will exist in the relevant paths 
+  and will be available to disambiguation methods:</p>
+  <ul>
+    <li>
+      tokendata files for each state, both using Tokenizer and 
+      TokenizerNgram tokenization schemes.
+    </li>
+    <li>
+      feature vector files for each state both using Tokenizer and 
+      TokenizerNgram tokenization schemes.
+    </li>
+    <li>
+      LHS hash files for each state both using Tokenizer and TokenizerNgram
+      tokenization schemes.
+    </li>
+    <li>
+      combined (national, &quot;USA&quot;) tokendata file derived from 
+      Tokenizer (coarse) results.
+    </li>
+    <li>
+      combined (national, &quot;USA&quot;) feature vector file derived from
+      Tokenizer (coarse) results.
+    </li>
+    <li>
+      combined (national, &quot;USA&quot;) hash file derived from Tokenizer
+      (coarse) results.
+    </li>
+  </ul>
+  <ol start="1">
+    <li>
+      For fine-grained intra-state disambiguation:
+      <ul>
+        <li>
+          Tokenize and compute vectors for every state using 
+          TokenizerNgram.
+        </li>
+        <li>
+          Compute hashes from the vectors computed above.
+        </li>
+      </ul>
+    </li>
+    <li>
+      For coarse-grained nationwide disambiguation:
+      <ul>
+        <li>
+          Tokenize and compute vectors for every state using Tokenizer.
+        </li>
+        <li>
+          Combine Tokenizer tokendata into the &quot;USA&quot; files and 
+          update the vectors.
+        </li>
+        <li>
+          Compute coarse national hashes from the vectors computed above.
+        </li>
+      </ul>
+    </li>
+  </ol>
+
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.init-module.html#tokenize_records" class="summary-sig-name">tokenize_records</a>(<span class="summary-sig-arg">list_of_records</span>,
+        <span class="summary-sig-arg">project</span>,
+        <span class="summary-sig-arg">TokenizerClass</span>,
+        <span class="summary-sig-arg">tokenize_kwargs</span>)</span><br />
+      Return a TokenDadta object for <code 
+      class="link">list_of_records</code>, and update each record in <code 
+      class="link">list_of_records</code> by adding to it a vector 
+      attribute and associating the TokenData instance to the record.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.init-pysrc.html#tokenize_records">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.init-module.html#INIT_compute_national_hashes" class="summary-sig-name">INIT_compute_national_hashes</a>(<span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">1</span>)</span><br />
+      From the combined national vector and tokendata files, compute LSH 
+      hashes and export to &quot;USA&quot; hash file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.init-pysrc.html#INIT_compute_national_hashes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.init-module.html#INIT_combine_state_tokens_and_vectors" class="summary-sig-name">INIT_combine_state_tokens_and_vectors</a>()</span><br />
+      Read all Tokenizer tokendata objects for different states and combine
+      them.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.init-pysrc.html#INIT_combine_state_tokens_and_vectors">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="INIT_combine_normalized_attributes"></a><span class="summary-sig-name">INIT_combine_normalized_attributes</span>()</span><br />
+      Read all state normalized attribute files and combine them into a 
+      national file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.init-pysrc.html#INIT_combine_normalized_attributes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.init-module.html#INIT_process_single_state" class="summary-sig-name">INIT_process_single_state</a>(<span class="summary-sig-arg">state</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">TokenizerClass</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">list_tokenized_fields</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">record_limit</span>=<span class="summary-sig-default">(0,50000000)</span>,
+        <span class="summary-sig-arg">whereclause</span>=<span class="summary-sig-default">''</span>,
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">1</span>,
+        <span class="summary-sig-arg">tokenize_kwargs</span>=<span class="summary-sig-default">{}</span>)</span><br />
+      Using the TokenizerClass specified, tokenize all records from the 
+      specified state, save the tokendata as well as the feature vectors to
+      files.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.init-pysrc.html#INIT_process_single_state">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="worker_process_multiple_states"></a><span class="summary-sig-name">worker_process_multiple_states</span>(<span class="summary-sig-arg">conn</span>)</span><br />
+      Worker method run by each child process spawned by 
+      INIT_process_multiple_states.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.init-pysrc.html#worker_process_multiple_states">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.init-module.html#INIT_process_multiple_states" class="summary-sig-name">INIT_process_multiple_states</a>(<span class="summary-sig-arg">list_states</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">TokenizerClass</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">list_tokenized_fields</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">12</span>,
+        <span class="summary-sig-arg">tokenize_kwargs</span>=<span class="summary-sig-default">{}</span>)</span><br />
+      Using multiple processes, perform INIT_process_single_state for 
+      multiple states at the same time.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.init-pysrc.html#INIT_process_multiple_states">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="tokenize_records"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">tokenize_records</span>(<span class="sig-arg">list_of_records</span>,
+        <span class="sig-arg">project</span>,
+        <span class="sig-arg">TokenizerClass</span>,
+        <span class="sig-arg">tokenize_kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.init-pysrc.html#tokenize_records">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return a TokenDadta object for <code 
+  class="link">list_of_records</code>, and update each record in <code 
+  class="link">list_of_records</code> by adding to it a vector attribute 
+  and associating the TokenData instance to the record. If a file 
+  containing the pickled TokenData instance already exists, load it. Also, 
+  make sure that the vectors are available in a file for later use. If 
+  either file doesn't exist, start a new TokenizerClass instance and 
+  compute and export both. At the end of this function, both the tokendata 
+  and the vectors will exist in pickled format in files.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>TokenizerClass</code></strong> - The Tokenizer class used. It can be TokenizerNgram, Tokenizer, 
+          etc.</li>
+        <li><strong class="pname"><code>tokenize_kwargs</code></strong> - a dict that will be used as the kwargs for the tokenize() method.
+          Here are the possible keywords:</li>
+        <li><strong class="pname"><code>num_procs</code></strong> - number of processes to use.</li>
+        <li><strong class="pname"><code>export_vectors</code></strong> - whether to export the feature vectors to file.</li>
+        <li><strong class="pname"><code>export_normalized_attributes</code></strong> - whether to export normalized attributes to file.</li>
+        <li><strong class="pname"><code>export_tokendata</code></strong> - whether to export tokendata to file.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="INIT_compute_national_hashes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">INIT_compute_national_hashes</span>(<span class="sig-arg">num_procs</span>=<span class="sig-default">1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.init-pysrc.html#INIT_compute_national_hashes">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>From the combined national vector and tokendata files, compute LSH 
+  hashes and export to &quot;USA&quot; hash file. Use coarse feature 
+  vectors for this purpose. That is, take words as tokens not unigrams and 
+  bigrams. The goal is to be able to quickly and easily detect identical 
+  names, employers, etc. across different states.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="INIT_combine_state_tokens_and_vectors"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">INIT_combine_state_tokens_and_vectors</span>()</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.init-pysrc.html#INIT_combine_state_tokens_and_vectors">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Read all Tokenizer tokendata objects for different states and combine 
+  them. Then read every state feature vector file and update it according 
+  to the compound tokendata. Then write all of them to a file.</p>
+  <p>Here we need the data (tokendata, vectors, etc) generated using the 
+  coarse tokenizer class Tokenizer. This is different from the data used 
+  for fine- grained analysis withing each state. That data is based on the 
+  TokenizerNgram tokenizer class.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="INIT_process_single_state"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">INIT_process_single_state</span>(<span class="sig-arg">state</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">TokenizerClass</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">list_tokenized_fields</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">record_limit</span>=<span class="sig-default">(0,50000000)</span>,
+        <span class="sig-arg">whereclause</span>=<span class="sig-default">''</span>,
+        <span class="sig-arg">num_procs</span>=<span class="sig-default">1</span>,
+        <span class="sig-arg">tokenize_kwargs</span>=<span class="sig-default">{}</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.init-pysrc.html#INIT_process_single_state">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Using the TokenizerClass specified, tokenize all records from the 
+  specified state, save the tokendata as well as the feature vectors to 
+  files. Then, compute the LSH hashes and save to file.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="INIT_process_multiple_states"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">INIT_process_multiple_states</span>(<span class="sig-arg">list_states</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">TokenizerClass</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">list_tokenized_fields</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">num_procs</span>=<span class="sig-default">12</span>,
+        <span class="sig-arg">tokenize_kwargs</span>=<span class="sig-default">{}</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.init-pysrc.html#INIT_process_multiple_states">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Using multiple processes, perform INIT_process_single_state for 
+  multiple states at the same time.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>list_states</code></strong> - list of states. If empty, all states are processed.</li>
+        <li><strong class="pname"><code>TokenizerClass</code></strong> - the tokenizer class to be used. For fine-grained intra state 
+          disambiguation, use TokenizerNgram. For coarse national 
+          disambiguation use Tokenizer.</li>
+        <li><strong class="pname"><code>num_procs</code></strong> - total number of processes we can use in different stages.</li>
+        <li><strong class="pname"><code>tokenize_kwargs</code></strong> - a dict that will be used as the kwargs for the 
+          Tokenizer.tokenize() method. Here are the possible keywords:</li>
+        <li><strong class="pname"><code>num_procs</code></strong> - number of processes to use.</li>
+        <li><strong class="pname"><code>export_vectors</code></strong> - whether to export the feature vectors to file.</li>
+        <li><strong class="pname"><code>export_normalized_attributes</code></strong> - whether to export normalized attributes to file.</li>
+        <li><strong class="pname"><code>export_tokendata</code></strong> - whether to export tokendata to file.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:24 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.Database.FecRetrieverByID</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        <a href="disambiguation.core.Database-module.html">Module&nbsp;Database</a> ::
+        Class&nbsp;FecRetrieverByID
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class FecRetrieverByID</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+<a href="disambiguation.core.Database.DatabaseManager-class.html">DatabaseManager</a> --+
+                  |
+                 <strong class="uidshort">FecRetrieverByID</strong>
+</pre>
+
+<hr />
+<p>Subclass that retrieves records with ids in a given list of ids. For 
+  efficiency when a large number of record ids are requested, this task is 
+  accomplished via a join operation with a temporary table.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.FecRetrieverByID-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">table_name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__get_temp_table"></a><span class="summary-sig-name">__get_temp_table</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the name of a temp table that can be safely used by this 
+      instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.__get_temp_table">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.FecRetrieverByID-class.html#__populate_temp_table" class="summary-sig-name" onclick="show_private();">__populate_temp_table</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_ids</span>,
+        <span class="summary-sig-arg">chunk_size</span>=<span class="summary-sig-default">10000</span>)</span><br />
+      Insert the ids into the temp table.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.__populate_temp_table">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__del_temp_table"></a><span class="summary-sig-name">__del_temp_table</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Delete the allocated temp table from database.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.__del_temp_table">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="retrieve"></a><span class="summary-sig-name">retrieve</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">list_ids</span>,
+        <span class="summary-sig-arg">query_fields</span>=<span class="summary-sig-default">[]</span>)</span><br />
+      Retrieve the rows with ids in list_ids.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.retrieve">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getRecords"></a><span class="summary-sig-name">getRecords</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.getRecords">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="set_idm"></a><span class="summary-sig-name">set_idm</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">idm</span>)</span><br />
+      Set self's IdentityManager instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.set_idm">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_idm"></a><span class="summary-sig-name">get_idm</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Instantiate a new IdentityManager.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.get_idm">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Database.FecRetrieverByID-class.html#export_csv" class="summary-sig-name">export_csv</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">filename</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">filelabel</span>=<span class="summary-sig-default">None</span>)</span><br />
+      @param filename</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.export_csv">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="disambiguation.core.Database.DatabaseManager-class.html">DatabaseManager</a></code></b>:
+      <code><a href="disambiguation.core.Database.DatabaseManager-class.html#db_connect">db_connect</a></code>,
+      <code><a href="disambiguation.core.Database.DatabaseManager-class.html#runQuery">runQuery</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">table_name</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Database.DatabaseManager-class.html#__init__">DatabaseManager.__init__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__populate_temp_table"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__populate_temp_table</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">list_ids</span>,
+        <span class="sig-arg">chunk_size</span>=<span class="sig-default">10000</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.__populate_temp_table">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Insert the ids into the temp table.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>list_ids</code></strong> - list of record ids tobe retrieved.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="export_csv"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">export_csv</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">filename</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">filelabel</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Database-pysrc.html#FecRetrieverByID.export_csv">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>@param filename</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>filelabel</code></strong> - DEPRECATED string label for output file. This label will be 
+          inserted into the csv_exported_state_template template.</li>
+    </ul></dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:25 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
+        <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
+        <a href="disambiguation.core.Affiliations-module.html">Module&nbsp;Affiliations</a> ::
+        Class&nbsp;AffiliationAnalyzerUndirectedPostStage1
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class AffiliationAnalyzerUndirectedPostStage1</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+               object --+        
+                        |        
+      <a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html">AffiliationAnalyzer</a> --+    
+                            |    
+<a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html">AffiliationAnalyzerUndirected</a> --+
+                                |
+                               <strong class="uidshort">AffiliationAnalyzerUndirectedPostStage1</strong>
+</pre>
+
+<hr />
+<p>Subclass of AffiliationAnalyzerUndirected. Generates a similar 
+  affiliation graph, but instead of the high-certainty matches found 
+  pre-stage1, it uses the stage1 identities to link affiliation 
+  identifiers. For this, we need to override the <a 
+  href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#load_data"
+  class="link">load_data()</a> method so it loads the records using an 
+  FECretriever. Must set <code class="link">self.G</code>, <code 
+  class="link">self.dict_record_nodes</code>.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_records"></a><span class="summary-sig-name">get_records</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Retrieve all records for given state.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.get_records">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#load_data" class="summary-sig-name">load_data</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      For <a 
+      href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html#extract"
+      class="link">self.extract</a> to work, we need at the minimum two 
+      pieces of data: <code class="link">self.dict_record_nodes</code> as a
+      container for all the relevant record data, and <code 
+      class="link">self.contributors_subgraphs</code> which is a list of 
+      graphs each one a set of vertices representing the records belonging 
+      to a stage1 identity.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.load_data">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#load_identities" class="summary-sig-name">load_identities</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Load <code class="link">self.contributors_subgraphs</code> from the 
+      calculated stage1 identities.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.load_identities">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="load_record_nodes"></a><span class="summary-sig-name">load_record_nodes</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Populate <code class="link">self.dict_record_nodes</code> with 
+      important fields from all retrieved records.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.load_record_nodes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="set_idm"></a><span class="summary-sig-name">set_idm</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">idm</span>)</span><br />
+      Assign an IdentityManager to this instance.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.set_idm">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#load_settings" class="summary-sig-name">load_settings</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">file_label</span>)</span><br />
+      Define the <code class="link">self.settings</code> instance that 
+      defines the schema of the nodes dictionary.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.load_settings">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#save_data" class="summary-sig-name">save_data</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">label</span>=<span class="summary-sig-default">&quot;&quot;</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.save_data">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html">AffiliationAnalyzerUndirected</a></code></b>:
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html#compute_affiliation_links">compute_affiliation_links</a></code>,
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html#extract">extract</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html">AffiliationAnalyzer</a></code></b>:
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#__init__">__init__</a></code>,
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#compile_committees">compile_committees</a></code>,
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#export_sample_affiliations">export_sample_affiliations</a></code>,
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#get_party">get_party</a></code>,
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#show_histories_distribution">show_histories_distribution</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="load_data"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">load_data</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.load_data">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>For <a 
+  href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html#extract"
+  class="link">self.extract</a> to work, we need at the minimum two pieces 
+  of data: <code class="link">self.dict_record_nodes</code> as a container 
+  for all the relevant record data, and <code 
+  class="link">self.contributors_subgraphs</code> which is a list of graphs
+  each one a set of vertices representing the records belonging to a stage1
+  identity.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#load_data">AffiliationAnalyzer.load_data</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="load_identities"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">load_identities</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.load_identities">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Load <code class="link">self.contributors_subgraphs</code> from the 
+  calculated stage1 identities. Then create <code 
+  class="link">self.contributors_subgraphs</code></p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="load_settings"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">load_settings</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">file_label</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.load_settings">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Define the <code class="link">self.settings</code> instance that 
+  defines the schema of the nodes dictionary. This is completely arbitrary:
+  the same settings will be used to generate dict_records_nodes, and to 
+  interpret it.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>file_label</code></strong> - dummy.</li>
+    </ul></dd>
+    <dt>Overrides:
+        <a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#load_settings">AffiliationAnalyzer.load_settings</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="save_data"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">save_data</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">label</span>=<span class="sig-default">&quot;&quot;</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1.save_data">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#save_data">AffiliationAnalyzer.save_data</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:25 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
