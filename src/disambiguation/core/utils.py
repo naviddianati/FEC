@@ -35,26 +35,26 @@ random.seed()
 
 # list of juink pieces often found in names. These must be
 # removed before the name can be parsed.
-name_junk= ['Ms','Miss','Mrs','Mr','Master','Rev' ,'Fr' ,'Dr' ,'MD', 'Atty' ,'Prof' \
-    ,'Hon' ,'Pres','Gov' ,'Coach','Ofc' ,'Msgr' ,'Sr' ,'Br' ,'Supt','Rep' \
-    ,'Sen' ,'Amb' ,'Treas','Sec' ,'Pvt' ,'Cpl' ,'Sgt' ,'Adm' ,'Maj' ,'Capt' \
-    ,'Cmdr' ,'Lt' ,'Col' ,'Gen','esq','esquire','jr','jnr','sr','snr',\
-    'ii','iii','iv', 'And', 'The', 'Is', 'Are', 'To', 'But', 'Over', 'At', 'Honorable', 'Judge' ]
+name_junk = ['Ms', 'Miss', 'Mrs', 'Mr', 'Master', 'Rev' , 'Fr' , 'Dr' , 'MD', 'Atty' , 'Prof' \
+    , 'Hon' , 'Pres', 'Gov' , 'Coach', 'Ofc' , 'Msgr' , 'Sr' , 'Br' , 'Supt', 'Rep' \
+    , 'Sen' , 'Amb' , 'Treas', 'Sec' , 'Pvt' , 'Cpl' , 'Sgt' , 'Adm' , 'Maj' , 'Capt' \
+    , 'Cmdr' , 'Lt' , 'Col' , 'Gen', 'esq', 'esquire', 'jr', 'jnr', 'sr', 'snr', \
+    'ii', 'iii', 'iv', 'And', 'The', 'Is', 'Are', 'To', 'But', 'Over', 'At', 'Honorable', 'Judge' ]
 
 # Regex that matches junck pieces in a name.
-name_regex = re.compile('|'.join([r'(\b%s\b)'.encode('ASCII') % s.upper() for s in name_junk]))        
+name_regex = re.compile('|'.join([r'(\b%s\b)'.encode('ASCII') % s.upper() for s in name_junk]))
 
 
 
-# list of juink pieces often found in employers. 
+# list of juink pieces often found in employers.
 employer_junk = set(['AND', 'WITH', 'CO'])
 
 # Regex that matches junck pieces in a name.
-employer_regex = re.compile('|'.join([r'(\b%s\b)'.encode('ASCII') % s.upper() for s in employer_junk]))        
+employer_regex = re.compile('|'.join([r'(\b%s\b)'.encode('ASCII') % s.upper() for s in employer_junk]))
 
 
 
-def match_token_permuted(employer1, employer2, verbose = False):
+def match_token_permuted(employer1, employer2, verbose=False):
     '''
     Split employer strings into tokens and check
     if a significant number of the tokens are in common.
@@ -63,17 +63,17 @@ def match_token_permuted(employer1, employer2, verbose = False):
     Returns True if either there are more than two tokens in common
     with length more than 4, or there is one, but it is 6 characters or more.
     '''
-    e1, e2 = employer1, employer2 
+    e1, e2 = employer1, employer2
 
     e1 = employer_regex.sub('', e1)
     e1 = strip_string(re.sub(r'\.|\,|-|\&|\\|\/', ' ', e1))
 
     e2 = employer_regex.sub('', e2)
     e2 = strip_string(re.sub(r'\.|\,|-|\&|\\|\/', ' ', e2))
-    
+
     s1 = set([x for x in e1.split(' ') if len(x) > 3])
     s2 = set([x for x in e2.split(' ') if len(x) > 3])
-    
+
     if verbose:
         print s1
         print s2
@@ -85,7 +85,7 @@ def match_token_permuted(employer1, employer2, verbose = False):
     elif n == 1 and len(intersection.pop()) >= 6:
         return True
     else:
-        return False          
+        return False
 
 
 
@@ -95,21 +95,21 @@ def strip_string(s):
     Collapse multiple whitespaces, and strip.
     @param s: a string.
     '''
-    return re.sub(r'\s+',' ',s).strip()
-    
+    return re.sub(r'\s+', ' ', s).strip()
+
 
 def get_index(mylist, x):
     '''
     Find indices of all occurrences of C{x} in C{mylist}.
     '''
-    return [i for i,y in enumerate(mylist) if y == x]
-    
+    return [i for i, y in enumerate(mylist) if y == x]
+
 
 
 def splitname(name):
     '''
     Parse a name and return a three-tuple:
-    C{(lastname, middlename, firstname)}. 
+    C{(lastname, middlename, firstname)}.
     When parsing, we first remove all junk as defined
     by L{name_junk} and L{name_regex}.
     '''
@@ -118,20 +118,20 @@ def splitname(name):
     s1 = re.sub(r'\.', ' ', s1)
     s1 = re.sub(r'[0-9]', ' ', s1)
     firstname, middlename, lastname = '', '', ''
-    tree ='' 
+    tree = ''
     # If ',' exists, split based on that. Everything before
     # is last name.
     if s1.find(',') > 0:
         tree += '1'
         # Last name is everything left of the FIRST comma
-        lastname, s_right = re.findall(r'([^\,]*),(.*)',s1)[0]
+        lastname, s_right = re.findall(r'([^\,]*),(.*)', s1)[0]
 
-        #In case there are more commas:
-        s_right = re.sub(r'\,',' ',s_right)
+        # In case there are more commas:
+        s_right = re.sub(r'\,', ' ', s_right)
         s_right = strip_string(s_right)
 
         tokens = s_right.split(' ')
-        
+
         lengths = [len(s) for s in tokens]
         length_max = max(lengths)
         if len(lengths) == 1:
@@ -141,7 +141,7 @@ def splitname(name):
         else:
             # multiple tokens on the right
             tree += '0'
-            indices_1 = get_index(lengths,1)
+            indices_1 = get_index(lengths, 1)
             if len(indices_1) == 0:
                 tree += '2'
                 # Multiple tokens, all more than one letter
@@ -149,23 +149,23 @@ def splitname(name):
                 firstname = tokens[0]
                 tokens.remove(firstname)
                 middlename = ' '.join(tokens)
-                
+
                 return lastname, middlename, firstname
-            
+
             elif len(indices_1) == 1:
                 tree += '1'
                 # Only one single letter token.
                 middlename = tokens[indices_1[0]]
-                
+
                 tokens.remove(middlename)
                 firstname = ' '.join(tokens)
-                #firstname = ' '.join(tokens)
+                # firstname = ' '.join(tokens)
                 return lastname, middlename, firstname
 
             else:
                 tree += '0'
                 # multiple single-letter tokens
-                # First one is middlename, 
+                # First one is middlename,
                 middlename = tokens[indices_1[0]]
                 # If the first single letter token is not the
                 # first RHS token, first name is all tokens uptp
@@ -188,8 +188,8 @@ def splitname(name):
                         # pick the first multi-letter token
                         # as first name
                         firstname = tokens[lengths.index(length_max)]
-                    
-                #firstname = ' '.join(tokens)
+
+                # firstname = ' '.join(tokens)
                 return lastname, middlename, firstname
     else:
         # String doesn't contain comma
@@ -200,9 +200,9 @@ def splitname(name):
         lastname = tokens[0]
         firstname = ' '.join(tokens[1:])
         return lastname, middlename, firstname
-            
-                
-            
+
+
+
 
 
 
@@ -264,7 +264,7 @@ def bad_identifier(identifier, type='employer'):
 
 
 
-def loadAffiliationNetwork(state, affiliation, percent=5, poststage1 = False):
+def loadAffiliationNetwork(state, affiliation, percent=5, poststage1=False):
     '''
     Loads the saved output of AffiliatoinAnalyzer from file: the affiliation network.
     It also adds a new attribute to the graph instance that contains a dictionary from
@@ -292,7 +292,7 @@ def loadAffiliationNetwork(state, affiliation, percent=5, poststage1 = False):
         if affiliation == 'employer':
             if poststage1:
                 filename = config.affiliation_poststage1_employer_file_template % state
-            else:            
+            else:
                 filename = config.affiliation_employer_file_template % state
         elif affiliation == 'occupation':
             if poststage1:
@@ -356,7 +356,7 @@ def partition_list_of_graphs(mylist, num_partitions):
         A.sort(key=lambda subset:subset[1])
         A[0][0].append(g)
         A[0][1] += g.vcount()
-        #print "Sizes of partitions: ", [subset[1] for subset in A]
+        # print "Sizes of partitions: ", [subset[1] for subset in A]
 
     return [item[0] for item in A]
 
@@ -428,7 +428,7 @@ def find_all_in_list(regex, str_list):
 
 def get_next_batch_id():
 
-    return str(np.random.randint(0,10000000))
+    return str(np.random.randint(0, 10000000))
 
 
     with  open(config.src_path + '../../config/batches.list') as f:
@@ -534,7 +534,7 @@ def chunks(l, n):
 
 def chunks_gen(l, n):
     '''
-    A generator to split a list into precisely n 
+    A generator to split a list into precisely n
     contiguous chunks of roughly equal size.
     @param l: list to be split.
     @param n: number of chunks
@@ -543,11 +543,11 @@ def chunks_gen(l, n):
     N = len(l)
     size = float(N) / n
     for i in xrange(n):
-        chunk =  l[int(i * size):int((i + 1) * size)] 
+        chunk = l[int(i * size):int((i + 1) * size)]
         if chunk: yield chunk
 
 
- 
+
 def chunks_size(l, size):
     '''
     Divide a list into chunks of size C{size}.
@@ -555,13 +555,13 @@ def chunks_size(l, size):
     '''
     list_chunks = []
     i = 0
-    
+
     while i * size < len(l):
         list_chunks.append(l[int(i * size):int((i + 1) * size)])
         i += 1
     return list_chunks
-        
-        
+
+
 
 def chunks_size_gen(l, size):
     '''
@@ -570,11 +570,11 @@ def chunks_size_gen(l, size):
     '''
     list_chunks = []
     i = 0
-    
+
     while i * size < len(l):
         yield l[int(i * size):int((i + 1) * size)]
         i += 1
-        
+
 
 
 

@@ -7,10 +7,10 @@ import time
 import utils
 import Database
 
-def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10, idm = None):
+def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10, idm=None):
     '''
     Shuffle the given  hashes num_shuffles times and build
-    an edgelist of identities corresponding to item pairs most 
+    an edgelist of identities corresponding to item pairs most
     commonly found close to one another in the sorted hash list.
 
     @param filename: filename of the hashes.
@@ -76,7 +76,7 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10, idm = None)
                     continue
 
                 counter_new += 1
-                # NOTE: now, instead of the record ids, we 
+                # NOTE: now, instead of the record ids, we
                 # register their identities.
                 edgelist.add((identity1, identity2))
 
@@ -97,7 +97,7 @@ def get_edgelist_from_hashes(filename, state, B=10, num_shuffles=10, idm = None)
 
 
 
-def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_procs=12, num_pairs=1000, idm = None, prune = True):
+def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_procs=12, num_pairs=1000, idm=None, prune=True):
     '''
     Using multiple child processes, load hashes, shuffle them multiple
     times and compute identity edgelist. Worker function: L{worker_get_edgelist_from_hashes_file}
@@ -109,7 +109,7 @@ def get_edgelist_from_hashes_file(filename, state, B=10, num_shuffles=40, num_pr
     @param num_procs:  number of processes to use.
     @param idm: L{IdentityManager} instance to use.
     @param prune: whether to prune the adjacency list after every 10
-    shuffles. 
+    shuffles.
     '''
 
     # The full adjacency matrix. A dict.

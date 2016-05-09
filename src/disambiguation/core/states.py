@@ -201,7 +201,7 @@ def __get_state_order_record_number():
     '''
     dict_states_record_numbers = get_states_record_numbers()
     tmp = sorted(dict_state.values(), key=lambda state:dict_states_record_numbers[state], reverse=True)
-    return {state:order for order,state in enumerate(tmp)}
+    return {state:order for order, state in enumerate(tmp)}
 
 
 

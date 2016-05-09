@@ -456,7 +456,7 @@ class Disambiguator():
         print "NUMBER OF DISTINCT RECORDS IN list_of_records: ", len(tmp)
 
 
-    def compare_list_of_identity_pairs(self, list_of_identity_pairs, dict_identities): 
+    def compare_list_of_identity_pairs(self, list_of_identity_pairs, dict_identities):
         '''
         Compare pairs of S1 identities by going through all records
         in each one. Used in stage II disambiguation.
@@ -468,7 +468,7 @@ class Disambiguator():
         be accessed through L{self.list_of_records}.
 
         @return: a 3-tuple C{(result, identity1, identity2)} where C{result}
-        is itself a 3-tuple returned by L{Person.compare}. It contains the 
+        is itself a 3-tuple returned by L{Person.compare}. It contains the
         highest-valued comparison results of any record pair between the two
         identities. See L{Person.compare} for details.
         '''
@@ -488,17 +488,17 @@ class Disambiguator():
 
             list_r_1 = [dict_records[rid] for rid in list_rid1]
             list_r_2 = [dict_records[rid] for rid in list_rid2]
-            
-               
-            
+
+
+
             p1 = Person(list_r_1)
             p2 = Person(list_r_2)
 
-            p1.identity = identity1 
-            p2.identity = identity2 
-            
+            p1.identity = identity1
+            p2.identity = identity2
+
             # Get the result of person comparison. If they are
-            # obviously not related, ignore the pair. Otherwise, 
+            # obviously not related, ignore the pair. Otherwise,
             # return the result and let VerdictAuthority deal with it.
             result = p1.compare(p2)
             print identity1, identity2, result
@@ -511,9 +511,9 @@ class Disambiguator():
 
     def compare_list_of_pairs(self, list_of_pairs):
         '''
-        @deprecated: used in v1 where pairs of records were compared in 
+        @deprecated: used in v1 where pairs of records were compared in
         stage II disambiguation. For the method used instead in v2, see
-        L{compare_list_of_identity_pairs}. 
+        L{compare_list_of_identity_pairs}.
         Disambiguate by performing comparisons between a given list of record
         pairs. Can be used instead of C{compute_similarity}, when we know which
         pairs of records we should compare already, for example because we've
@@ -1399,7 +1399,7 @@ class Disambiguator():
         and create an empty one.
         '''
         db_manager = DatabaseManager()
-        tablename = config.MySQL_table_identities 
+        tablename = config.MySQL_table_identities
         if overwrite:
             db_manager.runQuery('DROP TABLE IF EXISTS %s;' % tablename)
             db_manager.runQuery('CREATE TABLE %s ( id INT PRIMARY KEY, identity VARCHAR(24));' % tablename)

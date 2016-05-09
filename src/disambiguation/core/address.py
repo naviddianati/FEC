@@ -201,7 +201,7 @@ class Address:
         address = address.replace(" & ", "&")
         # Clear the address of things like 'X units', which shouldn't be in an address anyway. We won't save this for now.
         if re.search(r"-?-?\w+ units", address, re.IGNORECASE):
-            address = re.sub(r"-?-?\w+ units", "", address,  flags=re.IGNORECASE)
+            address = re.sub(r"-?-?\w+ units", "", address, flags=re.IGNORECASE)
         # Sometimes buildings are put in parantheses.
         building_match = re.search(r"\(.*\)", address, re.IGNORECASE)
         if building_match:
@@ -268,10 +268,10 @@ class Address:
                 self.apartment = token
                 return True
 #        if self.apartment is None and re.match(apartment_regex_number, token.lower()):
-##            print "Apt regex"
+# #            print "Apt regex"
 #            self.apartment = token
 #            return True
-        ## If we come on apt or apartment and already have an apartment number, add apt or apartment to the front
+        # # If we come on apt or apartment and already have an apartment number, add apt or apartment to the front
         if self.apartment and token.lower() in ['apt', 'apartment']:
 #            print "Apt in a_n"
             self.apartment = token + ' ' + self.apartment

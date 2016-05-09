@@ -745,13 +745,13 @@ class Record(dict):
             return (1, None)
 
 
-        # So we can test whether occupations where mistakenly 
+        # So we can test whether occupations where mistakenly
         # reported as employers
         try:
             employer1 = r1['EMPLOYER']
         except KeyError:
-            employer1 = None    
-    
+            employer1 = None
+
         try:
             employer2 = r2['EMPLOYER']
         except KeyError:
@@ -848,12 +848,12 @@ class Record(dict):
 
 
 
-        # So we can test whether occupations where mistakenly 
+        # So we can test whether occupations where mistakenly
         # reported as employers
         try:
             occupation1 = r1['OCCUPATION']
         except KeyError:
-            occupation1 = None    
+            occupation1 = None
         try:
             occupation2 = r2['OCCUPATION']
         except KeyError:
@@ -904,7 +904,7 @@ class Record(dict):
             # NOTE: I think the following block is a bug.
             # Removing it on 10/21/2015
             # If case 1
-            #if not found_both:
+            # if not found_both:
             #    return (1, None)
 
             # Not adjacent. Check if strings are close
@@ -912,7 +912,7 @@ class Record(dict):
                 # Strings are close enough even though not linked on the affiliation graph
                 return (3, None)
 
-            # Check if strings have multiple words and a significant 
+            # Check if strings have multiple words and a significant
             # number of them overlap, although possibly in different
             # orders (e.g. "ALVARARDO & GERKEN" and "ALVARADO GERKAN & BENNETT"
             elif utils.match_token_permuted(employer1, employer2):
@@ -1151,9 +1151,9 @@ class Record(dict):
                     freq_with_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_with_middlename))
                 except:
                     pass
-            
+
             # NOTE: in a previous version, the following block used
-            # to be indented inside the preceding if clause, which is a bug. 
+            # to be indented inside the preceding if clause, which is a bug.
             try:
                 freq_without_middlename = self.tokendata.get_token_frequency((self.tokendata.token_identifiers['N_full_name'][0], fullname_without_middlename))
             except:

@@ -1,5 +1,5 @@
 '''
-This module provides methods for searching the FEC database using 
+This module provides methods for searching the FEC database using
 various types of queries.
 '''
 from disambiguation.core import Database, Record
@@ -11,9 +11,9 @@ class SearchEngine():
     Class for searching the FEC database (MySQL table) using various
     queries, including those defined by regex patterns.
     @status: currently we can use queries consisting of regex patterns
-    for different record fields. 
+    for different record fields.
     '''
-    
+
     def __init__(self):
         self.db = Database.DatabaseManager()
         list_tokenized_fields = ['NAME', 'TRANSACTION_DT', 'ZIP_CODE' , 'CONTRIBUTOR_STREET_1', 'CITY', 'STATE', 'EMPLOYER', 'OCCUPATION']
@@ -21,7 +21,7 @@ class SearchEngine():
         self.query_fields = list_tokenized_fields + list_auxiliary_fields
 
 
-    def __get_records_from_query_result(self,result):
+    def __get_records_from_query_result(self, result):
         '''
         Process the result returned from a search query
         and convert to a list of records.
@@ -46,7 +46,7 @@ class SearchEngine():
 
             self.list_of_records.append(r)
 
-    
+
 
     def search_regex(self, name="", state="", city="", employer="", occupation=""):
         '''
@@ -65,50 +65,50 @@ class SearchEngine():
         whereclause = " AND ".join(whereclause)
         whereclause = "WHERE %s" % whereclause if whereclause else ""
         query = "SELECT %s FROM %s %s;" % (','.join(self.query_fields), tablename, whereclause)
-        
+
         result = self.db.runQuery(query)
         self.__get_records_from_query_result(result)
         return self.list_of_records
-    
-    
+
+
     def get_identities(self, list_of_records=[]):
         '''
         Retrieve the identities of records in list_of_records
         from database.
-        @param list_of_records: list of records. If empty, use 
+        @param list_of_records: list of records. If empty, use
             self.list_of_records.
         '''
         if not list_of_records:
             list_of_records = self.list_of_records
-            
+
         tablename = utils.config.MySQL_table_identities
         list_ids_str = "(%s)" % ",".join([str(r.id) for r in list_of_records])
         query = "SELECT id,identity from %s WHERE id in %s" % (tablename, list_ids_str)
         result = list(self.db.runQuery(query))
         return result
-        
-    
-    
+
+
+
     def print_buffer(self):
         '''
         print the contents of self.list_of_records to stdout.
         '''
         for r in self.list_of_records:
             print r.toString()
-            
-            
-        
+
+
+
     def reset_buffer(self):
         '''
         Clear self.list_of_records
         '''
         self.list_of_records = []
-        
-        
-        
-        
-if __name__=="__main__":
+
+
+
+
+if __name__ == "__main__":
     sdb = SearchEngine()
-    
+
     for r in sdb.search_regex(name="FLANNIGAN.*", employer="", city=""):
         print r.toString()
