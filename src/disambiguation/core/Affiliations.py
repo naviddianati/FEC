@@ -949,6 +949,106 @@ class AffiliationAnalyzerUndirectedPostStage1(AffiliationAnalyzerUndirected):
 
 
 
+class AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE(AffiliationAnalyzerUndirectedPostStage1):
+    '''
+    Subclass of AffiliationAnalyzerUndirectedPostStage1. Generates a similar affiliation graph,
+    but instead of generating the transition graph between affiliation labels, it generates
+    the bipartite person-affiliation graph that can be used to derive the strictly
+    "co-occurrence network" of affiliations in individuals.
+    '''
+
+    def extract(self):
+        '''Override
+        Compute the list of sets of affiliation identifiers. This is for the 
+        purpose of compiling the full bipartite person/affiliation graph from 
+        which a strictly "co-occurrence" network can be compiled.
+        
+        The main product is self.list_sets which is a set where each item corresponds to
+        one connected component of self.contributors_subgraph and is a set of 
+        affiliation identifiers found in that identity.
+        There are two ways to provide the necessary data for this method to work:
+        1- set L{self.G} which is a graph of matched records. This is the standard way, and is
+        implemented in L{AffiliationAnalyzer.load_data()}
+        2- set L{self.contributors_subgraphs} which is a list of graphs, where each graph is a 
+        connected component of L{self.G}.
+        '''
+        def satisfies_condition(s):
+            '''
+            Our condition for including an affiliation identfier
+            in the timeline. This data is used for analyzing the
+            backbone of the affiliation networks, so we throw away
+            problematic strings liberally.
+            '''
+            # Only include single-word strings
+            if re.findall(r' |\.|\,|\||\\|\/|\-|\t', s):
+                return False
+            else:
+                return True
+
+        if not self.contributors_subgraphs:
+            clustering = self.G.components()
+
+            # List of subgraphs. Each subgraph is assumed to contain nodes (records) belonging to a separate individual
+            self.contributors_subgraphs = clustering.subgraphs()
+
+            # The graph of the components: each component is contracted to one node
+            Gbar = clustering.cluster_graph()
+            print "number of subgraphs:", len(Gbar.vs)
+
+        # show_histories_distribution(contributors_subgraphs); quit()
+
+
+        # Count the number of node names not found in self.dict_record_nodes
+        counter_records_not_found = 0    
+
+        list_sets = []
+
+        # Loop through the subgraphs, i.e., resolved individual identities.
+        for counter, g in enumerate(self.contributors_subgraphs):
+            # Loop through the nodes in each subgraph
+            timeline = set()
+
+            for counter_v, v in enumerate(g.vs):
+                try:
+                    record_data = self.dict_record_nodes[str(v['name'])]['data']
+                except KeyError:
+                    counter_records_not_found += 1
+                    continue
+                affiliation_index = self.settings['field_2_index'][self.affiliation.upper()]
+                affiliation_identifier = record_data[affiliation_index]
+
+                if utils.bad_identifier(affiliation_identifier, type=self.affiliation):
+                    if self.debug: print affiliation_identifier
+                    continue
+                
+                if satisfies_condition(affiliation_identifier):
+                    timeline.add(affiliation_identifier)
+            if timeline and len(timeline) > 1:
+                list_sets.append(timeline)
+        print "Number of node names not found in self.dict_record_nodes: ", counter_records_not_found
+        self.list_sets = list_sets
+
+
+    def save_data(self, label=""):
+        if label == "":
+            label = self.batch_id
+
+        if self.affiliation == "employer":
+            filename = config.affiliation_poststage1_employer_file_template % ("co-occurrence-" + label)
+        else:
+            filename = config.affiliation_poststage1_occupation_file_template % ("co-occurrence-" + label)
+
+        with open(filename, 'w') as f:
+            for set_affiliations in self.list_sets:
+                 f.write('|'.join(set_affiliations) + "\n")
+
+        print "Saved affiliation cooccurrence data to file..."
+
+
+
+
+
+
 class MigrationAnalyzerUndirected(AffiliationAnalyzerUndirected):
     '''
     This class is used specifically for computing the geogoraphical transition
