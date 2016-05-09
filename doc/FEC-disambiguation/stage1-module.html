@@ -48,6 +48,18 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module stage1</h1><p class="nomargin-top"><span class="codelink"><a href="stage1-pysrc.html">source&nbsp;code</a></span></p>
+<p>This module contains functions for various stage1 tasks. First, 
+  affiliation graphs are generated via an elementary disambiguation using 
+  exact address mathes.</p>
+  <p>Then, with the affiliation graphs at hand, <a 
+  href="stage1-module.html#disambiguate_main" 
+  class="link">disambiguate_main</a> is run for each state separately using
+  multiple processes if needed, and the S1 identities are generated. This 
+  information is exported to the &quot;identities&quot; tables and will 
+  then be used in stage2 disambiguation.</p>
+  <p>Also, following stage1 disambiguation, we compute an updated version 
+  of the affiliation graphs based on co-occurrence in S1 identities.</p>
+
 <!-- ==================== FUNCTIONS ==================== -->
 <a name="section-Functions"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -140,31 +152,11 @@
         <span class="summary-sig-arg">record_limit</span>=<span class="summary-sig-default">(0,5000000)</span>,
         <span class="summary-sig-arg">whereclause</span>=<span class="summary-sig-default">''</span>,
         <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">1</span>)</span><br />
-      One version of main().</td>
+      Operates on &lt;state&gt;_addresses tables in order to find 
+      high-certainty identities so that affiliation networks can be 
+      generated.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage1-pysrc.html#generateAffiliationData">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="stage1-module.html#generateMigrationData" class="summary-sig-name">generateMigrationData</a>(<span class="summary-sig-arg">state</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">affiliation</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">record_limit</span>=<span class="summary-sig-default">(0,5000000)</span>,
-        <span class="summary-sig-arg">whereclause</span>=<span class="summary-sig-default">''</span>,
-        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">3</span>)</span><br />
-      1- Pick a list of fields, pick a table and instantiate an 
-      FecRetriever object to fetch those fields from the table.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="stage1-pysrc.html#generateMigrationData">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -183,8 +175,7 @@
         <span class="summary-sig-arg">sample_size</span>=<span class="summary-sig-default">&quot;10000&quot;</span>,
         <span class="summary-sig-arg">method_id</span>=<span class="summary-sig-default">&quot;thorough&quot;</span>,
         <span class="summary-sig-arg">logstats</span>=<span class="summary-sig-default">False</span>)</span><br />
-      1- Pick a list of fields, pick a table and instantiate an 
-      FecRetriever object to fetch those fields from the table.</td>
+      For testing purposes only.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage1-pysrc.html#hand_code">source&nbsp;code</a></span>
             
@@ -200,56 +191,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="process_last_names"></a><span class="summary-sig-name">process_last_names</span>(<span class="summary-sig-arg">project</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="stage1-pysrc.html#process_last_names">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="process_middle_names"></a><span class="summary-sig-name">process_middle_names</span>(<span class="summary-sig-arg">project</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="stage1-pysrc.html#process_middle_names">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="print_resource_usage"></a><span class="summary-sig-name">print_resource_usage</span>(<span class="summary-sig-arg">msg</span>)</span><br />
-      Print resource usage.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="stage1-pysrc.html#print_resource_usage">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="worker_disambiguate_states_old"></a><span class="summary-sig-name">worker_disambiguate_states_old</span>(<span class="summary-sig-arg">conn</span>)</span><br />
+          <td><span class="summary-sig"><a href="stage1-module.html#worker_disambiguate_states_old" class="summary-sig-name">worker_disambiguate_states_old</a>(<span class="summary-sig-arg">conn</span>)</span><br />
       Worker function that receives a list of states and runs 
       <code>disambiguate_main</code> for each one.</td>
           <td align="right" valign="top">
@@ -322,8 +264,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="stage1-module.html#disambiguate_multiple_states_old" class="summary-sig-name">disambiguate_multiple_states_old</a>(<span class="summary-sig-arg">list_states</span>=<span class="summary-sig-default">[]</span>,
-        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">12</span>)</span><br />
-      Using multiple processes, disambiguate multiple states.</td>
+        <span class="summary-sig-arg">num_procs</span>=<span class="summary-sig-default">12</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage1-pysrc.html#disambiguate_multiple_states_old">source&nbsp;code</a></span>
             
@@ -340,8 +281,9 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="worker_generate_affiliation_data_poststage1"></a><span class="summary-sig-name">worker_generate_affiliation_data_poststage1</span>(<span class="summary-sig-arg">conn</span>)</span><br />
-      Worker function that receives a list of states and runs 
-      <code>disambiguate_main</code> for each one.</td>
+      Worker function that receives a list of states and produces an 
+      updated employer and occupation graph for each one based on 
+      co-occurence in the S1 identities.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage1-pysrc.html#worker_generate_affiliation_data_poststage1">source&nbsp;code</a></span>
             
@@ -413,6 +355,55 @@
       Combine the employer graphs of all states into one national one.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage1-pysrc.html#__combine_affiliation_graphs_employer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage1-module.html#process_last_names" class="summary-sig-name">process_last_names</a>(<span class="summary-sig-arg">project</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage1-pysrc.html#process_last_names">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage1-module.html#process_middle_names" class="summary-sig-name">process_middle_names</a>(<span class="summary-sig-arg">project</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage1-pysrc.html#process_middle_names">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="print_resource_usage"></a><span class="summary-sig-name">print_resource_usage</span>(<span class="summary-sig-arg">msg</span>)</span><br />
+      Print resource usage.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage1-pysrc.html#print_resource_usage">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -509,12 +500,10 @@
       above is bound to the Project as an instance variable. This Project 
       object will then do the book keeping: saves a settings file, saves 
       the adjacency matrix to a file, saves a json version of all records 
-      to a file, etc.
-    </li>
-    <li>
-      The json files saved by Project, namely the adjacency matrix and the 
-      list of records, will be used by the code defined in the Affiliations
-      module to extract
+      to a file, etc. The main product is a mapping from record id to 
+      inferred S1 identity. This data is exported to database by the worker
+      function that calls <a href="stage1-module.html#disambiguate_main" 
+      class="link">disambiguate_main</a>
     </li>
   </ol>
   <dl class="fields">
@@ -527,9 +516,11 @@
           Multiple methods are avaliable, but for our current purpose, 
           i.e., stage 1 statewide disambiguation, we use the 
           &quot;thorough&quot; method.</li>
-        <li><strong class="pname"><code>logstats</code></strong> - Whether or not to log statistics about mathces.</li>
+        <li><strong class="pname"><code>logstats</code></strong> - Whether or not to log certain statistics about matches for 
+          debugging purposes.</li>
         <li><strong class="pname"><code>whereclause</code></strong> - whereclasue to use with the MySQL query.</li>
-        <li><strong class="pname"><code>percent_employers</code></strong> - percentage of top edges in the employers network to use.</li>
+        <li><strong class="pname"><code>percent_employers</code></strong> - percentage of top edges in the employers network to use. Lower 
+          values result in more conservative matching.</li>
         <li><strong class="pname"><code>percent_occupations</code></strong> - percentage of top edges in the occupations network to use.</li>
     </ul></dd>
   </dl>
@@ -583,11 +574,14 @@
     </td>
   </tr></table>
   
-  <p>One version of main(). Operates on &lt;state&gt;_addresses tables in 
-  order to find high-certainty identities so that affiliation networks can 
-  be generated. The output of this method will be the data files which can 
-  be loaded by loadAffiliationNetwork(). The comparison method used by 
-  Records here should be strict_address.</p>
+  <p>Operates on &lt;state&gt;_addresses tables in order to find 
+  high-certainty identities so that affiliation networks can be generated. 
+  The output of this method will be the data files which can be loaded by 
+  loadAffiliationNetwork(). The comparison method used by Records here 
+  should be strict_address. Before <a 
+  href="stage1-module.html#disambiguate_main" 
+  class="link">disambiguate_main</a> can be called, this function must be 
+  run so we have the employer and occupation co-occurence networks.</p>
   <p>Steps:</p>
   <ol start="1">
     <li>
@@ -615,51 +609,7 @@
       the adjacency matrix to a file, saves a json version of all records 
       to a file, etc.
     </li>
-    <li>
-      The json files saved by Project, namely the adjacency matrix and the 
-      list of records, will be used by the code defined in the Affiliations
-      module to extract
-    </li>
   </ol>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="generateMigrationData"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">generateMigrationData</span>(<span class="sig-arg">state</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">affiliation</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">record_limit</span>=<span class="sig-default">(0,5000000)</span>,
-        <span class="sig-arg">whereclause</span>=<span class="sig-default">''</span>,
-        <span class="sig-arg">num_procs</span>=<span class="sig-default">3</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="stage1-pysrc.html#generateMigrationData">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>1- Pick a list of fields, pick a table and instantiate an FecRetriever
-  object to fetch those fields from the table. This produces a list of 
-  Record objects. 2- Instantiate a Tokenizer object, and pass the list of 
-  records to the Tokenizer. Tokenize them, and retrieve the updated list of
-  records. These records now have a reference to the Tokenizers TokenData 
-  object, and contain an attribute called record.vector. 3- Instantiate a 
-  Disambiguator object and pass to it the list of records. This 
-  Disambiguator will use the vector attributes of the records to find a set
-  of approximate nearest neighbors for each one. The result is an adjacency
-  matrix. 4- Instantiate a Project object, and set various parameters to it
-  as instance variables. For example, the Disambiguator object defined 
-  above is bound to the Project as an instance variable. This Project 
-  object will then do the book keeping: saves a settings file, saves the 
-  adjacency matrix to a file, saves a json version of all records to a 
-  file, etc. 5- The json files saved by Project, namely the adjacency 
-  matrix and the list of records, will be used by the code defined in the 
-  Affiliations module to extract</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -682,23 +632,45 @@
     </td>
   </tr></table>
   
-  <p>1- Pick a list of fields, pick a table and instantiate an FecRetriever
-  object to fetch those fields from the table. This produces a list of 
-  Record objects. 2- Instantiate a Tokenizer object, and pass the list of 
-  records to the Tokenizer. Tokenize them, and retrieve the updated list of
-  records. These records now have a reference to the Tokenizers TokenData 
-  object, and contain an attribute called record.vector. 3- Instantiate a 
-  Disambiguator object and pass to it the list of records. This 
-  Disambiguator will use the vector attributes of the records to find a set
-  of approximate nearest neighbors for each one. The result is an adjacency
-  matrix. 4- Instantiate a Project object, and set various parameters to it
-  as instance variables. For example, the Disambiguator object defined 
-  above is bound to the Project as an instance variable. This Project 
-  object will then do the book keeping: saves a settings file, saves the 
-  adjacency matrix to a file, saves a json version of all records to a 
-  file, etc. 5- The json files saved by Project, namely the adjacency 
-  matrix and the list of records, will be used by the code defined in the 
-  Affiliations module to extract</p>
+  <p>For testing purposes only. 1- Pick a list of fields, pick a table and 
+  instantiate an FecRetriever object to fetch those fields from the table. 
+  This produces a list of Record objects. 2- Instantiate a Tokenizer 
+  object, and pass the list of records to the Tokenizer. Tokenize them, and
+  retrieve the updated list of records. These records now have a reference 
+  to the Tokenizers TokenData object, and contain an attribute called 
+  record.vector. 3- Instantiate a Disambiguator object and pass to it the 
+  list of records. This Disambiguator will use the vector attributes of the
+  records to find a set of approximate nearest neighbors for each one. The 
+  result is an adjacency matrix. 4- Instantiate a Project object, and set 
+  various parameters to it as instance variables. For example, the 
+  Disambiguator object defined above is bound to the Project as an instance
+  variable. This Project object will then do the book keeping: saves a 
+  settings file, saves the adjacency matrix to a file, saves a json version
+  of all records to a file, etc. 5- The json files saved by Project, namely
+  the adjacency matrix and the list of records, will be used by the code 
+  defined in the Affiliations module to extract</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="worker_disambiguate_states_old"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">worker_disambiguate_states_old</span>(<span class="sig-arg">conn</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage1-pysrc.html#worker_disambiguate_states_old">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Worker function that receives a list of states and runs 
+  <code>disambiguate_main</code> for each one. The main result is that the 
+  data mapping record ids to S1 identities is exported to a database 
+  table.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -746,10 +718,7 @@
     </td>
   </tr></table>
   
-  <p>Using multiple processes, disambiguate multiple states. Each process 
-  will run the worker function <a 
-  href="stage1-module.html#worker_disambiguate_states" 
-  class="link">worker_disambiguate_states</a></p>
+  
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
@@ -757,7 +726,13 @@
         <li><strong class="pname"><code>num_procs</code></strong> - number of processes to use.</li>
     </ul></dd>
   </dl>
-</td></tr></table>
+<div class="fields">      <p><strong>Deprecated:</strong>
+        We now do this task using a process pool. Using multiple processes, 
+    disambiguate multiple states. Each process will run the worker function
+    <a href="stage1-module.html#worker_disambiguate_states" 
+    class="link">worker_disambiguate_states</a>
+      </p>
+</div></td></tr></table>
 </div>
 <a name="generateAffiliationDataPostStage1_multiple_states"></a>
 <div>
@@ -774,12 +749,11 @@
     </td>
   </tr></table>
   
-  <p>Generate post-stage1 affiliation graphs for multiple states. We only 
-  use one process here since this not very expensive.</p>
+  <p>Generate post-stage1 affiliation graphs for multiple states.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
-        <li><strong class="pname"><code>list_states</code></strong> - list of state strings. If empty, disambiguate all states.</li>
+        <li><strong class="pname"><code>list_states</code></strong> - list of state strings. If empty, process all states.</li>
     </ul></dd>
   </dl>
 </td></tr></table>
@@ -803,6 +777,50 @@
   <dl class="fields">
   </dl>
 </td></tr></table>
+</div>
+<a name="process_last_names"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">process_last_names</span>(<span class="sig-arg">project</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage1-pysrc.html#process_last_names">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Deprecated:</strong>
+        for testing purposes.
+      </p>
+</div></td></tr></table>
+</div>
+<a name="process_middle_names"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">process_middle_names</span>(<span class="sig-arg">project</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage1-pysrc.html#process_middle_names">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Deprecated:</strong>
+        for testing purposes.
+      </p>
+</div></td></tr></table>
 </div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
@@ -828,7 +846,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:24 2016
+    Generated by Epydoc 3.0.1 on Mon May  9 16:41:53 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

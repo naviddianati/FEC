@@ -53,11 +53,7 @@
 <p>This module implements classes used to generate the affiliation 
   (employer/occupation) similarity graphs.</p>
 
-<hr />
-<div class="fields">      <p><strong>To Do:</strong>
-        documentation of the classes is VERY incomplete.
-      </p>
-</div><!-- ==================== CLASSES ==================== -->
+<!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
 <table class="summary" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
@@ -78,21 +74,26 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html" class="summary-name">AffiliationAnalyzer</a>
+        <a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html" class="summary-name">AffiliationAnalyzer</a><br />
+      A class that computes the affiliation co-occurrence/transition 
+        graphs based on the high-certainty pre-stage1 disambiguation.
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="disambiguation.core.Affiliations.AffiliationAnalyzerDirected-class.html" class="summary-name">AffiliationAnalyzerDirected</a>
+        <a href="disambiguation.core.Affiliations.AffiliationAnalyzerDirected-class.html" class="summary-name">AffiliationAnalyzerDirected</a><br />
+      Experimental: implement the DIRECTED version of the MLF.
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html" class="summary-name">AffiliationAnalyzerUndirected</a>
+        <a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html" class="summary-name">AffiliationAnalyzerUndirected</a><br />
+      A class that computes the pre-stage1 affiliation co-occurrence 
+      (tranition) graphs.
     </td>
   </tr>
 <tr>
@@ -101,6 +102,14 @@
     </td><td class="summary">
         <a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html" class="summary-name">AffiliationAnalyzerUndirectedPostStage1</a><br />
       Subclass of AffiliationAnalyzerUndirected.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE-class.html" class="summary-name">AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE</a><br />
+      Subclass of AffiliationAnalyzerUndirectedPostStage1.
     </td>
   </tr>
 <tr>
@@ -140,108 +149,6 @@
       Get list of committee records.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#get_committees">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="_likelihood_1"></a><span class="summary-sig-name">_likelihood_1</span>(<span class="summary-sig-arg">h</span>)</span><br />
-      The likelihood based on sizes of 000 or 111 chunks</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#_likelihood_1">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr class="private">
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="_likelihood_2"></a><span class="summary-sig-name">_likelihood_2</span>(<span class="summary-sig-arg">h</span>)</span><br />
-      TODO: The likelihood based on the number of switches</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#_likelihood_2">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="get_likelihood"></a><span class="summary-sig-name">get_likelihood</span>(<span class="summary-sig-arg">h</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#get_likelihood">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="get_combined_likelihood"></a><span class="summary-sig-name">get_combined_likelihood</span>(<span class="summary-sig-arg">list_likelihoods</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#get_combined_likelihood">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="get_posterior_indicator"></a><span class="summary-sig-name">get_posterior_indicator</span>(<span class="summary-sig-arg">posterior</span>)</span><br />
-      returns a string of &quot;+&quot; characters whose length indicates 
-      the strength of the signal</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#get_posterior_indicator">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="link_pvalue"></a><span class="summary-sig-name">link_pvalue</span>(<span class="summary-sig-arg">k1</span>,
-        <span class="summary-sig-arg">k2</span>,
-        <span class="summary-sig-arg">wab</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#link_pvalue">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -348,7 +255,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:24 2016
+    Generated by Epydoc 3.0.1 on Mon May  9 16:41:53 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

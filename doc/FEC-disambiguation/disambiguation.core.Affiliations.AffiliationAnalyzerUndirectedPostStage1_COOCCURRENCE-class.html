@@ -3,7 +3,7 @@
           "DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-  <title>disambiguation.core.Affiliations.AffiliationAnalyzerDirected</title>
+  <title>disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE</title>
   <link rel="stylesheet" href="epydoc.css" type="text/css" />
   <script type="text/javascript" src="epydoc.js"></script>
 </head>
@@ -37,7 +37,7 @@
         <a href="disambiguation-module.html">Package&nbsp;disambiguation</a> ::
         <a href="disambiguation.core-module.html">Package&nbsp;core</a> ::
         <a href="disambiguation.core.Affiliations-module.html">Module&nbsp;Affiliations</a> ::
-        Class&nbsp;AffiliationAnalyzerDirected
+        Class&nbsp;AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE
       </span>
     </td>
     <td>
@@ -50,18 +50,25 @@
   </tr>
 </table>
 <!-- ==================== CLASS DESCRIPTION ==================== -->
-<h1 class="epydoc">Class AffiliationAnalyzerDirected</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerDirected">source&nbsp;code</a></span></p>
+<h1 class="epydoc">Class AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE</h1><p class="nomargin-top"><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE">source&nbsp;code</a></span></p>
 <pre class="base-tree">
-         object --+    
-                  |    
-<a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html">AffiliationAnalyzer</a> --+
-                      |
-                     <strong class="uidshort">AffiliationAnalyzerDirected</strong>
+                     object --+            
+                              |            
+            <a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html">AffiliationAnalyzer</a> --+        
+                                  |        
+      <a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html">AffiliationAnalyzerUndirected</a> --+    
+                                      |    
+<a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html">AffiliationAnalyzerUndirectedPostStage1</a> --+
+                                          |
+                                         <strong class="uidshort">AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE</strong>
 </pre>
 
 <hr />
-<p>Experimental: implement the DIRECTED version of the MLF. Currently not
-  used.</p>
+<p>Subclass of AffiliationAnalyzerUndirectedPostStage1. Generates a 
+  similar affiliation graph, but instead of generating the transition graph
+  between affiliation labels, it generates the bipartite person-affiliation
+  graph that can be used to derive the strictly &quot;co-occurrence 
+  network&quot; of affiliations in individuals.</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -86,10 +93,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="disambiguation.core.Affiliations.AffiliationAnalyzerDirected-class.html#compute_affiliation_links" class="summary-sig-name">compute_affiliation_links</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Overrides the original.</td>
+          <td><span class="summary-sig"><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE-class.html#extract" class="summary-sig-name">extract</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Override Compute the list of sets of affiliation identifiers.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerDirected.compute_affiliation_links">source&nbsp;code</a></span>
+            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE.extract">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -103,11 +110,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="disambiguation.core.Affiliations.AffiliationAnalyzerDirected-class.html#extract" class="summary-sig-name">extract</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Override Computes the adjacency matrix between affiliation 
-      identifiers.</td>
+          <td><span class="summary-sig"><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE-class.html#save_data" class="summary-sig-name">save_data</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">label</span>=<span class="summary-sig-default">&quot;&quot;</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerDirected.extract">source&nbsp;code</a></span>
+            <span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE.save_data">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -117,14 +123,22 @@
   </tr>
   <tr>
     <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html">AffiliationAnalyzerUndirectedPostStage1</a></code></b>:
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#get_records">get_records</a></code>,
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#load_data">load_data</a></code>,
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#load_identities">load_identities</a></code>,
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#load_record_nodes">load_record_nodes</a></code>,
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#load_settings">load_settings</a></code>,
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirectedPostStage1-class.html#set_idm">set_idm</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html">AffiliationAnalyzerUndirected</a></code></b>:
+      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzerUndirected-class.html#compute_affiliation_links">compute_affiliation_links</a></code>
+      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html">AffiliationAnalyzer</a></code></b>:
       <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#__init__">__init__</a></code>,
       <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#compile_committees">compile_committees</a></code>,
       <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#export_sample_affiliations">export_sample_affiliations</a></code>,
       <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#get_party">get_party</a></code>,
-      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#load_data">load_data</a></code>,
-      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#load_settings">load_settings</a></code>,
-      <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#save_data">save_data</a></code>,
       <code><a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#show_histories_distribution">show_histories_distribution</a></code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -187,29 +201,6 @@
   </td>
 </tr>
 </table>
-<a name="compute_affiliation_links"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">compute_affiliation_links</span>(<span class="sig-arg">self</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerDirected.compute_affiliation_links">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Overrides the original. TODO: This is still identical to the 
-  undirected case. Must be updated.</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#compute_affiliation_links">AffiliationAnalyzer.compute_affiliation_links</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <a name="extract"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -220,18 +211,51 @@
   <h3 class="epydoc"><span class="sig"><span class="sig-name">extract</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerDirected.extract">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE.extract">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Override Computes the adjacency matrix between affiliation 
-  identifiers. The main product is self.affiliation_adjacency which is a 
-  dictionary {link:weight} where link is a tuple (ind1,ind2). The 
-  affiliation node indices are stored in two dictionaries 
-  self.dict_string_2_name  and self.dict_name_2_string.</p>
+  <p>Override Compute the list of sets of affiliation identifiers. This is 
+  for the purpose of compiling the full bipartite person/affiliation graph 
+  from which a strictly &quot;co-occurrence&quot; network can be 
+  compiled.</p>
+  <p>The main product is self.list_sets which is a set where each item 
+  corresponds to one connected component of self.contributors_subgraph and 
+  is a set of affiliation identifiers found in that identity. There are two
+  ways to provide the necessary data for this method to work: 1- set <code 
+  class="link">self.G</code> which is a graph of matched records. This is 
+  the standard way, and is implemented in <a 
+  href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#load_data"
+  class="link">AffiliationAnalyzer.load_data()</a> 2- set <code 
+  class="link">self.contributors_subgraphs</code> which is a list of 
+  graphs, where each graph is a connected component of <code 
+  class="link">self.G</code>.</p>
   <dl class="fields">
     <dt>Overrides:
         <a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#extract">AffiliationAnalyzer.extract</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="save_data"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">save_data</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">label</span>=<span class="sig-default">&quot;&quot;</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="disambiguation.core.Affiliations-pysrc.html#AffiliationAnalyzerUndirectedPostStage1_COOCCURRENCE.save_data">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="disambiguation.core.Affiliations.AffiliationAnalyzer-class.html#save_data">AffiliationAnalyzer.save_data</a>
     </dt>
   </dl>
 </td></tr></table>

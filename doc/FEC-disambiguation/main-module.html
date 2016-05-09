@@ -48,36 +48,6 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module main</h1><p class="nomargin-top"><span class="codelink"><a href="main-pysrc.html">source&nbsp;code</a></span></p>
-<p>TODO:</p>
-  <ol start="1">
-    <li>
-      (DONE: &lt;state&gt;_combined) We need a new table that combines 
-      &lt;state&gt; and &lt;state&gt;_addresses as follows: The table 
-      structure is like &lt;state&gt;_addresses, but it contains all the 
-      records found in &lt;state&gt;. For records that have address fields 
-      in &lt;state&gt;_addresses, use those. For others, use null.
-    </li>
-    <li>
-      This table will be analyzed in this code.
-    </li>
-    <li>
-      Add additional fields to each record: Name frequency, Timeline period
-      (if exists), Size of neighborhood in employer graph?, Centrality in 
-      Employer graph? Size of neighborhood in occupation graph
-    </li>
-    <li>
-      Identify the right set of features of the records from this table to 
-      use with Disambiguator. Candidates: Name, Address, Employer, 
-      Occupation, CMTE_ID (may be confounding)
-    </li>
-    <li>
-      Define &quot;possible match&quot;. Identifying possible matches will 
-      be the first stage of disambiguation. We will refine our knowledge 
-      starting from these &quot;possible matches&quot;. ? Name is similar 
-      (specify) ? Address is same ? Employer is
-    </li>
-  </ol>
-
 <!-- ==================== FUNCTIONS ==================== -->
 <a name="section-Functions"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -136,6 +106,23 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="main-module.html#INIT" class="summary-sig-name">INIT</a>()</span><br />
+      Initialize.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="main-pysrc.html#INIT">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="test_hashes"></a><span class="summary-sig-name">test_hashes</span>()</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="main-pysrc.html#test_hashes">source&nbsp;code</a></span>
@@ -152,28 +139,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="view_vectors"></a><span class="summary-sig-name">view_vectors</span>(<span class="summary-sig-arg">state</span>=<span class="summary-sig-default">'delaware'</span>)</span><br />
+          <td><span class="summary-sig"><a name="test_view_vectors"></a><span class="summary-sig-name">test_view_vectors</span>(<span class="summary-sig-arg">state</span>=<span class="summary-sig-default">'delaware'</span>)</span><br />
       For a sample of records in state, print the normalized attributes and
       feature vector.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="main-pysrc.html#view_vectors">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="main-module.html#INIT" class="summary-sig-name">INIT</a>()</span><br />
-      Initialize.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="main-pysrc.html#INIT">source&nbsp;code</a></span>
+            <span class="codelink"><a href="main-pysrc.html#test_view_vectors">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -241,22 +211,6 @@
           <td><span class="summary-sig"><a name="test_retriever_by_id"></a><span class="summary-sig-name">test_retriever_by_id</span>()</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="main-pysrc.html#test_retriever_by_id">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="test_searchengine"></a><span class="summary-sig-name">test_searchengine</span>()</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="main-pysrc.html#test_searchengine">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -357,10 +311,15 @@
       stage 1 will be the pairs we will be comparing in this round.
     </li>
     <li>
-      Divide records into num_procs &quot;independent&quot; sets of roughly
-      equal sizes. That is, divide into sets such that all pair comparisons
-      we need to do fall within the sets. Each one of these sets will be 
-      sent to a child process for processing.
+      Figure out which &quot;identities&quot; these similar records belong 
+      to and make a list of such pairs of identities that will need to be 
+      compared.
+    </li>
+    <li>
+      Divide these identity pairs into num_procs &quot;independent&quot; 
+      sets of roughly equal sizes. For each set, load all the records 
+      belonging to the identities it contains. Each one of these sets will 
+      be sent to a child process for processing.
     </li>
   </ul>
   <dl class="fields">
@@ -440,7 +399,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:24 2016
+    Generated by Epydoc 3.0.1 on Mon May  9 16:41:53 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

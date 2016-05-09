@@ -82,7 +82,10 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="stage2.VerdictAuthorityBase-class.html" class="summary-name">VerdictAuthorityBase</a>
+        <a href="stage2.VerdictAuthorityBase-class.html" class="summary-name">VerdictAuthorityBase</a><br />
+      Using results from the stage2 bootstrapping, take the results of 
+        pairwise identity comparisons and for each one, make the final 
+        decision as to whether the pair should be declared a match or not.
     </td>
   </tr>
 <tr>
@@ -110,6 +113,28 @@
     </table>
   </td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#get_candidate_pairs" class="summary-sig-name">get_candidate_pairs</a>(<span class="summary-sig-arg">num_pairs</span>,
+        <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">'USA'</span>,
+        <span class="summary-sig-arg">recompute</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">'disambiguation'</span>)</span><br />
+      Get pairs of record ids that are similar according to the national 
+      (combined) hashes, but aren't already linked at the state level.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#get_candidate_pairs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 <tr class="private">
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -141,8 +166,11 @@
         <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">&quot;disambiguation&quot;</span>,
         <span class="summary-sig-arg">recompute_identity_partitions</span>=<span class="summary-sig-default">True</span>)</span><br />
-      NEW: don't do graph partitioning.Do the most naive partitioning of 
-      the list of pairs.</td>
+      Replacing <a href="stage2-module.html#partition_records" 
+      class="link">partition_records</a>, this method uses the record 
+      edgelist to identify which S1 &quot;identities&quot; are potential 
+      matches, and then partitions the identities--rather than the 
+      records--into minimally overlapping sets.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#partition_S1_identities">source&nbsp;code</a></span>
             
@@ -158,39 +186,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="stage2-module.html#partition_S1_identities_OLD" class="summary-sig-name">partition_S1_identities_OLD</a>(<span class="summary-sig-arg">num_partitions</span>,
-        <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">&quot;USA&quot;</span>,
-        <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">&quot;disambiguation&quot;</span>,
-        <span class="summary-sig-arg">recompute_identity_partitions</span>=<span class="summary-sig-default">True</span>)</span><br />
-      SLOW GRAPH PARTITIONING&gt; Replacing <a 
-      href="stage2-module.html#partition_records" 
-      class="link">partition_records</a>, this method uses the record 
-      edgelist to identify which S1 &quot;identities&quot; are potential 
-      matches, and then partitions the identities--rather than the 
-      records--into minimally overlapping sets.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="stage2-pysrc.html#partition_S1_identities_OLD">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="data_generator"></a><span class="summary-sig-name">data_generator</span>(<span class="summary-sig-arg">num_partitions</span>,
+          <td><span class="summary-sig"><a href="stage2-module.html#data_generator" class="summary-sig-name">data_generator</a>(<span class="summary-sig-arg">num_partitions</span>,
         <span class="summary-sig-arg">idm</span>,
         <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">'disambiguation'</span>,
         <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">'USA'</span>)</span><br />
-      Used in disambiguate_subsets_multiproc() Generator that yields the 
-      data necessary for each data partition, to be used in the child 
-      workers.</td>
+      Used in disambiguate_subsets_multiproc().</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#data_generator">source&nbsp;code</a></span>
             
@@ -206,9 +206,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="distribute"></a><span class="summary-sig-name">distribute</span>(<span class="summary-sig-arg">data_generator</span>,
+          <td><span class="summary-sig"><a href="stage2-module.html#distribute" class="summary-sig-name">distribute</a>(<span class="summary-sig-arg">data_generator</span>,
         <span class="summary-sig-arg">num_procs</span>,
-        <span class="summary-sig-arg">worker_fcn</span>)</span></td>
+        <span class="summary-sig-arg">worker_fcn</span>)</span><br />
+      A job distributor engine for <a 
+      href="stage2-module.html#disambiguate_subsets_multiproc" 
+      class="link">disambiguate_subsets_multiproc</a>.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#distribute">source&nbsp;code</a></span>
             
@@ -305,7 +308,8 @@
         <tr>
           <td><span class="summary-sig"><a href="stage2-module.html#task_process_one_partition" class="summary-sig-name">task_process_one_partition</a>(<span class="summary-sig-arg">data</span>,
         <span class="summary-sig-arg">tokendata_usa</span>)</span><br />
-      This is the function that processes one data partition at a time.</td>
+      This is the function that processes one data partition at a time, in 
+      each child process separately.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#task_process_one_partition">source&nbsp;code</a></span>
             
@@ -364,7 +368,8 @@
           <td><span class="summary-sig"><a href="stage2-module.html#compute_person_tokens" class="summary-sig-name">compute_person_tokens</a>()</span><br />
       Using the ientities comptued in stage1 and the tokendata, compute the
       token frequencies at the person level, that is the number of 
-      identities with a given token rather than the number of records.</td>
+      identities with a given token rather than the number of records with 
+      a given token.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#compute_person_tokens">source&nbsp;code</a></span>
             
@@ -419,9 +424,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__get_split_matches"></a><span class="summary-sig-name">__get_split_matches</span>()</span><br />
-      Load the set of identity matches recovered via the bootstrapping 
-      process.</td>
+          <td><span class="summary-sig"><a href="stage2-module.html#__get_split_matches" class="summary-sig-name" onclick="show_private();">__get_split_matches</a>()</span><br />
+      Part of the bootstrapping prior to stage2 disambiguation.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#__get_split_matches">source&nbsp;code</a></span>
             
@@ -439,8 +443,7 @@
         <tr>
           <td><span class="summary-sig"><a href="stage2-module.html#__cum_threshold" class="summary-sig-name" onclick="show_private();">__cum_threshold</a>(<span class="summary-sig-arg">myarray</span>,
         <span class="summary-sig-arg">percentile</span>)</span><br />
-      For an array (possibly 2d), return the threshold value corresponding 
-      to the top percentile of the cumulative sum of the sorted array.</td>
+      Part of the bootstrapping prior to stage2 disambiguation.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#__cum_threshold">source&nbsp;code</a></span>
             
@@ -464,9 +467,7 @@
         <span class="summary-sig-arg">aspect</span>=<span class="summary-sig-default">1</span>,
         <span class="summary-sig-arg">xlim</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">ylim</span>=<span class="summary-sig-default">None</span>)</span><br />
-      This method takes the coordinates for a bunch of points, calculates a
-      2D histogram of them, then finds the region in the parameter space 
-      that contains a certain percentage of the total point frequency.</td>
+      Part of the bootstrapping prior to stage2 disambiguation.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#__heatmap">source&nbsp;code</a></span>
             
@@ -482,13 +483,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__threshold_freqs"></a><span class="summary-sig-name">__threshold_freqs</span>(<span class="summary-sig-arg">xx</span>,
+          <td><span class="summary-sig"><a href="stage2-module.html#__threshold_freqs" class="summary-sig-name" onclick="show_private();">__threshold_freqs</a>(<span class="summary-sig-arg">xx</span>,
         <span class="summary-sig-arg">subplot</span>,
         <span class="summary-sig-arg">cum_percent</span>=<span class="summary-sig-default">95</span>,
         <span class="summary-sig-arg">title</span>=<span class="summary-sig-default">''</span>)</span><br />
-      Compute and export to file the name frequency thresholds for various 
-      affiliation match scores in the case where names match but not on the
-      middle name.</td>
+      Part of the bootstrapping prior to stage2 disambiguation.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#__threshold_freqs">source&nbsp;code</a></span>
             
@@ -504,7 +503,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="process_bootstrapping_results"></a><span class="summary-sig-name">process_bootstrapping_results</span>()</span></td>
+          <td><span class="summary-sig"><a href="stage2-module.html#process_bootstrapping_results" class="summary-sig-name">process_bootstrapping_results</a>()</span><br />
+      Process the results of the bootstrapping and infer the set of name 
+      frequencies that should be used as the criterion for accepting a pair
+      of identities as a match.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#process_bootstrapping_results">source&nbsp;code</a></span>
             
@@ -539,7 +541,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="stage2-module.html#get_candidate_pairs" class="summary-sig-name">get_candidate_pairs</a>(<span class="summary-sig-arg">num_pairs</span>,
+          <td><span class="summary-sig"><a href="stage2-module.html#get_candidate_pairs_old" class="summary-sig-name">get_candidate_pairs_old</a>(<span class="summary-sig-arg">num_pairs</span>,
         <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">'USA'</span>,
         <span class="summary-sig-arg">recompute</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>,
@@ -547,7 +549,7 @@
       Get pairs of record ids that are similar according to the national 
       (combined) hashes, but aren't already linked at the state level.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="stage2-pysrc.html#get_candidate_pairs">source&nbsp;code</a></span>
+            <span class="codelink"><a href="stage2-pysrc.html#get_candidate_pairs_old">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -563,13 +565,33 @@
         <tr>
           <td><span class="summary-sig"><a href="stage2-module.html#partition_records" class="summary-sig-name">partition_records</a>(<span class="summary-sig-arg">num_partitions</span>,
         <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">&quot;USA&quot;</span>)</span><br />
-      @deprecated: 
+      @deprecated:
 Partition the set of records appearing in the pairs identified
 by L{get_candidate_pairs()} into num_partitions subsets
 with minimal inter-set links, and export the edgelists within
 each sibset to a separate file for each subset.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="stage2-pysrc.html#partition_records">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="stage2-module.html#partition_S1_identities_OLD" class="summary-sig-name">partition_S1_identities_OLD</a>(<span class="summary-sig-arg">num_partitions</span>,
+        <span class="summary-sig-arg">state</span>=<span class="summary-sig-default">&quot;USA&quot;</span>,
+        <span class="summary-sig-arg">idm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">&quot;disambiguation&quot;</span>,
+        <span class="summary-sig-arg">recompute_identity_partitions</span>=<span class="summary-sig-default">True</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="stage2-pysrc.html#partition_S1_identities_OLD">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -621,6 +643,44 @@ each sibset to a separate file for each subset.</td>
   </td>
 </tr>
 </table>
+<a name="get_candidate_pairs"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_candidate_pairs</span>(<span class="sig-arg">num_pairs</span>,
+        <span class="sig-arg">state</span>=<span class="sig-default">'USA'</span>,
+        <span class="sig-arg">recompute</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">idm</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">mode</span>=<span class="sig-default">'disambiguation'</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#get_candidate_pairs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get pairs of record ids that are similar according to the national 
+  (combined) hashes, but aren't already linked at the state level.</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>state</code></strong> - the state whose hashes will be used.</li>
+        <li><strong class="pname"><code>num_pairs</code></strong> - number of new records to select for comparison</li>
+        <li><strong class="pname"><code>idm</code></strong> - <a href="disambiguation.core.Database.IdentityManager-class.html"
+          class="link">IdentityManager</a> instance to use. This is used to
+          that records pairs both from the same identity are simply 
+          skipped.</li>
+        <li><strong class="pname"><code>mode</code></strong> - can be 'disambiguation' or &quot;bootstrapping&quot;. The results
+          are written to different files depending on the value of this 
+          parameter.</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>list of tuples of record ids.</dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="__get_list_identity_pairs"></a>
 <div class="private">
 <table class="details" border="1" cellpadding="3"
@@ -654,7 +714,7 @@ each sibset to a separate file for each subset.</td>
     don't need to compute identity pairs from record pairs. Determine which
     identity pairs should be compared. Given a list of record id pairs, 
     find all S1 identity pairs such that one of the record pairs has one 
-    record in one identity and another in the other. Each pair
+    record in one identity and another in the other.
       </p>
 </div></td></tr></table>
 </div>
@@ -676,8 +736,7 @@ each sibset to a separate file for each subset.</td>
     </td>
   </tr></table>
   
-  <p>NEW: don't do graph partitioning.Do the most naive partitioning of the
-  list of pairs. Replacing <a href="stage2-module.html#partition_records" 
+  <p>Replacing <a href="stage2-module.html#partition_records" 
   class="link">partition_records</a>, this method uses the record edgelist 
   to identify which S1 &quot;identities&quot; are potential matches, and 
   then partitions the identities--rather than the records--into minimally 
@@ -693,37 +752,57 @@ each sibset to a separate file for each subset.</td>
   </dl>
 </td></tr></table>
 </div>
-<a name="partition_S1_identities_OLD"></a>
+<a name="data_generator"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">partition_S1_identities_OLD</span>(<span class="sig-arg">num_partitions</span>,
-        <span class="sig-arg">state</span>=<span class="sig-default">&quot;USA&quot;</span>,
-        <span class="sig-arg">idm</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">mode</span>=<span class="sig-default">&quot;disambiguation&quot;</span>,
-        <span class="sig-arg">recompute_identity_partitions</span>=<span class="sig-default">True</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">data_generator</span>(<span class="sig-arg">num_partitions</span>,
+        <span class="sig-arg">idm</span>,
+        <span class="sig-arg">mode</span>=<span class="sig-default">'disambiguation'</span>,
+        <span class="sig-arg">state</span>=<span class="sig-default">'USA'</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="stage2-pysrc.html#partition_S1_identities_OLD">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="stage2-pysrc.html#data_generator">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>SLOW GRAPH PARTITIONING&gt; Replacing <a 
-  href="stage2-module.html#partition_records" 
-  class="link">partition_records</a>, this method uses the record edgelist 
-  to identify which S1 &quot;identities&quot; are potential matches, and 
-  then partitions the identities--rather than the records--into minimally 
-  overlapping sets. The goal is to compare pairs of identities rather than 
-  records. This method has 2 main outputs: 1- 
-  <code>config.candidate_S1_identity_pairs_partitioned_file_template</code>
-  for each partition. This file conains a list of pairs of S1 identities 
-  that must be compared. 2- 
-  <code>config.candidate_list_records_partitioned_file_template</code> for 
-  each partition. This file contains a list of record ids associated with 
-  any of the identities found in the previous file.</p>
+  <p>Used in disambiguate_subsets_multiproc(). Generator that yields the 
+  data necessary for each data partition, to be used in the child workers. 
+  The main data yielded by this function are the following: the filename 
+  containing the list of identity pairs to be compared by the given child 
+  process; the filename containing the record ids for all records in the 
+  identities to be compared, and a dictionary mapping each identity to the 
+  list of its records ids. The child process will take care of loading and 
+  processing the actual record data.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="distribute"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">distribute</span>(<span class="sig-arg">data_generator</span>,
+        <span class="sig-arg">num_procs</span>,
+        <span class="sig-arg">worker_fcn</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#distribute">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>A job distributor engine for <a 
+  href="stage2-module.html#disambiguate_subsets_multiproc" 
+  class="link">disambiguate_subsets_multiproc</a>. Starts a set of child 
+  processes, and as long as <a href="stage2-module.html#data_generator" 
+  class="link">data_generator()</a> has a data partition to yield, takes it
+  and sends it to the next idle child process.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -748,10 +827,12 @@ each sibset to a separate file for each subset.</td>
   
   <p>NEW: compare pairs of <a href="disambiguation.core.Person-module.html"
   class="link">Person</a> objects derived from the candidate identity pairs
-  withing each partition.</p>
-  <p>Compare record pairs within each subset and save results. Can be done 
-  with 1 process or multiple processes. Uses the worker function <code 
-  class="link">worker_disambiguate_subset_of_edgelist</code>.</p>
+  withing each partition. Can be done with 1 process or multiple processes.
+  Uses the worker function <code 
+  class="link">worker_disambiguate_subset_of_edgelist</code>. The results 
+  of these pairwise identity comparisons are sent to a verdict authority 
+  which issues the final matching verdict. The ultimate result is exported 
+  to linked_identities table.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
@@ -768,8 +849,8 @@ each sibset to a separate file for each subset.</td>
         The full stage1 'identities' table
         </li>
         <li>
-        List of candidate record pairs already partitioned and written to 
-        separate files.
+        List of candidate record identity pIEA already partitioned and 
+        written to separate files.
         </li>
       </ul>
 </div></td></tr></table>
@@ -888,11 +969,12 @@ each sibset to a separate file for each subset.</td>
     </td>
   </tr></table>
   
-  <p>This is the function that processes one data partition at a time. This
-  function will be called multiple times withing a child process. The point
-  is that the most expensive data reading operations are done OUTSIDE this 
-  function, only once by each child process. Then that data is used for all
-  partitions processed by the child process.</p>
+  <p>This is the function that processes one data partition at a time, in 
+  each child process separately. This function will be called multiple 
+  times withing a child process. The point is that the most expensive data 
+  reading operations are done OUTSIDE this function, only once by each 
+  child process. Then that data is used for all partitions processed by the
+  child process.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -912,7 +994,8 @@ each sibset to a separate file for each subset.</td>
   </tr></table>
   
   <p>Disambiguate by comparing the S1 identity pairs in provided file, 
-  using all their records as provided by the other file.</p>
+  using all their records as provided by the other file. This method is run
+  in each child process separately.</p>
   <dl class="fields">
     <dt>Parameters:</dt>
     <dd><ul class="nomargin-top">
@@ -958,12 +1041,12 @@ each sibset to a separate file for each subset.</td>
   
   <p>Using the ientities comptued in stage1 and the tokendata, compute the 
   token frequencies at the person level, that is the number of identities 
-  with a given token rather than the number of records. For this, we 
-  instantiate a new TokenData object and update it with the token data. It 
-  will then be exported to a file. Since It is not based on tokenz produced
-  by a <code>Tokenizer</code> object, but rather using the normalized 
-  attributes, the file label contains &quot;Normalized&quot; rather than 
-  the Tokenizer class name.</p>
+  with a given token rather than the number of records with a given token. 
+  For this, we instantiate a new TokenData object and update it with the 
+  token data. It will then be exported to a file. Since It is not based on 
+  tokens produced by a <code>Tokenizer</code> object, but rather using the 
+  normalized attributes, the file label contains &quot;Normalized&quot; 
+  rather than the Tokenizer class name.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -992,6 +1075,26 @@ each sibset to a separate file for each subset.</td>
   </dl>
 </td></tr></table>
 </div>
+<a name="__get_split_matches"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_split_matches</span>()</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#__get_split_matches">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Part of the bootstrapping prior to stage2 disambiguation. Load the set
+  of identity matches recovered via the bootstrapping process.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="__cum_threshold"></a>
 <div class="private">
 <table class="details" border="1" cellpadding="3"
@@ -1007,9 +1110,10 @@ each sibset to a separate file for each subset.</td>
     </td>
   </tr></table>
   
-  <p>For an array (possibly 2d), return the threshold value corresponding 
-  to the top percentile of the cumulative sum of the sorted array. In other
-  words, the return value <code>y</code> is such that all entries in 
+  <p>Part of the bootstrapping prior to stage2 disambiguation. For an array
+  (possibly 2d), return the threshold value corresponding to the top 
+  percentile of the cumulative sum of the sorted array. In other words, the
+  return value <code>y</code> is such that all entries in 
   <code>myarray</code> with values above c{y} will add up to c{percentile} 
   percent of the total sum of <code>myarray</code>'s entries.</p>
   <dl class="fields">
@@ -1037,12 +1141,61 @@ each sibset to a separate file for each subset.</td>
     </td>
   </tr></table>
   
-  <p>This method takes the coordinates for a bunch of points, calculates a 
-  2D histogram of them, then finds the region in the parameter space that 
-  contains a certain percentage of the total point frequency. Then, the 
-  histogram is plotted with the region delineated by a contour line. 
-  Finally, the function returns a list of coordinate tuples that fall in 
-  the region.</p>
+  <p>Part of the bootstrapping prior to stage2 disambiguation. This method 
+  takes the coordinates for a bunch of points, calculates a 2D histogram of
+  them, then finds the region in the parameter space that contains a 
+  certain percentage of the total point frequency. Then, the histogram is 
+  plotted with the region delineated by a contour line. Finally, the 
+  function returns a list of coordinate tuples that fall in the region.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__threshold_freqs"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__threshold_freqs</span>(<span class="sig-arg">xx</span>,
+        <span class="sig-arg">subplot</span>,
+        <span class="sig-arg">cum_percent</span>=<span class="sig-default">95</span>,
+        <span class="sig-arg">title</span>=<span class="sig-default">''</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#__threshold_freqs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Part of the bootstrapping prior to stage2 disambiguation. Compute and 
+  export to file the name frequency thresholds for various affiliation 
+  match scores in the case where names match but not on the middle 
+  name.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="process_bootstrapping_results"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">process_bootstrapping_results</span>()</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#process_bootstrapping_results">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Process the results of the bootstrapping and infer the set of name 
+  frequencies that should be used as the criterion for accepting a pair of 
+  identities as a match. The results will be written into json files. These
+  files are then read by <a href="stage2.VerdictAuthority-class.html" 
+  class="link">VerdictAuthority</a> and used to make the final decision for
+  each pair of compared identities.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1112,21 +1265,21 @@ each sibset to a separate file for each subset.</td>
       </p>
 </div></td></tr></table>
 </div>
-<a name="get_candidate_pairs"></a>
+<a name="get_candidate_pairs_old"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_candidate_pairs</span>(<span class="sig-arg">num_pairs</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_candidate_pairs_old</span>(<span class="sig-arg">num_pairs</span>,
         <span class="sig-arg">state</span>=<span class="sig-default">'USA'</span>,
         <span class="sig-arg">recompute</span>=<span class="sig-default">False</span>,
         <span class="sig-arg">idm</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">mode</span>=<span class="sig-default">'disambiguation'</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="stage2-pysrc.html#get_candidate_pairs">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="stage2-pysrc.html#get_candidate_pairs_old">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
@@ -1167,7 +1320,7 @@ each sibset to a separate file for each subset.</td>
   
   <pre class="literalblock">
 
-@deprecated: 
+@deprecated:
 Partition the set of records appearing in the pairs identified
 by L{get_candidate_pairs()} into num_partitions subsets
 with minimal inter-set links, and export the edgelists within
@@ -1191,6 +1344,44 @@ the partitions aren't balanced.
   <dl class="fields">
   </dl>
 </td></tr></table>
+</div>
+<a name="partition_S1_identities_OLD"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">partition_S1_identities_OLD</span>(<span class="sig-arg">num_partitions</span>,
+        <span class="sig-arg">state</span>=<span class="sig-default">&quot;USA&quot;</span>,
+        <span class="sig-arg">idm</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">mode</span>=<span class="sig-default">&quot;disambiguation&quot;</span>,
+        <span class="sig-arg">recompute_identity_partitions</span>=<span class="sig-default">True</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="stage2-pysrc.html#partition_S1_identities_OLD">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+  </dl>
+<div class="fields">      <p><strong>Deprecated:</strong>
+        SLOW GRAPH PARTITIONING. Replacing <a 
+    href="stage2-module.html#partition_records" 
+    class="link">partition_records</a>, this method uses the record 
+    edgelist to identify which S1 &quot;identities&quot; are potential 
+    matches, and then partitions the identities--rather than the 
+    records--into minimally overlapping sets. The goal is to compare pairs 
+    of identities rather than records. This method has 2 main outputs: 1- 
+    <code>config.candidate_S1_identity_pairs_partitioned_file_template</code>
+    for each partition. This file conains a list of pairs of S1 identities 
+    that must be compared. 2- 
+    <code>config.candidate_list_records_partitioned_file_template</code> 
+    for each partition. This file contains a list of record ids associated 
+    with any of the identities found in the previous file.
+      </p>
+</div></td></tr></table>
 </div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
@@ -1216,7 +1407,7 @@ the partitions aren't balanced.
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Mar 31 14:50:24 2016
+    Generated by Epydoc 3.0.1 on Mon May  9 16:41:53 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
