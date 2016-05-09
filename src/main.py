@@ -1,43 +1,8 @@
 #! /usr/bin/python
-# This program analyzes the full database for a given state. That is, not just the <state>_addresses
-#
-# The <state>_addresses tables are roughly 0.25 the size of their corresponding <state> tables. Why?
-# My explanation is that lots of records that have unique identifier pairs in the <state> table,
-# occur multiple times in the contributor_addresses table, and therefore don't appear in its unique
-# version, namely contributor_addresses_unique.
-'''
-    TODO:
-        1. (DONE: <state>_combined) We need a new table that combines <state> and <state>_addresses as follows:
-        The table structure is like <state>_addresses, but it contains all the records found in <state>.
-        For records that have address fields in <state>_addresses, use those. For others, use null.
 
-        2. This table will be analyzed in this code.
 
-        3. Add additional fields to each record:
-        Name frequency, Timeline period (if exists), Size of neighborhood in employer graph?, Centrality in Employer graph? Size of neighborhood in occupation graph
 
-        4. Identify the right set of features of the records from this table to use with Disambiguator.
-        Candidates: Name, Address, Employer, Occupation, CMTE_ID (may be confounding)
 
-        5. Define "possible match". Identifying possible matches will be the first stage of disambiguation. We will refine our knowledge starting from these "possible matches".
-        ? Name is similar (specify)
-        ? Address is same
-        ? Employer is
-'''
-'''
-Strategy:
-    - Using <state>_addresses, find possible matches (use Disambiguator)
-    - Using the results, use AffiliationAnalyzer to derive network of affiliations
-    - Query <state>_combined. Contains all records from <state>, and for some, additional data from <state>_addresses
-    - Find possible matches using Disambiguator and additional attributes: frequencies, affiliations, etc.
-    - A different comparison function is needed.
-    -
-'''
-''' Notes:
-    1. The <state> tables are 3~4 times as large as <state>_addresses tables.
-    2. The <state>_address and <state>_combined tables don't have all the FIRST_NAMEs and LAST_NAMEs so
-        if I use these tables to get names, some records won't have names.
-'''
 
 
 import disambiguation.init as init
@@ -81,7 +46,7 @@ def DISAMBIGUATE_stage_1():
     # the unified pipeline.
 
     # Combine affiliation graphs into a national one.
-    #stage1.combine_affiliation_graphs()
+    stage1.combine_affiliation_graphs()
 
 
     # Create the identities and identities_adjacency tables
@@ -90,27 +55,26 @@ def DISAMBIGUATE_stage_1():
 
 
     # Disambiguate every state separately in parallel.
+    # list_done_abbr = ['VA', 'MN' ,'PA' ,'CO' ,'IL' ,'AZ' ,'NJ' ,'SD' ,'NC' ,'OH' ,'OR' ,'NH' ,'OK' ,'NE' ,'MA' ,'AL' ,'KY' ,'DE' ,'VT' ,'HI' ,'AS' ,'FM']
+    # already_done = [dict_state[abbr] for abbr in list_done_abbr]
+    # print already_done
 
-    #list_done_abbr = ['VA', 'MN' ,'PA' ,'CO' ,'IL' ,'AZ' ,'NJ' ,'SD' ,'NC' ,'OH' ,'OR' ,'NH' ,'OK' ,'NE' ,'MA' ,'AL' ,'KY' ,'DE' ,'VT' ,'HI' ,'AS' ,'FM']
-    #already_done = [dict_state[abbr] for abbr in list_done_abbr]
-    #print already_done
-    
 
     list_states = get_state_order().items()
-    list_states = [x for x,y in sorted(list_states, key = lambda x:x[1])]
-    #already_done = ['ohio','oklahoma','arizona','minnesota','colorado','connecticut','newjersey','massachusetts','pennsylvania','virginia','illinois']
-    #for state in already_done: list_states.remove(state)
-    #list_states = ['california', 'florida','newyork']
-    #list_states = []
-    print list_states 
+    list_states = [x for x, y in sorted(list_states, key=lambda x:x[1])]
+    # already_done = ['ohio','oklahoma','arizona','minnesota','colorado','connecticut','newjersey','massachusetts','pennsylvania','virginia','illinois']
+    # for state in already_done: list_states.remove(state)
+    # list_states = ['california', 'florida','newyork']
+    # list_states = []
+    print list_states
     stage1.disambiguate_multiple_states(list_states=list_states, num_procs=10)
 
     # After stage1 disambiguation, use the identities to generate
     # a second iteration of the affiliation graphs.
-    #stage1.generateAffiliationDataPostStage1_multiple_states(list_states=list_states, num_procs = 3)  
+    stage1.generateAffiliationDataPostStage1_multiple_states(list_states=list_states, num_procs=3)
 
     # Combine post-stage1 affiliation graphs into a national one.
-    #stage1.combine_affiliation_graphs(poststage1 = True)
+    stage1.combine_affiliation_graphs(poststage1=True)
 
 
 
@@ -132,12 +96,14 @@ def DISAMBIGUATE_stage_2():
         - Using the uniform national hashes, find a list of similar record pairs across
         the country. This list minus the match buffers from stage 1 will be the pairs
         we will be comparing in this round.
-        - Divide records into num_procs "independent" sets of roughly equal sizes. That is,
-        divide into sets such that all pair comparisons we need to do fall within the
-        sets. Each one of these sets will be sent to a child process for processing.
+        - Figure out which "identities" these similar records belong to and make a list of
+        such pairs of identities that will need to be compared.
+        - Divide these identity pairs into num_procs "independent" sets of roughly equal sizes.
+        For each set, load all the records belonging to the identities it contains.
+        Each one of these sets will be sent to a child process for processing.
     '''
     import stage2
-    # Number of new record pairs to compare at the national level
+    # Number of new identity pairs to compare at the national level
     num_pairs = 100000000
 
     idm = Database.IdentityManager('USA')
@@ -147,26 +113,82 @@ def DISAMBIGUATE_stage_2():
 
     # Compute token frequencies at the person level given the
     # identities computed in stage1
-    #stage2.compute_person_tokens()
+    stage2.compute_person_tokens()
 
     # Get pairs of record ids that are similar according
     # to the national (combined) hashes, but aren't already
     # linked at the state level.
-    #stage2.get_candidate_pairs(num_pairs, recompute = True, mode='disambiguation')
+    stage2.get_candidate_pairs(num_pairs, recompute=True, mode='disambiguation')
 
     # Partition the set of all S1 identities containing any of the
-    # candidate records into subsets with no overlaps. Export the 
+    # candidate records into subsets with no overlaps. Export the
     # lists of identity pairs to a separate file for each partition.
     # Also, exoirt the list of all record ids associated with any
     # of the identities in each partition into a separate file for
     # that partition as well.
-    #stage2.partition_S1_identities(num_partitions = 200, state = 'USA', idm = idm, recompute_identity_partitions=False)
-
+    stage2.partition_S1_identities(num_partitions=200, state='USA', idm=idm, recompute_identity_partitions=False)
 
     # Compare record pairs within each subset and save results.
-    stage2.disambiguate_subsets_multiproc(num_partitions=200, state="USA", num_procs=10, idm = idm)
+    stage2.disambiguate_subsets_multiproc(num_partitions=200, state="USA", num_procs=10, idm=idm)
 
-    pass
+
+
+
+
+
+
+
+def INIT():
+    '''
+    Initialize. Perform preliminary computations in preparation for the stage1
+    and stage2 disambiguations. We compute a number of things and export the resulting
+    data to files. These files will be loaded later by disambiguation methods.
+        - For each state, using the TokenizerNgram class, tokenize all records from the specified
+        state, save the tokendata as well as the feature vectors to files. Then, compute the LSH hashes
+        and save to file. This data will be used for the state-level (stage1) disambiguation where
+        candidate record pairs are selected based on hashes computed from file-grained (Ngram)
+        feature vectors.
+        -  For each state, using the Tokenizer class, tokenize all records from the specified
+        state, save the tokendata as well as the feature vectors to files. Then, compute the LSH hashes
+        and save to file. This data will be used for the national (stage2) disambiguation where
+        candidate record pairs are selected based on hashes computed from coarse-grained (word)
+        feature vectors.
+        - Combine the Tokenizer tokendata and feature vectors of all states into a national file
+        to be used in stage2 disambiguation.
+        - Using the national Tokenizer tokendata and feature vectors, compute new (and longer)
+        hashes, uniformly for the entire country. This will be used in stage2 to find candidate
+        pairs at a national level.
+    '''
+    # National level data preparation:
+    # Tokenize, vectorize and hashify all states using TokenizerName
+    # for the blocking phase of stage II
+    ltf = ['NAME']
+    init.INIT_process_multiple_states(TokenizerClass=TokenizerName, list_tokenized_fields=ltf, num_procs=10, tokenize_kwargs={'export_normalized_attributes': False})
+
+    # State level data preparation (for fine-grained intra state disambiguation)
+    # Tokenize, vectorize and hashify all states using TokenizerNgram. See that class
+    # for details.
+    init.INIT_process_multiple_states(TokenizerClass=TokenizerNgram, num_procs=10)
+
+    # National level data preparation:
+    # Tokenize, vectorize and hashify all states using Tokenizer
+    ltf = ['NAME', 'EMPLOYER', 'OCCUPATION']
+    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields=ltf, num_procs=10)
+
+    # combine the vectors and tokens from all states into the national data files.
+    init.INIT_combine_state_tokens_and_vectors()
+
+    # Combine all normalized attributes into a national file
+    init.INIT_combine_normalized_attributes()
+
+    # Using the national vectors and tokens, compute uniform national hashes
+    init.INIT_compute_national_hashes(num_procs=10)
+
+
+
+
+
+
 
 
 
@@ -236,7 +258,7 @@ def test_hashes():
 
 
 
-def view_vectors(state='delaware'):
+def test_view_vectors(state='delaware'):
     '''
     For a sample of records in state, print the normalized attributes
     and feature vector.
@@ -253,61 +275,6 @@ def view_vectors(state='delaware'):
         print "=" * 70
         if counter > 10: break
         counter += 1
-
-
-
-def INIT():
-    '''
-    Initialize. Perform preliminary computations in preparation for the stage1
-    and stage2 disambiguations. We compute a number of things and export the resulting
-    data to files. These files will be loaded later by disambiguation methods.
-        - For each state, using the TokenizerNgram class, tokenize all records from the specified
-        state, save the tokendata as well as the feature vectors to files. Then, compute the LSH hashes
-        and save to file. This data will be used for the state-level (stage1) disambiguation where
-        candidate record pairs are selected based on hashes computed from file-grained (Ngram)
-        feature vectors.
-        -  For each state, using the Tokenizer class, tokenize all records from the specified
-        state, save the tokendata as well as the feature vectors to files. Then, compute the LSH hashes
-        and save to file. This data will be used for the national (stage2) disambiguation where
-        candidate record pairs are selected based on hashes computed from coarse-grained (word)
-        feature vectors.
-        - Combine the Tokenizer tokendata and feature vectors of all states into a national file
-        to be used in stage2 disambiguation.
-        - Using the national Tokenizer tokendata and feature vectors, compute new (and longer)
-        hashes, uniformly for the entire country. This will be used in stage2 to find candidate
-        pairs at a national level.
-    '''
-    # National level data preparation:
-    # Tokenize, vectorize and hashify all states using TokenizerName
-    # for the blocking phase of stage II
-    ltf = ['NAME']
-    init.INIT_process_multiple_states(TokenizerClass=TokenizerName, list_tokenized_fields=ltf, num_procs=10, tokenize_kwargs = {'export_normalized_attributes': False})
-    print "WARNING: Quitting after TokenizerName"
-    return
-
-
-    # State level data preparation (for fine-grained intra state disambiguation)
-    # Tokenize, vectorize and hashify all states using TokenizerNgram
-    init.INIT_process_multiple_states(TokenizerClass = TokenizerNgram, num_procs = 10)
-
-    # National level data preparation:
-    # Tokenize, vectorize and hashify all states using Tokenizer
-    ltf = ['NAME', 'EMPLOYER', 'OCCUPATION']
-    init.INIT_process_multiple_states(TokenizerClass=Tokenizer, list_tokenized_fields=ltf, num_procs=10)
-
-    
-
-    # combine the vectors and tokens from all states into the national data files.
-    init.INIT_combine_state_tokens_and_vectors()
-
-    # Combine all normalized attributes into a national file
-    init.INIT_combine_normalized_attributes()
-
-    # Using the national vectors and tokens, compute uniform national hashes
-    init.INIT_compute_national_hashes(num_procs=10)
-
-
-
 
 
 def test_memory1():
@@ -349,7 +316,7 @@ def test_identity_manager1():
 
 def test_identity_manager2():
     '''
-    Load identities and identity_adjacency and print out the connected components of the 
+    Load identities and identity_adjacency and print out the connected components of the
     inter-cluster network.
     '''
     from disambiguation.core.Database import IdentityManager, FecRetrieverByID
@@ -362,8 +329,8 @@ def test_identity_manager2():
     idm.fetch_dict_identity_2_id()
     idm.fetch_dict_identity_adjacency()
     idm.load_dict_identity_2_identities()
-    
-    list_identities = sorted(idm.dict_identity_2_identities.keys(), key = lambda identity:len(idm.dict_identity_2_identities[identity]), reverse = True)
+
+    list_identities = sorted(idm.dict_identity_2_identities.keys(), key=lambda identity:len(idm.dict_identity_2_identities[identity]), reverse=True)
     # sample_identities = [random.choice(list_identities) for i in range(500)]
     sample_identities = list_identities
 
@@ -388,7 +355,7 @@ def test_identity_manager2():
         dict_related_identities = idm.get_related_identities(identity)
         if not dict_related_identities: continue
         related_identities = [x for x, y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0] == 0)]
-        related_identities_scores = [(x,y) for x, y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0] == 0)]
+        related_identities_scores = [(x, y) for x, y in idm.get_related_identities(identity).iteritems() if (y[2] > 0 and y[0] == 0)]
         related_identities.append(identity)
         print "="*80
         pprint(related_identities_scores)
@@ -433,115 +400,15 @@ def test_retriever_by_id():
     print list_ids
 
 
-def test_searchengine():
-    sdb = search.SearchEngine()
 
-    sdb.search_regex(name="FLANIGAN.*PETER", employer="", city="")
-    dict_ids = {r.id: r for r in sdb.list_of_records}
 
-    result = sdb.get_identities(sdb.list_of_records)
-    result.sort(key=lambda x:x[1])
-    for rid , identity in result:
-        print rid, identity, dict_ids[rid].toString()
+
 
 
 if __name__ == "__main__":
 
-#     filename = config.hashes_file_template % ('delaware','Tokenizer')
-#     edgelist = get_edgelist_from_hashes_file(filename, 20, 5, num_procs = 3)
-#     print len(edgelist)
-#     quit()
+    INIT()
 
-#     view_vectors()
-#     quit()
-
-
+    DISAMBIGUATE_stage_1()
 
     DISAMBIGUATE_stage_2()
-    quit()
-
-
-    INIT()
-    quit()
-
-
-
-    DISAMBIGUATE_stage_1()
-    quit()
-
-
-
-
-
-
-
-
-
-
-
-
-    DISAMBIGUATE_stage_1()
-    quit()
-
-
-
-
-
-
-
-    # test_searchengine()
-    # quit()
-
-    test_identity_manager2()
-    quit()
-
-
-
-
-
-
-    test_retriever_by_id()
-    quit()
-
-
-    import stage2
-    list_pairs = stage2.get_candidate_pairs(1000000, 'delaware')
-    quit()
-
-
-    test_hashes()
-    quit()
-
-
-
-
-    test_identity_manager()
-    quit()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    states.get_states_sorted('num_records')
-    quit()
-
-
-
-    test_identity_manager()
-    quit()
-
-
-

@@ -17,6 +17,8 @@ from disambiguation.core import hashes
 import disambiguation.config as config
 from disambiguation.core import Database
 from disambiguation.core import Partitioner
+from disambiguation.core import Person
+from disambiguation.core import Record
 
 np = utils.np
 import sys, traceback
@@ -24,7 +26,7 @@ import sys, traceback
 
 
 
-def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mode='disambiguation'):
+def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm=None, mode='disambiguation'):
     '''
     Get pairs of record ids that are similar according
     to the national (combined) hashes, but aren't already
@@ -41,19 +43,19 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mod
     # file that either already contains, or will contain a set of candidate
     # pairs of record ids together with a "weight"
     if mode == "disambiguation":
-        #candidate_pairs_file = config.candidate_pairs_file_template % state
+        # candidate_pairs_file = config.candidate_pairs_file_template % state
         candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
-        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template 
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template
         candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_template
     elif mode == "bootstrapping":
-        #candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
+        # candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
         candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_bootstrapping_template % state
-        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template 
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template
         candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_bootstrapping_template
     else:
         raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
-    
-        
+
+
 
     # Make sure the file already exists
     if not recompute:
@@ -80,10 +82,10 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mod
     # record is similar to quite a few of the records in the larger cluster. Using the hashing method
     # as we've done before will have the following result: the single record will definitely be found
     # close to *some* record from the large cluster in different permutations. Hoever, it may not end
-    # up close to any one of them sonsistently enough that their proximity will be registered. 
+    # up close to any one of them sonsistently enough that their proximity will be registered.
     # So, instead of recording which records are proximare, we should register which *identities* are
     # proximate via their records.
-    edgelist = hashes.get_edgelist_from_hashes_file(filename, state, B, num_shuffles, num_procs=3, num_pairs=num_pairs, idm = idm, prune = True)
+    edgelist = hashes.get_edgelist_from_hashes_file(filename, state, B, num_shuffles, num_procs=3, num_pairs=num_pairs, idm=idm, prune=True)
     # edgelist.reverse()
     print "Done with get_edgelist_from_hashes_file()"
     print "Done fetching new pairs."
@@ -93,7 +95,7 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mod
     # Export identity edgelist to file
     with open(candidate_S1_identity_pairs_file, 'w') as f:
         for edge in edgelist:
-            #f.write("%s %s %d\n" % (edge[0], edge[1], edge[2]))
+            # f.write("%s %s %d\n" % (edge[0], edge[1], edge[2]))
             f.write("%s %s\n" % (edge[0], edge[1]))
 
 
@@ -101,7 +103,7 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mod
 
 def partition_records(num_partitions, state="USA"):
     '''
-    @deprecated: 
+    @deprecated:
     Partition the set of records appearing in the pairs identified
     by L{get_candidate_pairs()} into num_partitions subsets
     with minimal inter-set links, and export the edgelists within
@@ -139,6 +141,8 @@ def partition_records(num_partitions, state="USA"):
             for edge in partition:
                  f.write("%s %s %s\n" % edge)
 
+
+
 def __get_list_identity_pairs(list_record_pairs, idm):
     '''
     @deprecated: Now we directly find candidate identity pairs
@@ -148,13 +152,12 @@ def __get_list_identity_pairs(list_record_pairs, idm):
     Given a list of record id pairs, find all S1 identity pairs such
     that one of the record pairs has one record in one identity and
     another in the other.
-    Each pair 
     @param list_record_pairs: list of 3-tuples C{(id1, id2, weight)}
     @param idm: an L{IdentityManager} instance
     @return: list of tuples C{(identity1, identity2)} where identity1 < identity2
     '''
-    # Minimum total record-pair weight connecting 
-    # the two identities. 
+    # Minimum total record-pair weight connecting
+    # the two identities.
     # TODO: set this globally, perhaps in config.py
     threshold = 2
 
@@ -165,7 +168,7 @@ def __get_list_identity_pairs(list_record_pairs, idm):
         identity2 = idm.get_identity(rid2)
         if not identity1 or not identity2: continue
         pair = tuple(sorted([identity1, identity2]))
-        #set_identity_pairs.add(pair)
+        # set_identity_pairs.add(pair)
         try:
             dict_identity_pairs[pair] += weight
         except KeyError:
@@ -174,19 +177,18 @@ def __get_list_identity_pairs(list_record_pairs, idm):
     # TODO: thresholding may need to be done differently,
     # for instance, based on the "average" weight of the
     # connecting record pairs.
-    return [pair for pair,weight in dict_identity_pairs.iteritems() if weight > threshold]
-    
+    return [pair for pair, weight in dict_identity_pairs.iteritems() if weight > threshold]
 
 
 
-def partition_S1_identities(num_partitions, state = "USA", idm = None, mode="disambiguation" ,recompute_identity_partitions=True):
+
+def partition_S1_identities(num_partitions, state="USA", idm=None, mode="disambiguation" , recompute_identity_partitions=True):
     '''
-    NEW: don't do graph partitioning.Do the most naive partitioning of the list of pairs.
     Replacing L{partition_records}, this method uses the record edgelist
     to identify which S1 "identities" are potential matches, and then partitions
     the identities--rather than the records--into minimally overlapping sets.
     The goal is to compare pairs of identities rather than records.
-    This method has 2 main outputs: 
+    This method has 2 main outputs:
     1- C{config.candidate_S1_identity_pairs_partitioned_file_template} for each partition.
     This file conains a list of pairs of S1 identities that must be compared.
     2- C{config.candidate_list_records_partitioned_file_template} for each partition.
@@ -197,16 +199,16 @@ def partition_S1_identities(num_partitions, state = "USA", idm = None, mode="dis
         # IdentityManager instance
         idm = Database.IdentityManager('USA')
 
-    def load_identity_pair_partitions_from_file( candidate_S1_identity_pairs_partitioned_file_template, num_partitions):
+    def load_identity_pair_partitions_from_file(candidate_S1_identity_pairs_partitioned_file_template, num_partitions):
         '''
         If idenetity paritions are already exported to files, use this function
         to load them rather than recompute them. Use the output to partition
-        record ids. 
+        record ids.
         '''
         list_of_list_edges = []
         for i in range(num_partitions):
-            filename = candidate_S1_identity_pairs_partitioned_file_template % ( state, i)
-                 
+            filename = candidate_S1_identity_pairs_partitioned_file_template % (state, i)
+
             with open(filename) as f1:
                 try:
                     print "Loading list of identity pairs from file", filename
@@ -217,23 +219,23 @@ def partition_S1_identities(num_partitions, state = "USA", idm = None, mode="dis
                     print "Unable to load list of identity pairs from file ", filename
                     raise
         return list_of_list_edges
-                
+
 
     # file that either already contains, or will contain a set of candidate
     # pairs of record ids together with a "weight"
     if mode == "disambiguation":
         candidate_pairs_file = config.candidate_pairs_file_template % state
         candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
-        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template 
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template
         candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_template
     elif mode == "bootstrapping":
         candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
         candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_bootstrapping_template % state
-        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template 
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template
         candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_bootstrapping_template
     else:
         raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
-    
+
 
     # NOTE: in the new version, we start with the candidate
     # identity pairs, so we don't need to find them from candidate
@@ -247,44 +249,44 @@ def partition_S1_identities(num_partitions, state = "USA", idm = None, mode="dis
         with open(candidate_S1_identity_pairs_file) as f:
             list_of_edges = [tuple(line.strip().split(' ')) for line in f]
             g_fec = ig.Graph.TupleList(list_of_edges)
-        ##    g = ig.Graph.Read_Ncol(f, names=True, weights="if_present", directed=False)
-        ##print "S1 identity candidates read from file."
-        ##print "Graph of S1 identities:"
-        ##print "   vcount: ", g.vcount()
-        ##print "   ecount: ", g.ecount()
-        ##print "   density:", float(g.ecount())/g.vcount()
+        # #    g = ig.Graph.Read_Ncol(f, names=True, weights="if_present", directed=False)
+        # #print "S1 identity candidates read from file."
+        # #print "Graph of S1 identities:"
+        # #print "   vcount: ", g.vcount()
+        # #print "   ecount: ", g.ecount()
+        # #print "   density:", float(g.ecount())/g.vcount()
 
 
-        #list_components = g.components().subgraphs()
-        ##list_components = g.community_fastgreedy().as_clustering().subgraphs()
-        ##print "List of identity pairs divided into partitions."
+        # list_components = g.components().subgraphs()
+        # #list_components = g.community_fastgreedy().as_clustering().subgraphs()
+        # #print "List of identity pairs divided into partitions."
 
         # partition the list of all connected components into a list of
         # num_partition subsets such that the total number of nodes in each
         # partition is roughly constant.
-        ##list_of_partitions = utils.partition_list_of_graphs(list_components, num_partitions)
-        ##print "lengths of partitions:" , [sum([g.vcount() for g in partition]) for partition in list_of_partitions]
-        ##print "max size of graphs in partitions:" , [max([g.vcount() for g in partition]) for partition in list_of_partitions]
+        # #list_of_partitions = utils.partition_list_of_graphs(list_components, num_partitions)
+        # #print "lengths of partitions:" , [sum([g.vcount() for g in partition]) for partition in list_of_partitions]
+        # #print "max size of graphs in partitions:" , [max([g.vcount() for g in partition]) for partition in list_of_partitions]
 
-        
+
         # Export the identity edgelist for each partition to a separate file.
         # This is an edgelist between S1 identities
         print "Saving identity pair partitions to separate files..."
-        ## list_of_list_edges = [ [(g.vs[e.source]['name'], g.vs[e.target]['name']) for g in partition for e in g.es] for partition in list_of_partitions]
-        
-        
-        
-        
+        # # list_of_list_edges = [ [(g.vs[e.source]['name'], g.vs[e.target]['name']) for g in partition for e in g.es] for partition in list_of_partitions]
+
+
+
+        # Naive partitioning
         # VERY INEFFICEINT AS IT TURNS OUT
         # list_of_list_edges = utils.chunks(list_of_edges, num_partitions)
-        
+
         # New solution using the Partitioner class
-        partitioner = Partitioner.Partitioner(g_fec, num_partitions = num_partitions)
-        #nt.tic()
+        partitioner = Partitioner.Partitioner(g_fec, num_partitions=num_partitions)
+        # nt.tic()
         partitioner.partition()
-        #nt.toc()
+        # nt.toc()
         partitioner.print_stats()
-        
+
         for partition_number in range(len(partitioner.list_edgelists)):
             with open(candidate_S1_identity_pairs_partitioned_file_template % (state, partition_number), 'w') as f:
                 for edge in partitioner.get_named_edgelist(partition_number):
@@ -299,7 +301,7 @@ def partition_S1_identities(num_partitions, state = "USA", idm = None, mode="dis
         # to file. Don't recompute the identity pair partitions, but load
         # them from file, so that record id partitions can be quickly computed.
         # and exported to file.
-        list_of_list_edges = load_identity_pair_partitions_from_file( candidate_S1_identity_pairs_partitioned_file_template, num_partitions)    
+        list_of_list_edges = load_identity_pair_partitions_from_file(candidate_S1_identity_pairs_partitioned_file_template, num_partitions)
 
 
 
@@ -321,150 +323,30 @@ def partition_S1_identities(num_partitions, state = "USA", idm = None, mode="dis
 
 
 
-
-
-
-def partition_S1_identities_OLD(num_partitions, state = "USA", idm = None, mode="disambiguation" ,recompute_identity_partitions=True):
+def data_generator(num_partitions, idm, mode='disambiguation', state='USA'):
     '''
-    SLOW GRAPH PARTITIONING>
-    Replacing L{partition_records}, this method uses the record edgelist
-    to identify which S1 "identities" are potential matches, and then partitions
-    the identities--rather than the records--into minimally overlapping sets.
-    The goal is to compare pairs of identities rather than records.
-    This method has 2 main outputs: 
-    1- C{config.candidate_S1_identity_pairs_partitioned_file_template} for each partition.
-    This file conains a list of pairs of S1 identities that must be compared.
-    2- C{config.candidate_list_records_partitioned_file_template} for each partition.
-    This file contains a list of record ids associated with any of the identities found
-    in the previous file.
+    Used in disambiguate_subsets_multiproc(). Generator that yields
+    the data necessary for each data partition, to be used in the
+    child workers. The main data yielded by this function are the following:
+    the filename containing the list of identity pairs to be compared by
+    the given child process; the filename containing the record ids for all
+    records in the identities to be compared, and a dictionary mapping each
+    identity to the list of its records ids. The child process will take care
+    of loading and processing the actual record data.
     '''
-    if not idm:
-        # IdentityManager instance
-        idm = Database.IdentityManager('USA')
-
-    def load_identity_pair_partitions_from_file( candidate_S1_identity_pairs_partitioned_file_template, num_partitions):
-        '''
-        If idenetity paritions are already exported to files, use this function
-        to load them rather than recompute them. Use the output to partition
-        record ids. 
-        '''
-        list_of_list_edges = []
-        for i in range(num_partitions):
-            filename = candidate_S1_identity_pairs_partitioned_file_template % ( state, i)
-                 
-            with open(filename) as f1:
-                try:
-                    print "Loading list of identity pairs from file", filename
-                    list_identity_pairs = [tuple(line.strip().split(' ')) for line in f1]
-                    list_of_list_edges.append(list_identity_pairs)
-                except Exception as e:
-                    print "ERROR: ", e
-                    print "Unable to load list of identity pairs from file ", filename
-                    raise
-        return list_of_list_edges
-                
-
-    # file that either already contains, or will contain a set of candidate
-    # pairs of record ids together with a "weight"
-    if mode == "disambiguation":
-        candidate_pairs_file = config.candidate_pairs_file_template % state
-        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
-        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template 
-        candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_template
-    elif mode == "bootstrapping":
-        candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
-        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_bootstrapping_template % state
-        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template 
-        candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_bootstrapping_template
-    else:
-        raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
-    
-
-    # NOTE: in the new version, we start with the candidate
-    # identity pairs, so we don't need to find them from candidate
-    # record pairs first.
-
-
-
-    if recompute_identity_partitions:
-        # Divide the set of S1 identities into roughly equally sized components.
-        ig = utils.igraph
-        with open(candidate_S1_identity_pairs_file) as f:
-            g = ig.Graph.Read_Ncol(f, names=True, weights="if_present", directed=False)
-        print "S1 identity candidates read from file."
-        print "Graph of S1 identities:"
-        print "   vcount: ", g.vcount()
-        print "   ecount: ", g.ecount()
-        print "   density:", float(g.ecount())/g.vcount()
-
-
-        #list_components = g.components().subgraphs()
-        list_components = g.community_fastgreedy().as_clustering().subgraphs()
-        print "List of identity pairs divided into partitions."
-
-        # partition the list of all connected components into a list of
-        # num_partition subsets such that the total number of nodes in each
-        # partition is roughly constant.
-        list_of_partitions = utils.partition_list_of_graphs(list_components, num_partitions)
-        print "lengths of partitions:" , [sum([g.vcount() for g in partition]) for partition in list_of_partitions]
-        print "max size of graphs in partitions:" , [max([g.vcount() for g in partition]) for partition in list_of_partitions]
-
-        
-        # Export the identity edgelist for each partition to a separate file.
-        # This is an edgelist between S1 identities
-        print "Saving identity pair partitions to separate files..."
-        list_of_list_edges = [ [(g.vs[e.source]['name'], g.vs[e.target]['name']) for g in partition for e in g.es] for partition in list_of_partitions]
-        for counter, partition in enumerate(list_of_list_edges):
-            with open(candidate_S1_identity_pairs_partitioned_file_template % (state, counter), 'w') as f:
-                for edge in partition:
-                    f.write("%s %s\n" % edge)
-        print "Done."
-
-
-
-    else:
-        # NOTE: only if the identity pair partitions are already written
-        # to file. Don't recompute the identity pair partitions, but load
-        # them from file, so that record id partitions can be quickly computed.
-        # and exported to file.
-        list_of_list_edges = load_identity_pair_partitions_from_file( candidate_S1_identity_pairs_partitioned_file_template, num_partitions)    
-
-
-
-    # For each partition, export a list of all record ids necessary
-    # for processing that partition. These are all record ids associated
-    # with any of the identities in the partition.
-    for counter, partition in enumerate(list_of_list_edges):
-        set_record_ids = set()
-        for edge in partition:
-            identity1, identity2 = edge
-            set_record_ids.update(set(idm.get_ids(identity1)))
-            set_record_ids.update(set(idm.get_ids(identity2)))
-
-        with open(candidate_list_records_partitioned_file_template % (state, counter), 'w') as f:
-            for r_id in set_record_ids:
-                f.write('%d\n' % r_id)
-
-
-
-def data_generator(num_partitions, idm, mode = 'disambiguation', state = 'USA'):
-    '''
-    Used in disambiguate_subsets_multiproc() 
-    Generator that yields the data necessary for each 
-    data partition, to be used in the child workers.'''
 
     ig = utils.igraph
     if mode == "disambiguation":
         bootstrap = False
         candidate_pairs_file = config.candidate_pairs_file_template % state
         candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
-        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template 
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template
         candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_template
     elif mode == "bootstrapping":
         bootstrap = True
         candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
         candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_bootstrapping_template % state
-        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template 
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template
         candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_bootstrapping_template
     else:
         raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
@@ -478,7 +360,7 @@ def data_generator(num_partitions, idm, mode = 'disambiguation', state = 'USA'):
         with open(filename1) as f:
             g = ig.Graph.Read_Ncol(f, names=True, weights="if_present", directed=False)
             print "    Graph loaded."
-            list_identities =  [v['name'] for v in g.vs]
+            list_identities = [v['name'] for v in g.vs]
             dict_identities = {identity: idm.get_ids(identity) for identity in list_identities}
             print "length of dict_identities: ", len(dict_identities)
             yield ((filename1, filename2), dict_identities, counter)
@@ -487,13 +369,19 @@ def data_generator(num_partitions, idm, mode = 'disambiguation', state = 'USA'):
 
 
 def distribute(data_generator, num_procs, worker_fcn):
+    '''
+    A job distributor engine for L{disambiguate_subsets_multiproc}. Starts
+    a set of child processes, and as long as L{data_generator()} has a data
+    partition to yield, takes it and sends it to the next idle child
+    process.
+    '''
     # create a list of pipes
     list_pipes = [utils.multiprocessing.Pipe() for i in range(num_procs)]
 
     # list of processes. Each receives a pipe as argument.
-    list_processes = [utils.multiprocessing.Process(target = worker_fcn, args = [list_pipes[i]]) for i in range(num_procs)]
+    list_processes = [utils.multiprocessing.Process(target=worker_fcn, args=[list_pipes[i]]) for i in range(num_procs)]
 
-    list_results  = []
+    list_results = []
 
     # which process is idle. possible values: 'idle' or 'busy'
     list_status = ['idle' for i in range(num_procs)]
@@ -522,8 +410,8 @@ def distribute(data_generator, num_procs, worker_fcn):
                 response = p_parent.recv()
                 list_results.append(response)
                 num_results += 1
-                print "Result no %d received..." % num_results 
-                #print response
+                print "Result no %d received..." % num_results
+                # print response
                 list_status[pid] = 'idle'
 
             # If child is idle, whether bc we just received
@@ -539,11 +427,11 @@ def distribute(data_generator, num_procs, worker_fcn):
                     num_total_batches = counter_batches
                     print pid, 'num_total_batches: ', num_total_batches, '    num_results:', num_results
                     print list_status
-                    p_parent.send('done') #signal child to terminate
+                    p_parent.send('done')  # signal child to terminate
                     list_status[pid] = 'dead'
                     print 'kill signal successfully sent to child.'
                     print
-                    
+
         if num_results == num_total_batches:
             print "All results received, exiting main loop..."
             break
@@ -560,7 +448,7 @@ def distribute(data_generator, num_procs, worker_fcn):
     for pipe in list_pipes:
         pipe[0].close()
         pipe[1].close()
-        
+
     for process in list_processes:
         process.terminate()
 
@@ -568,30 +456,30 @@ def distribute(data_generator, num_procs, worker_fcn):
     return list_results
 
 
-def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, idm = None, mode = "disambiguation"):
+def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, idm=None, mode="disambiguation"):
     '''
     NEW: compare pairs of L{Person} objects derived from the candidate identity
-    pairs withing each partition.
+    pairs withing each partition. Can be done with 1 process or multiple
+    processes. Uses the worker function L{worker_disambiguate_subset_of_edgelist}.
+    The results of these pairwise identity comparisons are sent to a verdict
+    authority which issues the final matching verdict. The ultimate result is
+    exported to linked_identities table.
 
-    Compare record pairs within each subset and save results. Can be done
-    with 1 process or multiple processes. Uses the worker function
-    L{worker_disambiguate_subset_of_edgelist}.
-    @param mode: String. Whether this run is for bootstrapping stage II 
+    @param mode: String. Whether this run is for bootstrapping stage II
     disambiguation or the real deal. If it's boostrapping, the results of identity
     pair comparisons will be written to file, and the database tables won't be
     written. The results can be read from file and then used for the actual
     stage II disambiguation.
-
     @requires: The full stage1 'identities' table
-    @requires: List of candidate record pairs already partitioned and written
+    @requires: List of candidate record identity pIEA already partitioned and written
     to separate files.
     '''
-    
+
 
     if not idm:
         # IdentityManager instance
         idm = Database.IdentityManager('USA')
-        
+
     ig = utils.igraph
 
     if mode == "disambiguation":
@@ -605,14 +493,14 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, id
     # Each element in this list is itself a list.
     # For the format of the data that will be placed in these lists
     # remains the same as the old version.
-    #list_list_identity_pairs = []
-    list_list_identity_pairs =  distribute(data_generator(num_partitions, idm,  mode, state), num_procs, wrapper_worker_disambiguate_subset_of_identities_edgelist)
+    # list_list_identity_pairs = []
+    list_list_identity_pairs = distribute(data_generator(num_partitions, idm, mode, state), num_procs, wrapper_worker_disambiguate_subset_of_identities_edgelist)
 
 
-    #if num_procs == 1:
+    # if num_procs == 1:
     #    for tuple_filenames, dict_identities, workerid in list_data:
     #        list_list_identity_pairs.append(wrapper_worker_disambiguate_subset_of_identities_edgelist((tuple_filenames, dict_identities, 0)))
-    #else:
+    # else:
     #    print "Starting worker pool..."
     #    pool = utils.multiprocessing.Pool(num_procs, maxtasksperchild=1)
     #    list_list_identity_pairs = pool.map(wrapper_worker_disambiguate_subset_of_identities_edgelist, list_data)
@@ -620,7 +508,7 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, id
     #    pool.join()
 
 
-    
+
     print "All worker results returned."
 
 
@@ -630,46 +518,33 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, id
         list_identity_pairs += list_list_identity_pairs.pop()
     print "Combined all list_identity_pairs."
 
-    # Create an IdentityManager instance, then given the record
-    # pairs just found, compute the identity_adjacency.
-    #idm = Database.IdentityManager('USA')
-
     print "Running idm.generate_dict_identity_adjacency."
 
     # File into which the bootstrapping results will be
     # written if boostrap is True.
-    
+
     export_file = config.S2_bootstrap_results_file if bootstrap else config.S2_identity_comparison_results_file
 
-    verdict_authority =  VerdictAuthorityBase() if bootstrap else VerdictAuthority()
+    verdict_authority = VerdictAuthorityBase() if bootstrap else VerdictAuthority()
 
-    idm.generate_dict_identity_adjacency(list_identity_pairs, overwrite=True, export_file = export_file, verdict_authority = verdict_authority)
-    
-    # TODO: implement
-    # Generate a set of super-identities, i.e. a sorted tuples of 
+    idm.generate_dict_identity_adjacency(list_identity_pairs, overwrite=True, export_file=export_file, verdict_authority=verdict_authority)
+
+    # Generate a set of super-identities, i.e. a sorted tuples of
     # S1 identities that are linked and have no middle name conflicts.
     idm.deduce_linked_identities()
 
     # Export the deduced set of s1 identities to a MySQL table
     idm.export_linked_identities()
 
-    # TODO: impolemenet a new get_linked_identities method that
-    # uses data loaded from the linked_identities table and then
-    # simply returns the list of all linked S1 identities.
-
-
-
     print "Done"
 
-    
+
     if not bootstrap:
         print "Exporting identities_adjaceny.."
         idm.export_identities_adjacency()
-        print "Done."    
-    
+        print "Done."
+
         print "Exporting linked identities to csv file..."
-        # TODO: reimplement this to use the newly generated
-        # idm.dict_linked_identities
         idm.export_linked_identities_csv()
         print "Done."
 
@@ -683,29 +558,45 @@ def disambiguate_subsets_multiproc(num_partitions, state="USA", num_procs=12, id
 
 
 class VerdictAuthorityBase():
+    '''
+    Using results from the stage2 bootstrapping, take the results of
+    pairwise identity comparisons and for each one, make the final
+    decision as to whether the pair should be declared a match or not.
+    In making this decision, name frequencies are used and the
+    matching criteria are those resulting from the bootstrapping
+    step.
+    '''
+
     def __init__(self):
         pass
     def verdict(self, value):
+        '''
+        The basic version simply accepts any pair
+        of identities as a match.
+        '''
         return 1
-        
+
 class VerdictAuthority(VerdictAuthorityBase):
     '''
-    @ivar inds_o_3: list of tuples C{(f1,f2)} where f1 and f2
+    @ivar inds_n_4_o_3: set of tuples C{(f1,f2)} where f1 and f2
     are the acceptable name frequencies (with and without middle name)
-    when occupations are linked. This list must be converted to a set 
-    for use by the verdict function.
-    @ivar inds_e_3: list of tuples C{(f1,f2)} where f1 and f2
+    when occupations are linked. For the case when names are an exact
+    match, including on the middle name.
+    @ivar inds_n_4_e_3: set of tuples C{(f1,f2)} where f1 and f2
     are the acceptable name frequencies (with and without middle name)
-    when employers are linked. This list must be converted to a set 
-    for use by the verdict function.
-    @ivar inds_o_4: list of tuples C{(f1,f2)} where f1 and f2
+    when employers are linked. For the case when names are an exact
+    match, including on the middle name.
+    @ivar inds_n_4_o_4: set of tuples C{(f1,f2)} where f1 and f2
     are the acceptable name frequencies (with and without middle name)
-    when occupations are identical. This list must be converted to a set 
-    for use by the verdict function.
-    @ivar inds_e_4: list of tuples C{(f1,f2)} where f1 and f2
+    when occupations are identical. For the case when names are an exact
+    match, including on the middle name.
+    @ivar inds_n_4_e_4: set of tuples C{(f1,f2)} where f1 and f2
     are the acceptable name frequencies (with and without middle name)
-    when employers are identical. This list must be converted to a set 
-    for use by the verdict function.
+    when employers are identical. For the case when names are an exact
+    match, including on the middle name.
+    @ivar inds_n_3: The set of acceptable name frequencies for all
+    affiliation match scores, when the names are a match, but there
+    isn't a match on the middle initial.
     '''
     def __init__(self):
 
@@ -717,7 +608,7 @@ class VerdictAuthority(VerdictAuthorityBase):
         filename_inds_n_4_e_2 = config.filename_inds_n_4_e_2
 
         filename_inds_n_3 = config.filename_inds_n_3
-        
+
         try:
             with open(filename_inds_n_4_o_4) as f:
                 tmp = utils.json.load(f)
@@ -746,7 +637,7 @@ class VerdictAuthority(VerdictAuthorityBase):
 
             with open(filename_inds_n_3) as f:
                 tmp = utils.json.load(f)
-                self.inds_n_3 = tmp 
+                self.inds_n_3 = tmp
 
         except Exception as e:
             print "ERROR: unable to instantiate VerdictAuthority."
@@ -767,9 +658,9 @@ class VerdictAuthority(VerdictAuthorityBase):
         matches. 0 means not a match, but not a middle name conflict either.
         1 means a match.
         '''
-        
+
         result_name, result_occupation, result_employer = result
-        
+
         # If names don't match return 0 unless they have
         # a middle namd conflict (-1) in which case continue
         # analyzing.
@@ -777,7 +668,7 @@ class VerdictAuthority(VerdictAuthorityBase):
 
         if result_occupation[0] < 2 and result_employer[0] < 2: return 0
 
-        
+
         # f1 is with middle name, f2 is without
         f1, f2 = result_name[1]
         f1 = 0 if f1 is None else f1
@@ -793,41 +684,41 @@ class VerdictAuthority(VerdictAuthorityBase):
             else:
                 return -1
 
-        
+
         if result_name[0] == 4:
             scale = 3
             if result_occupation[0] == 4:
-                if (f1,f2) in self.inds_n_4_o_4: return 4 * scale #1
+                if (f1, f2) in self.inds_n_4_o_4: return 4 * scale  # 1
             if result_employer[0] == 4:
-                if (f1,f2) in self.inds_n_4_e_4: return 4 * scale #1
+                if (f1, f2) in self.inds_n_4_e_4: return 4 * scale  # 1
 
             if result_occupation[0] == 3:
-                if (f1,f2) in self.inds_n_4_o_3: return 3 * scale #1
+                if (f1, f2) in self.inds_n_4_o_3: return 3 * scale  # 1
             if result_employer[0] == 3:
-                if (f1,f2) in self.inds_n_4_e_3: return 3 * scale #1
+                if (f1, f2) in self.inds_n_4_e_3: return 3 * scale  # 1
 
             if result_occupation[0] == 2:
-                if (f1,f2) in self.inds_n_4_o_2: return 2 * scale #1
+                if (f1, f2) in self.inds_n_4_o_2: return 2 * scale  # 1
             if result_employer[0] == 2:
-                if (f1,f2) in self.inds_n_4_e_2: return 2 * scale #1
+                if (f1, f2) in self.inds_n_4_e_2: return 2 * scale  # 1
 
         elif result_name[0] == 3:
             scale = 2
             if result_occupation[0] == 4:
-                if f2 < self.inds_n_3['o_4']: return 4 * scale #1
+                if f2 < self.inds_n_3['o_4']: return 4 * scale  # 1
             if result_employer[0] == 4:
-                if f2 < self.inds_n_3['e_4']: return 4 * scale #1
+                if f2 < self.inds_n_3['e_4']: return 4 * scale  # 1
 
             if result_occupation[0] == 3:
-                if f2 < self.inds_n_3['o_3']: return 3 * scale #1
+                if f2 < self.inds_n_3['o_3']: return 3 * scale  # 1
             if result_employer[0] == 3:
-                if f2 < self.inds_n_3['e_3']: return 3 * scale #1
+                if f2 < self.inds_n_3['e_3']: return 3 * scale  # 1
 
             if result_occupation[0] == 2:
-                if f2 < self.inds_n_3['o_2']: return 2 * scale #1
+                if f2 < self.inds_n_3['o_2']: return 2 * scale  # 1
             if result_employer[0] == 2:
-                if f2 < self.inds_n_3['e_2']: return 2 * scale #1
-            
+                if f2 < self.inds_n_3['e_2']: return 2 * scale  # 1
+
         # if none worked, return 0
         return 0
 
@@ -859,7 +750,7 @@ def disambiguate_subsets_multiproc_OLD(num_partitions, state="USA", num_procs=12
         list_list_record_pairs = pool.map(worker_disambiguate_subset_of_edgelist, list_filenames)
         pool.close()
         pool.terminate()
-    
+
     print "All worker results returned."
     # Concatenate all sublists
     list_record_pairs = []
@@ -894,7 +785,7 @@ def __get_customized_verdict(detailed_comparison_result):
     Function that makes the final judgment on the relationship between two
     identities. It receives the output of the L{Person.compare} method consisting
     of the detailed comparison results which give the best match scores for
-    between all record pairs of the two identities for the different fields. 
+    between all record pairs of the two identities for the different fields.
     Implement this method to define how these preliminary
     comparison results are to be interpreted ultimately. The output of this
     function will be used to determine the relationship between a pair of
@@ -923,7 +814,7 @@ def __get_customized_verdict(detailed_comparison_result):
 
     if verdict < 0 : return -1
     if verdict == False and  detailed_comparison_result['n'][0] >= 3: return 0
-    if verdict == True: 
+    if verdict == True:
         # This is a tuple (freq_fullname_with_middlename, freq_fullname_without_middlename)
         # This tuple definitely has a value since True verdict is only issued when
         # match_code is 3 or 4.
@@ -931,7 +822,7 @@ def __get_customized_verdict(detailed_comparison_result):
         freq1, freq2 = detailed_comparison_result['n'][1]
 
         try:
-            score = 1./(freq1 + freq2)
+            score = 1. / (freq1 + freq2)
         except:
             # If we return 0, it won't be any different
             # from verdict = False
@@ -950,11 +841,12 @@ def wrapper_worker_disambiguate_subset_of_identities_edgelist(pipe):
         return worker_disambiguate_subset_of_identities_edgelist(pipe)
     except:
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
-        
+
 
 def task_process_one_partition(data, tokendata_usa):
     '''
-    This is the function that processes one data partition at a time.
+    This is the function that processes one data partition at a time,
+    in each child process separately.
     This function will be called multiple times withing a child process.
     The point is that the most expensive data reading operations are done
     OUTSIDE this function, only once by each child process. Then that
@@ -976,38 +868,38 @@ def task_process_one_partition(data, tokendata_usa):
     list_auxiliary_fields = ['TRANSACTION_DT', 'TRANSACTION_AMT', 'CMTE_ID', 'ENTITY_TP', 'id']
     all_fields = list_tokenized_fields + list_auxiliary_fields
     ig = utils.igraph
-    
+
     # Load list of record ids
     with open(candidate_list_records_partitioned_file) as f1:
         try:
-            print "Loading list of record ids from file", candidate_list_records_partitioned_file 
+            print "Loading list of record ids from file", candidate_list_records_partitioned_file
             list_record_ids = [int(line.strip()) for line in f1]
         except Exception as e:
             print "ERROR: ", e
-            print "Unable to load list of record ids from file ", candidate_list_records_partitioned_file 
+            print "Unable to load list of record ids from file ", candidate_list_records_partitioned_file
             raise
 
         print "Number of records loaded: ", len(list_record_ids)
         print "Done."
 
-        list_of_pairs = [] # probably unnecessary.
+        list_of_pairs = []  # probably unnecessary.
 
         # Load list of identity pairs.
         with open(candidate_S1_identity_pairs_partitioned_file) as f2:
             print "Loading partition of edgelist."
             g = ig.Graph.Read_Ncol(f2, names=True, weights="if_present", directed=False)
-            list_identities =  [v['name'] for v in g.vs]
+            list_identities = [v['name'] for v in g.vs]
 
             print "Getting list_of_identity_pairs."
             # Identity pairs don't come with weights. Can't sort.
             list_of_identity_pairs = [(g.vs[e.source]['name'], g.vs[e.target]['name']) for e in g.es]
-                #for e in sorted(g.es, key=lambda e:e['weight'], reverse=True)]
+                # for e in sorted(g.es, key=lambda e:e['weight'], reverse=True)]
 
 
 
         print "Retrieving records for this partition from database."
 
-        pause_time = workerid * 2 
+        pause_time = workerid * 2
         utils.time.sleep(pause_time)
 
         retriever = Database.FecRetrieverByID(config.MySQL_table_usa_combined)
@@ -1015,7 +907,7 @@ def task_process_one_partition(data, tokendata_usa):
         retriever.retrieve(list_record_ids, all_fields)
         list_of_records = retriever.getRecords()
         t2 = utils.time.time()
-        print "records retrieved in {} seconds.".format(int(t2-t1))
+        print "records retrieved in {} seconds.".format(int(t2 - t1))
 
         project = Project.Project(1)
 
@@ -1032,7 +924,7 @@ def task_process_one_partition(data, tokendata_usa):
 
 
         print "Tokenizing records..."
-        tokenizer.tokenize(export_tokendata=False,export_vectors=False,export_normalized_attributes=False)
+        tokenizer.tokenize(export_tokendata=False, export_vectors=False, export_normalized_attributes=False)
         list_of_records = tokenizer.getRecords()
 
         # Insert the USA tokendata object into tokenizer.
@@ -1093,7 +985,8 @@ def task_process_one_partition(data, tokendata_usa):
 def worker_disambiguate_subset_of_identities_edgelist(pipe):
     '''
     Disambiguate by comparing the S1 identity pairs in provided file, using
-    all their records as provided by the other file.
+    all their records as provided by the other file. This method is run in
+    each child process separately.
 
     @param tuple_filenames: a tuple consisting of two strings. The first
     string is the filename containing a list of pairs of S1 identities.
@@ -1103,21 +996,21 @@ def worker_disambiguate_subset_of_identities_edgelist(pipe):
     to this method to a list of its associated records. We pass this dict
     in order to avoid instantiating an IdentityManager for each process running
     this method.
-    
+
     The record comparisons performed in this function use the C{"national"} C{method_id}.
     This comparison method is slightly more lax than the stage1 comparisons, but we make
     additional judgments based on token frequencies here in L{__get_customized_verdict}.
-    
+
     @note: the records need to be tokenized first, since record comparison relies
     on normalized names, etc.
 
-    @return: list_identity_pairs: a list where each element looks like 
+    @return: list_identity_pairs: a list where each element looks like
     C{((identity1, identity2), final_result)}.
     '''
 
     # Redirect the stdout of this process to a dedicated file.
     utils.sys.stdout = open("stdout-" + str(utils.os.getpid()) + ".out", "w", 0)
-            
+
     # Load Normalized token data
     # This is a very expensive operation, so it must be done
     # once in the worker process, NOT once for each partition.
@@ -1127,20 +1020,20 @@ def worker_disambiguate_subset_of_identities_edgelist(pipe):
     with open(normalized_tokendata_file) as f:
         tokendata_usa = utils.cPickle.load(f)
 
-    
+
     ####################################################
     # BEGIN CHILD MAIN LOOP
     ####################################################
     p_parent, p_child = pipe
-    pid = utils.os.getpid() 
+    pid = utils.os.getpid()
     while True:
         utils.time.sleep(0.5)
         if p_child.poll():
             data = p_child.recv()
-                
+
             # If empty packet received, exit loop,
             # terminate worker.
-            if data=='done':
+            if data == 'done':
                 print "Kill signal received, terminating child process."
                 break
 
@@ -1161,12 +1054,6 @@ def worker_disambiguate_subset_of_identities_edgelist(pipe):
 
 
 
-
-
-
-
-from disambiguation.core import Person
-from disambiguation.core import Record
 
 def __update_tokendata_with_person(list_normalized_attrs, tokendata, list_virtual_records):
     '''
@@ -1197,10 +1084,10 @@ def compute_person_tokens():
     Using the ientities comptued in stage1 and the tokendata,
     compute the token frequencies at the person level, that is
     the number of identities with a given token rather than the
-    number of records.
+    number of records with a given token.
     For this, we instantiate a new TokenData object and update it
     with the token data. It will then be exported to a file. Since
-    It is not based on tokenz produced by a C{Tokenizer} object, but
+    It is not based on tokens produced by a C{Tokenizer} object, but
     rather using the normalized attributes, the file label contains
     "Normalized" rather than the Tokenizer class name.
     '''
@@ -1267,16 +1154,16 @@ def compute_person_tokens():
                 for rid in list_r_ids:
                     tmp = dict_normalized_attributes[rid]
                     # For each record, we compute the full name in two different
-                    # ways: with and without the middle name. Both are counted 
-                    # toward the fullname in the token frequency dictionary. 
-                    # NOTE: if there is a fullname_withmiddle, then it is 
+                    # ways: with and without the middle name. Both are counted
+                    # toward the fullname in the token frequency dictionary.
+                    # NOTE: if there is a fullname_withmiddle, then it is
                     # necessarily different from fullname_withoutmiddle, so
                     # it won't be double counted.
                     if tmp['N_middle_name']:
                         fullname_withmiddle = "%s|%s|%s" % (tmp['N_last_name'], tmp['N_middle_name'], tmp['N_first_name'])
                     else:
                         fullname_withmiddle = ''
- 
+
                     fullname_withoutmiddle = "%s||%s" % (tmp['N_last_name'], tmp['N_first_name'])
                     dict_normalized_attributes[rid]['N_full_name_withmiddle'] = fullname_withmiddle
                     dict_normalized_attributes[rid]['N_full_name_withoutmiddle'] = fullname_withoutmiddle
@@ -1294,7 +1181,7 @@ def compute_person_tokens():
 
 
 
-def split_dict_identity_ids(dict_identity_2_list_ids, split_prob = 0.8):
+def split_dict_identity_ids(dict_identity_2_list_ids, split_prob=0.8):
     '''
     Take a C{dict_identity_2_list_ids} such as the one found
     in L{IdentityManager} and split the identities at random.
@@ -1308,13 +1195,13 @@ def split_dict_identity_ids(dict_identity_2_list_ids, split_prob = 0.8):
     dict_id_2_identity_split = {}
     for identity, list_ids in dict_identity_2_list_ids.iteritems():
         x = len(list_ids)
-        if np.random.rand() < split_prob and x > 1:          
+        if np.random.rand() < split_prob and x > 1:
             y = x / 2
-            identity_sub_1 = identity + "|1" 
+            identity_sub_1 = identity + "|1"
             identity_sub_2 = identity + "|2"
             dict_identity_2_list_ids_split[identity_sub_1] = list_ids[:y]
             dict_identity_2_list_ids_split[identity_sub_2] = list_ids[y:]
-            
+
             for rid in list_ids[:y]:
                 dict_id_2_identity_split[rid] = identity_sub_1
             for rid in list_ids[y:]:
@@ -1348,9 +1235,9 @@ def bootstrap_stageII():
     # is generated.
     find_candidate_pairs = True
 
-    # Whether to recompute and partition 
+    # Whether to recompute and partition
     # identity pairs to be compared.
-    partition_fresh = True 
+    partition_fresh = True
 
 
 
@@ -1358,7 +1245,7 @@ def bootstrap_stageII():
 
     # Number of candidate record pairs to find.
     num_pairs = 50000000
-    
+
     if True:
         if split_fresh:
             idm = Database.IdentityManager('USA')
@@ -1366,40 +1253,41 @@ def bootstrap_stageII():
             idm.fetch_dict_identity_2_id()
 
             # The split version of dict_identity_2_list_ids
-            dict_identity, dict_id = split_dict_identity_ids(idm.dict_identity_2_list_ids,0.5)
-            with open('dict_identity_v{version}.pickle'.format(version = config.FEC_version_disambiguation),'w') as f:
+            dict_identity, dict_id = split_dict_identity_ids(idm.dict_identity_2_list_ids, 0.5)
+            with open('dict_identity_v{version}.pickle'.format(version=config.FEC_version_disambiguation), 'w') as f:
                 cPickle.dump(dict_identity, f)
-            with open('dict_identity_v{version}.pickle'.format(version = config.FEC_version_disambiguation),'w') as f:
+            with open('dict_identity_v{version}.pickle'.format(version=config.FEC_version_disambiguation), 'w') as f:
                 cPickle.dump(dict_id, f)
         else:
-            with open('dict_identity_v{version}.pickle'.format(version = config.FEC_version_disambiguation)) as f:
+            with open('dict_identity_v{version}.pickle'.format(version=config.FEC_version_disambiguation)) as f:
                 dict_identity = cPickle.load(f)
-            with open('dict_identity_v{version}.pickle'.format(version = config.FEC_version_disambiguation)) as f:
+            with open('dict_identity_v{version}.pickle'.format(version=config.FEC_version_disambiguation)) as f:
                 dict_id = cPickle.load(f)
-             
+
         # An idm loaded with the split dictionaries.
         idm_split = Database.IdentityManager('USA')
         idm_split.dict_identity_2_list_ids = dict_identity
         idm_split.dict_id_2_identity = dict_id
 
         if find_candidate_pairs:
-            get_candidate_pairs(num_pairs, recompute = True, idm = idm_split, mode = "bootstrapping")
-        
+            get_candidate_pairs(num_pairs, recompute=True, idm=idm_split, mode="bootstrapping")
+
         if split_fresh or partition_fresh:
-            partition_S1_identities(num_partitions = num_partitions, state = 'USA', idm = idm_split, mode = "bootstrapping")
+            partition_S1_identities(num_partitions=num_partitions, state='USA', idm=idm_split, mode="bootstrapping")
 
-        # Run a bootstrapping 
-        disambiguate_subsets_multiproc(num_partitions=num_partitions, state="USA", num_procs=10, idm = idm_split, mode = "bootstrapping") 
+        # Run a bootstrapping
+        disambiguate_subsets_multiproc(num_partitions=num_partitions, state="USA", num_procs=10, idm=idm_split, mode="bootstrapping")
 
-    # now analyze the bootstraping results and 
+    # now analyze the bootstraping results and
     # export data files to be used for defining
     # verdict authority.
     process_bootstrapping_results()
-    
+
 
 
 def __get_split_matches():
     '''
+    Part of the bootstrapping prior to stage2 disambiguation.
     Load the set of identity matches recovered via
     the bootstrapping process.
     '''
@@ -1415,7 +1303,7 @@ def __get_split_matches():
         for line in f:
             counter_line += 1
             data = utils.json.loads(line)
-            
+
 
             match1 = re.findall(r'(.*)\|([12])', data[0])
             match2 = re.findall(r'(.*)\|([12])', data[1])
@@ -1423,21 +1311,22 @@ def __get_split_matches():
                 set_identity.add(data[0])
             elif match2:
                 set_identity.add(data[1])
-            
+
             if not match1 or not match2:
                 non_split_matches.append(data[2:])
                 counter_non_match += 1
-            
+
             if match1 and match2 :
                 counter_both += 1
                 if match1[0][0] == match2[0][0]:
                     counter += 1
                     split_matches.append(data[2:])
     return split_matches, non_split_matches
-            
+
 
 def __cum_threshold(myarray, percentile):
     '''
+    Part of the bootstrapping prior to stage2 disambiguation.
     For an array (possibly 2d), return the threshold
     value corresponding to the top percentile of the
     cumulative sum of the sorted array.
@@ -1451,69 +1340,71 @@ def __cum_threshold(myarray, percentile):
     xmax = max(x)
 
     # index for 95 percentile of cumsum
-    cutoff_index = np.where(x > xmax*(1-percentile/100.))[0][0]
+    cutoff_index = np.where(x > xmax * (1 - percentile / 100.))[0][0]
     return freqs_sorted[cutoff_index]
-    
 
-def __heatmap(xx, yy, title, subplot,cum_percent = 95, aspect = 1, xlim = None, ylim = None):
+
+def __heatmap(xx, yy, title, subplot, cum_percent=95, aspect=1, xlim=None, ylim=None):
     '''
+    Part of the bootstrapping prior to stage2 disambiguation.
     This method takes the coordinates for a bunch of points,
     calculates a 2D histogram of them, then finds the region
     in the parameter space that contains a certain percentage
     of the total point frequency. Then, the histogram is plotted
     with the region delineated by a contour line. Finally, the
     function returns a list of coordinate tuples that fall in
-    the region. 
+    the region.
     '''
     from scipy import ndimage
     import matplotlib.pyplot as plt
     import matplotlib
 
     contour_colors = 'w'
-    bins = [np.arange(0,1200)-0.5, np.arange(0,100)-0.5]
+    bins = [np.arange(0, 1200) - 0.5, np.arange(0, 100) - 0.5]
 
-    plt.subplot(3,2,subplot)
+    plt.subplot(3, 2, subplot)
     indices = np.where(~np.isnan(xx) & ~np.isnan(yy))[0]
-    freqs, xe, ye = np.histogram2d( xx[indices], yy[indices], bins, normed = False)
-    range1 = [0,max(ye), max(xe), 0]
+    freqs, xe, ye = np.histogram2d(xx[indices], yy[indices], bins, normed=False)
+    range1 = [0, max(ye), max(xe), 0]
 
     threshold = __cum_threshold(freqs, cum_percent)
     filtered_indices = np.where(freqs > threshold)
-    freqs_tmp = freqs + 1.0-1.0
+    freqs_tmp = freqs + 1.0 - 1.0
     np.place(freqs_tmp, freqs == 0, 1)
 
     a = np.log10(freqs_tmp)
-    plt.imshow(a, cmap='hot', interpolation='none', extent = range1 )
-    formatter = matplotlib.ticker.LogFormatter(10, labelOnlyBase=False) 
+    plt.imshow(a, cmap='hot', interpolation='none', extent=range1)
+    formatter = matplotlib.ticker.LogFormatter(10, labelOnlyBase=False)
 
-    #colorbar = plt.colorbar(format = formatter)
-    #colorbar = plt.colorbar()
+    # colorbar = plt.colorbar(format = formatter)
+    # colorbar = plt.colorbar()
 
     print threshold
     plt.gca().invert_yaxis()
-    
+
     freqs = ndimage.gaussian_filter(freqs, sigma=(1.5, 1.5), order=0)
-    plt.contour(np.flipud(freqs), colors=contour_colors, levels = [threshold],\
-                extent = range1, antialiased = True, nchunk = 100 )
+    plt.contour(np.flipud(freqs), colors=contour_colors, levels=[threshold], \
+                extent=range1, antialiased=True, nchunk=100)
     inds = np.where(freqs > threshold)
-    filter_points =  [(inds[1][i], inds[0][i]) for i in range(len(inds[0]))]
-#     plt.gca().axis('tight') 
+    filter_points = [(inds[1][i], inds[0][i]) for i in range(len(inds[0]))]
+#     plt.gca().axis('tight')
     plt.xlabel('Freq with middle name')
     plt.ylabel('Freq without middle name')
     plt.title(title)
     plt.gca().set_aspect(aspect)
     plt.xlim(xlim)
     plt.ylim(ylim)
-    
-    #plt.savefig('bootstrapping-n_4-%s.png' % title.replace('\n','').replace(' ','_'))
-    
+
+    # plt.savefig('bootstrapping-n_4-%s.png' % title.replace('\n','').replace(' ','_'))
+
     return filter_points
 
 
 
 
-def __threshold_freqs(xx, subplot, cum_percent = 95, title = ''):
+def __threshold_freqs(xx, subplot, cum_percent=95, title=''):
     '''
+    Part of the bootstrapping prior to stage2 disambiguation.
     Compute and export to file the name frequency thresholds
     for various affiliation match scores in the case where
     names match but not on the middle name.
@@ -1532,42 +1423,49 @@ def __threshold_freqs(xx, subplot, cum_percent = 95, title = ''):
         threshold = total * (cum_percent / 100.0)
         return np.where(cumsums > threshold)[0][0]
 
-    plt.subplot(2,3,subplot)
-    
-    bins = np.arange(0,1200)-0.5
+    plt.subplot(2, 3, subplot)
+
+    bins = np.arange(0, 1200) - 0.5
     indices = np.where(~np.isnan(xx))[0]
     # plt.hist(xx[indices],bins = bins)
-    freqs, xs = np.histogram(xx[indices],bins = bins)
+    freqs, xs = np.histogram(xx[indices], bins=bins)
     # freqs = freqs[:-1]
-    centers = ((xs[:-1] + xs[1:])/2).astype(int)
-    plt.loglog(centers,freqs,'.k')
+    centers = ((xs[:-1] + xs[1:]) / 2).astype(int)
+    plt.loglog(centers, freqs, '.k')
     threshold = get_1d_threshold(freqs, cum_percent)
     t = threshold
     print t
-    plt.loglog([t,t] , [1, 1e5],'r')
-    plt.ylim((1,1e5))
+    plt.loglog([t, t] , [1, 1e5], 'r')
+    plt.ylim((1, 1e5))
     plt.xlabel('name frequency')
     plt.gca().set_aspect(0.6)
     plt.title(title)
     return int(threshold)
-        
+
 def process_bootstrapping_results():
+    '''
+    Process the results of the bootstrapping and infer the set of
+    name frequencies that should be used as the criterion for accepting
+    a pair of identities as a match. The results will be written into
+    json files. These files are then read by L{VerdictAuthority} and
+    used to make the final decision for each pair of compared identities.
+    '''
     import matplotlib.pyplot as plt
 
     split_matches, non_split_matches = __get_split_matches()
 
 
-    filter_occupation_2 = lambda x: (x[1][0] == 2) # occupation
-    filter_employer_2 = lambda x: (x[2][0] == 2) # employer
+    filter_occupation_2 = lambda x: (x[1][0] == 2)  # occupation
+    filter_employer_2 = lambda x: (x[2][0] == 2)  # employer
 
-    filter_occupation_3 = lambda x: (x[1][0] == 3) # occupation
-    filter_employer_3 = lambda x: (x[2][0] == 3) # employer
+    filter_occupation_3 = lambda x: (x[1][0] == 3)  # occupation
+    filter_employer_3 = lambda x: (x[2][0] == 3)  # employer
 
-    filter_occupation_4 = lambda x: (x[1][0] == 4) # occupation
-    filter_employer_4 = lambda x: (x[2][0] == 4) # employer
+    filter_occupation_4 = lambda x: (x[1][0] == 4)  # occupation
+    filter_employer_4 = lambda x: (x[2][0] == 4)  # employer
 
-    filter_name_3 = lambda x: (x[0][0] == 3) # name = 3
-    filter_name_4 = lambda x: (x[0][0] == 4) # name = 3
+    filter_name_3 = lambda x: (x[0][0] == 3)  # name = 3
+    filter_name_4 = lambda x: (x[0][0] == 4)  # name = 3
 
 
     # frequencies if occupations are linked
@@ -1610,33 +1508,33 @@ def process_bootstrapping_results():
 
 
     #######################################################
-    # NAMES MATCH INCLUDING ON MIDDLE NAME      
+    # NAMES MATCH INCLUDING ON MIDDLE NAME
     #######################################################
-    plt.figure(figsize=(10,15))
+    plt.figure(figsize=(10, 15))
 
     # Get a list of tuples, each one acceptable point coordinate
-    inds_n_4_o_4 = __heatmap(f_n_4_o_4, f_n_4_o_4_middle, 'Log-histogram of matches with \n identical occupations', 1,\
-            aspect = 0.05, xlim=(0,20), ylim=(0,400))
-    inds_n_4_e_4 = __heatmap(f_n_4_e_4, f_n_4_e_4_middle, 'Log-histogram of matches with \n identical employers', 2,\
-            aspect = 0.05, xlim=(0,20), ylim=(0,400))
-    inds_n_4_o_3 = __heatmap(f_n_4_o_3, f_n_4_o_3_middle, 'Log-histogram of matches with \n LINKED occupations', 3,\
-            aspect = 0.2, xlim=(0,15), ylim=(0,100))
-    inds_n_4_e_3 = __heatmap(f_n_4_e_3, f_n_4_e_3_middle, 'Log-histogram of matches with \n LINKED employers', 4,\
-            aspect = 0.2, xlim=(0,15), ylim=(0,100))
+    inds_n_4_o_4 = __heatmap(f_n_4_o_4, f_n_4_o_4_middle, 'Log-histogram of matches with \n identical occupations', 1, \
+            aspect=0.05, xlim=(0, 20), ylim=(0, 400))
+    inds_n_4_e_4 = __heatmap(f_n_4_e_4, f_n_4_e_4_middle, 'Log-histogram of matches with \n identical employers', 2, \
+            aspect=0.05, xlim=(0, 20), ylim=(0, 400))
+    inds_n_4_o_3 = __heatmap(f_n_4_o_3, f_n_4_o_3_middle, 'Log-histogram of matches with \n LINKED occupations', 3, \
+            aspect=0.2, xlim=(0, 15), ylim=(0, 100))
+    inds_n_4_e_3 = __heatmap(f_n_4_e_3, f_n_4_e_3_middle, 'Log-histogram of matches with \n LINKED employers', 4, \
+            aspect=0.2, xlim=(0, 15), ylim=(0, 100))
 
-    inds_n_4_o_2 = __heatmap(f_n_4_o_2, f_n_4_o_2_middle, 'Log-histogram of matches with \n BAD occupations', 5,\
-            aspect = 0.2, xlim=(0,15), ylim=(0,100))
-    inds_n_4_e_2 = __heatmap(f_n_4_e_2, f_n_4_e_2_middle, 'Log-histogram of matches with \n BAD employers', 6,\
-            aspect = 0.2, xlim=(0,15), ylim=(0,100))
-    
+    inds_n_4_o_2 = __heatmap(f_n_4_o_2, f_n_4_o_2_middle, 'Log-histogram of matches with \n BAD occupations', 5, \
+            aspect=0.2, xlim=(0, 15), ylim=(0, 100))
+    inds_n_4_e_2 = __heatmap(f_n_4_e_2, f_n_4_e_2_middle, 'Log-histogram of matches with \n BAD employers', 6, \
+            aspect=0.2, xlim=(0, 15), ylim=(0, 100))
+
     plt.savefig('bootstrapping-n_4.png')
 
 
     #######################################################
-    # NAMES MATCH BUT NOT ON MIDDLE NAME      
+    # NAMES MATCH BUT NOT ON MIDDLE NAME
     #######################################################
 
-    plt.figure(figsize=(10,7))
+    plt.figure(figsize=(10, 7))
 
     # dict of name frequency thresholds for the case
     # when there is no middle name match.
@@ -1645,13 +1543,13 @@ def process_bootstrapping_results():
     for various affiliation match scores in the case where names \
     match but not on the middle name. e_2 means the case where employers \
     have a match score of 2. o_2 is the same for occupations, etc."
-    thresholds['e_2'] = __threshold_freqs(f_n_3_e_2, 1, title = 'BAD employers')
-    thresholds['e_3'] = __threshold_freqs(f_n_3_e_3, 2, title = 'Linked employers')
-    thresholds['e_4'] = __threshold_freqs(f_n_3_e_4, 3, title = 'Identical employers')
+    thresholds['e_2'] = __threshold_freqs(f_n_3_e_2, 1, title='BAD employers')
+    thresholds['e_3'] = __threshold_freqs(f_n_3_e_3, 2, title='Linked employers')
+    thresholds['e_4'] = __threshold_freqs(f_n_3_e_4, 3, title='Identical employers')
 
-    thresholds['o_2'] = __threshold_freqs(f_n_3_o_2, 4, title = 'BAD occupations')
-    thresholds['o_3'] = __threshold_freqs(f_n_3_o_3, 5, title = 'Linked occupations')
-    thresholds['o_4'] = __threshold_freqs(f_n_3_o_4, 6, title = 'Identical occupations')
+    thresholds['o_2'] = __threshold_freqs(f_n_3_o_2, 4, title='BAD occupations')
+    thresholds['o_3'] = __threshold_freqs(f_n_3_o_3, 5, title='Linked occupations')
+    thresholds['o_4'] = __threshold_freqs(f_n_3_o_4, 6, title='Identical occupations')
     plt.savefig('bootstrapping-n_3.png')
 
 
@@ -1665,7 +1563,7 @@ def process_bootstrapping_results():
     filename_inds_n_4_e_2 = config.filename_inds_n_4_e_2
 
     filename_inds_n_3 = config.filename_inds_n_3
-    
+
     try:
         with open(filename_inds_n_4_o_4, 'w') as f:
             utils.json.dump(inds_n_4_o_4, f)
@@ -1697,12 +1595,11 @@ def process_bootstrapping_results():
 
 if __name__ == "__main__":
 
-    
-    #bootstrap_stageII()
-    #partition_S1_identities(24, state = "USA", idm = None, mode="disambiguation")
+    bootstrap_stageII()
+
+    # partition_S1_identities(24, state = "USA", idm = None, mode="disambiguation")
     quit()
 
-    #process_bootstrapping_results()
 
 
 
@@ -1720,7 +1617,7 @@ if __name__ == "__main__":
 
 def __get_customized_verdict_OLD(verdict, detailed_comparison_result):
     '''
-    @deprecated: used for v1 and v2. 
+    @deprecated: used for v1 and v2.
     Function that makes the final judgment on the relationship between two
     records. It receives the output of the L{Record.compare} method consisting
     of a (preliminary) verdict and the detailed comparison results which
@@ -1785,7 +1682,7 @@ import sys, traceback
 
 
 
-def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mode='disambiguation'):
+def get_candidate_pairs_old(num_pairs, state='USA', recompute=False, idm=None, mode='disambiguation'):
     '''
     Get pairs of record ids that are similar according
     to the national (combined) hashes, but aren't already
@@ -1802,19 +1699,19 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mod
     # file that either already contains, or will contain a set of candidate
     # pairs of record ids together with a "weight"
     if mode == "disambiguation":
-        #candidate_pairs_file = config.candidate_pairs_file_template % state
+        # candidate_pairs_file = config.candidate_pairs_file_template % state
         candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
-        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template 
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template
         candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_template
     elif mode == "bootstrapping":
-        #candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
+        # candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
         candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_bootstrapping_template % state
-        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template 
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template
         candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_bootstrapping_template
     else:
         raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
-    
-        
+
+
 
     # Make sure the file already exists
     if not recompute:
@@ -1841,11 +1738,11 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mod
     # record is similar to quite a few of the records in the larger cluster. Using the hashing method
     # as we've done before will have the following result: the single record will definitely be found
     # close to *some* record from the large cluster in different permutations. Hoever, it may not end
-    # up close to any one of them sonsistently enough that their proximity will be registered. 
+    # up close to any one of them sonsistently enough that their proximity will be registered.
     # So, instead of recording which records are proximare, we should register which *identities* are
     # proximate via their records.
     # NOTE: implement the new version.
-    edgelist = hashes.get_edgelist_from_hashes_file(filename, state, B, num_shuffles, num_procs=3, num_pairs=num_pairs, idm = idm, prune = True)
+    edgelist = hashes.get_edgelist_from_hashes_file(filename, state, B, num_shuffles, num_procs=3, num_pairs=num_pairs, idm=idm, prune=True)
     # edgelist.reverse()
     print "Done with get_edgelist_from_hashes_file()"
     print "Done fetching new pairs."
@@ -1855,7 +1752,7 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mod
     # Export identity edgelist to file
     with open(candidate_S1_identity_pairs_file, 'w') as f:
         for edge in edgelist:
-            #f.write("%s %s %d\n" % (edge[0], edge[1], edge[2]))
+            # f.write("%s %s %d\n" % (edge[0], edge[1], edge[2]))
             f.write("%s %s\n" % (edge[0], edge[1]))
 
 
@@ -1863,7 +1760,7 @@ def get_candidate_pairs(num_pairs, state='USA', recompute=False, idm = None, mod
 
 def partition_records(num_partitions, state="USA"):
     '''
-    @deprecated: 
+    @deprecated:
     Partition the set of records appearing in the pairs identified
     by L{get_candidate_pairs()} into num_partitions subsets
     with minimal inter-set links, and export the edgelists within
@@ -1884,5 +1781,131 @@ def partition_records(num_partitions, state="USA"):
         return list_record_pairs
     '''
     pass
+
+
+
+
+
+def partition_S1_identities_OLD(num_partitions, state="USA", idm=None, mode="disambiguation" , recompute_identity_partitions=True):
+    '''
+    @deprecated: SLOW GRAPH PARTITIONING.
+    Replacing L{partition_records}, this method uses the record edgelist
+    to identify which S1 "identities" are potential matches, and then partitions
+    the identities--rather than the records--into minimally overlapping sets.
+    The goal is to compare pairs of identities rather than records.
+    This method has 2 main outputs:
+    1- C{config.candidate_S1_identity_pairs_partitioned_file_template} for each partition.
+    This file conains a list of pairs of S1 identities that must be compared.
+    2- C{config.candidate_list_records_partitioned_file_template} for each partition.
+    This file contains a list of record ids associated with any of the identities found
+    in the previous file.
+    '''
+    if not idm:
+        # IdentityManager instance
+        idm = Database.IdentityManager('USA')
+
+    def load_identity_pair_partitions_from_file(candidate_S1_identity_pairs_partitioned_file_template, num_partitions):
+        '''
+        If idenetity paritions are already exported to files, use this function
+        to load them rather than recompute them. Use the output to partition
+        record ids.
+        '''
+        list_of_list_edges = []
+        for i in range(num_partitions):
+            filename = candidate_S1_identity_pairs_partitioned_file_template % (state, i)
+
+            with open(filename) as f1:
+                try:
+                    print "Loading list of identity pairs from file", filename
+                    list_identity_pairs = [tuple(line.strip().split(' ')) for line in f1]
+                    list_of_list_edges.append(list_identity_pairs)
+                except Exception as e:
+                    print "ERROR: ", e
+                    print "Unable to load list of identity pairs from file ", filename
+                    raise
+        return list_of_list_edges
+
+
+    # file that either already contains, or will contain a set of candidate
+    # pairs of record ids together with a "weight"
+    if mode == "disambiguation":
+        candidate_pairs_file = config.candidate_pairs_file_template % state
+        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_template % state
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_template
+        candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_template
+    elif mode == "bootstrapping":
+        candidate_pairs_file = config.candidate_pairs_file_bootstrapping_template % state
+        candidate_S1_identity_pairs_file = config.candidate_S1_identity_pairs_file_bootstrapping_template % state
+        candidate_S1_identity_pairs_partitioned_file_template = config.candidate_S1_identity_pairs_partitioned_file_bootstrapping_template
+        candidate_list_records_partitioned_file_template = config.candidate_list_records_partitioned_file_bootstrapping_template
+    else:
+        raise ValueError("ERROR: parameter 'mode' must be either 'disambiguation' or 'bootstrapping'.")
+
+
+    # NOTE: in the new version, we start with the candidate
+    # identity pairs, so we don't need to find them from candidate
+    # record pairs first.
+
+
+
+    if recompute_identity_partitions:
+        # Divide the set of S1 identities into roughly equally sized components.
+        ig = utils.igraph
+        with open(candidate_S1_identity_pairs_file) as f:
+            g = ig.Graph.Read_Ncol(f, names=True, weights="if_present", directed=False)
+        print "S1 identity candidates read from file."
+        print "Graph of S1 identities:"
+        print "   vcount: ", g.vcount()
+        print "   ecount: ", g.ecount()
+        print "   density:", float(g.ecount()) / g.vcount()
+
+
+        # list_components = g.components().subgraphs()
+        list_components = g.community_fastgreedy().as_clustering().subgraphs()
+        print "List of identity pairs divided into partitions."
+
+        # partition the list of all connected components into a list of
+        # num_partition subsets such that the total number of nodes in each
+        # partition is roughly constant.
+        list_of_partitions = utils.partition_list_of_graphs(list_components, num_partitions)
+        print "lengths of partitions:" , [sum([g.vcount() for g in partition]) for partition in list_of_partitions]
+        print "max size of graphs in partitions:" , [max([g.vcount() for g in partition]) for partition in list_of_partitions]
+
+
+        # Export the identity edgelist for each partition to a separate file.
+        # This is an edgelist between S1 identities
+        print "Saving identity pair partitions to separate files..."
+        list_of_list_edges = [ [(g.vs[e.source]['name'], g.vs[e.target]['name']) for g in partition for e in g.es] for partition in list_of_partitions]
+        for counter, partition in enumerate(list_of_list_edges):
+            with open(candidate_S1_identity_pairs_partitioned_file_template % (state, counter), 'w') as f:
+                for edge in partition:
+                    f.write("%s %s\n" % edge)
+        print "Done."
+
+
+
+    else:
+        # NOTE: only if the identity pair partitions are already written
+        # to file. Don't recompute the identity pair partitions, but load
+        # them from file, so that record id partitions can be quickly computed.
+        # and exported to file.
+        list_of_list_edges = load_identity_pair_partitions_from_file(candidate_S1_identity_pairs_partitioned_file_template, num_partitions)
+
+
+
+    # For each partition, export a list of all record ids necessary
+    # for processing that partition. These are all record ids associated
+    # with any of the identities in the partition.
+    for counter, partition in enumerate(list_of_list_edges):
+        set_record_ids = set()
+        for edge in partition:
+            identity1, identity2 = edge
+            set_record_ids.update(set(idm.get_ids(identity1)))
+            set_record_ids.update(set(idm.get_ids(identity2)))
+
+        with open(candidate_list_records_partitioned_file_template % (state, counter), 'w') as f:
+            for r_id in set_record_ids:
+                f.write('%d\n' % r_id)
+
 
 
