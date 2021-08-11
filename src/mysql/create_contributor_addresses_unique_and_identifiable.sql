@@ -199,20 +199,6 @@ INSERT INTO contributor_addresses_identifiable
 
 COMMIT;
 
--- UNLOCK TABLES;
-
--- DROP TABLE t1;
--- DROP TABLE t2;
-
--- DROP TABLE uniques;
--- DROP TABLE identifiables;
-
-
-
-
-
-
-
 
 
 
